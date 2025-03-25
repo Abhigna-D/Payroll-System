@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/css/styles.css" rel="stylesheet">
+    <title>Employee Management System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        .nav-tabs {
+            margin-bottom: 0;
+        }
+        h2 {
+            color: #0d6efd;
+            margin-bottom: 20px;
+        }
+        .employee-row:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+        #employeeDetails {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="#">Employee Management System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#employeeManagement">Employees</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#departmentSection">Departments</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#reportsSection">Reports</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="list-tab" data-bs-toggle="tab" data-bs-target="#employeeList" type="button" role="tab">Employee List</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="create-tab" data-bs-toggle="tab" data-bs-target="#createEmployee" type="button" role="tab">Create Employee</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tax-tab" data-bs-toggle="tab" data-bs-target="#taxManagement" type="button" role="tab">Tax Management</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="salary-tab" data-bs-toggle="tab" data-bs-target="#salaryManagement" type="button" role="tab">Salary Management</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendanceManagement" type="button" role="tab">Attendance</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="mainTabContent">
+            <!-- Employee List Tab -->
+            <div class="tab-pane fade show active" id="employeeList" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h2>Employee List</h2>
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" id="searchEmployee" class="form-control" placeholder="Search employees...">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select id="departmentFilter" class="form-select">
+                                            <option value="">All Departments</option>
+                                            <option value="1">HR</option>
+                                            <option value="2">IT</option>
+                                            <option value="3">Finance</option>
+                                            <option value="4">Marketing</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button id="refreshEmployees" class="btn btn-primary w-100">Refresh</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Name</th>
+                                                <th>Position</th>
+                                                <th>Department</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="employeeTableBody">
+                                            <!-- Employee rows will be populated here -->
+                                            <tr class="employee-row">
+                                                <td>EMP001</td>
+                                                <td>John Doe</td>
+                                                <td>Software Engineer</td>
+                                                <td>IT</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-info view-employee">View</button>
+                                                    <button class="btn btn-sm btn-warning edit-employee">Edit</button>
+                                                    <button class="btn btn-sm btn-danger delete-employee">Delete</button>
+                                                </td>
+                                            </tr>
+                                            <tr class="employee-row">
+                                                <td>EMP002</td>
+                                                <td>Jane Smith</td>
+                                                <td>HR Manager</td>
+                                                <td>HR</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-info view-employee">View</button>
+                                                    <button class="btn btn-sm btn-warning edit-employee">Edit</button>
+                                                    <button class="btn btn-sm btn-danger delete-employee">Delete</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div id="employeeDetails" class="card">
+                            <div class="card-header bg-info text-white">
+                                <h5 id="detailsEmployeeName">Employee Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="employeeDetailsContent">
+                                    <!-- Employee details will be populated here -->
+                                    <p><strong>ID:</strong> <span id="detailsEmployeeID"></span></p>
+                                    <p><strong>Name:</strong> <span id="detailsName"></span></p>
+                                    <p><strong>Position:</strong> <span id="detailsPosition"></span></p>
+                                    <p><strong>Department:</strong> <span id="detailsDepartment"></span></p>
+                                    <hr>
+                                    <h6>Salary Information:</h6>
+                                    <p><strong>Base Pay:</strong> $<span id="detailsBasePay"></span></p>
+                                    <p><strong>Net Pay:</strong> $<span id="detailsNetPay"></span></p>
+                                    <hr>
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-outline-primary view-salary-details">View Salary Details</button>
+                                        <button class="btn btn-outline-primary view-tax-details">View Tax Details</button>
+                                        <button class="btn btn-outline-primary view-attendance">View Attendance</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Employee Tab -->
+            <div class="tab-pane fade" id="createEmployee" role="tabpanel">
+                <h2>Create New Employee</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <form id="createEmployeeForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="employeeID" class="form-label">Employee ID</label>
+                                    <input type="text" class="form-control" id="employeeID" placeholder="Will be auto-generated if left empty">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="name" class="form-label">Full Name *</label>
+                                    <input type="text" class="form-control" id="name" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="position" class="form-label">Position *</label>
+                                    <input type="text" class="form-control" id="position" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="department" class="form-label">Department *</label>
+                                    <select class="form-select" id="department" required>
+                                        <option value="">Select Department</option>
+                                        <option value="1">HR</option>
+                                        <option value="2">IT</option>
+                                        <option value="3">Finance</option>
+                                        <option value="4">Marketing</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <h5 class="mt-4">Bank Details</h5>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="accountNumber" class="form-label">Account Number</label>
+                                    <input type="text" class="form-control" id="accountNumber">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="bankName" class="form-label">Bank Name</label>
+                                    <input type="text" class="form-control" id="bankName">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="ifscCode" class="form-label">IFSC Code</label>
+                                    <input type="text" class="form-control" id="ifscCode">
+                                </div>
+                            </div>
+                            <h5 class="mt-4">Salary Details</h5>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="basePay" class="form-label">Base Pay</label>
+                                    <input type="number" class="form-control" id="basePay">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="employeeType" class="form-label">Employee Type</label>
+                                    <select class="form-select" id="employeeType">
+                                        <option value="fulltime">Full Time</option>
+                                        <option value="parttime">Part Time</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3" id="hourlyRateField" style="display:none;">
+                                    <label for="hourlyRate" class="form-label">Hourly Rate</label>
+                                    <input type="number" class="form-control" id="hourlyRate">
+                                </div>
+                            </div>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                <button type="reset" class="btn btn-secondary me-md-2">Reset</button>
+                                <button type="submit" class="btn btn-primary">Create Employee</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tax Management Tab -->
+            <div class="tab-pane fade" id="taxManagement" role="tabpanel">
+                <h2>Tax Management</h2>
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <select id="employeeSelectTax" class="form-select">
+                                    <option value="">Select Employee</option>
+                                    <option value="1">John Doe - EMP001</option>
+                                    <option value="2">Jane Smith - EMP002</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button id="fetchTaxDetails" class="btn btn-primary w-100">Fetch Tax Details</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form id="taxDetailsForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="tds" class="form-label">TDS (%)</label>
+                                    <input type="number" step="0.01" class="form-control" id="tds">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="pf" class="form-label">PF (%)</label>
+                                    <input type="number" step="0.01" class="form-control" id="pf">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="hra" class="form-label">HRA (%)</label>
+                                    <input type="number" step="0.01" class="form-control" id="hra">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="professionalTax" class="form-label">Professional Tax</label>
+                                    <input type="number" step="0.01" class="form-control" id="professionalTax">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="insurance" class="form-label">Insurance Deduction</label>
+                                    <input type="number" step="0.01" class="form-control" id="insurance">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="esi" class="form-label">ESI</label>
+                                    <input type="number" step="0.01" class="form-control" id="esi">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="gratuity" class="form-label">Gratuity</label>
+                                    <input type="number" step="0.01" class="form-control" id="gratuity">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="loanRepayment" class="form-label">Loan Repayment</label>
+                                    <input type="number" step="0.01" class="form-control" id="loanRepayment">
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <button type="button" id="calculateTax" class="btn btn-success w-100">Calculate Tax</button>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="submit" id="submitTax" class="btn btn-primary w-100">Submit Tax Details</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salary Management Tab -->
+            <div class="tab-pane fade" id="salaryManagement" role="tabpanel">
+                <h2>Salary Management</h2>
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <select id="employeeSelectSalary" class="form-select">
+                                    <option value="">Select Employee</option>
+                                    <option value="1">John Doe - EMP001</option>
+                                    <option value="2">Jane Smith - EMP002</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button id="fetchSalaryDetails" class="btn btn-primary w-100">Fetch Salary Details</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form id="salaryDetailsForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="salaryBasePay" class="form-label">Base Pay</label>
+                                    <input type="number" step="0.01" class="form-control" id="salaryBasePay">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="overTime" class="form-label">Overtime</label>
+                                    <input type="number" step="0.01" class="form-control" id="overTime">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="bonuses" class="form-label">Bonuses</label>
+                                    <input type="number" step="0.01" class="form-control" id="bonuses">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="netPay" class="form-label">Net Pay</label>
+                                    <input type="number" step="0.01" class="form-control" id="netPay" readonly>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <button type="button" id="calculateNetPay" class="btn btn-success w-100">Calculate Net Pay</button>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="submit" id="requestSalaryCorrection" class="btn btn-warning w-100">Request Salary Correction</button>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-12">
+                                    <button type="button" id="generatePaySlip" class="btn btn-info w-100">Generate Pay Slip</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Management Tab -->
+            <div class="tab-pane fade" id="attendanceManagement" role="tabpanel">
+                <h2>Attendance Management</h2>
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <select id="employeeSelectAttendance" class="form-select">
+                                    <option value="">Select Employee</option>
+                                    <option value="1">John Doe - EMP001</option>
+                                    <option value="2">Jane Smith - EMP002</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="date" id="attendanceDate" class="form-control" value="2025-03-24">
+                            </div>
+                            <div class="col-md-3">
+                                <button id="fetchAttendance" class="btn btn-primary w-100">Fetch</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form id="markAttendanceForm">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Attendance Status</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="attendanceStatus" id="statusPresent" value="PRESENT" checked>
+                                        <label class="form-check-label" for="statusPresent">Present</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="attendanceStatus" id="statusAbsent" value="ABSENT">
+                                        <label class="form-check-label" for="statusAbsent">Absent</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="attendanceStatus" id="statusSickLeave" value="SICK_LEAVE">
+                                        <label class="form-check-label" for="statusSickLeave">Sick Leave</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="attendanceStatus" id="statusHalfDay" value="HALF_DAY">
+                                        <label class="form-check-label" for="statusHalfDay">Half Day</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="attendanceStatus" id="statusWFH" value="WORK_FROM_HOME">
+                                        <label class="form-check-label" for="statusWFH">Work From Home</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <button type="submit" id="markAttendance" class="btn btn-primary w-100">Mark Attendance</button>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="button" id="generateAttendanceReport" class="btn btn-info w-100">Generate Attendance Report</button>
+                                </div>
+                            </div>
+                        </form>
+                        <div class="mt-4">
+                            <h5>Monthly Attendance Summary</h5>
+                            <div id="monthlyAttendanceSummary">
+                                <!-- Will be populated with attendance data -->
+                                <div class="alert alert-info">Select an employee to view their attendance summary.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Timesheet Submission -->
+    <div class="modal fade" id="timesheetModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Submit Timesheet</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="timesheetForm">
+                        <div class="mb-3">
+                            <label for="timesheetEmployee" class="form-label">Employee</label>
+                            <select class="form-select" id="timesheetEmployee" required>
+                                <option value="">Select Employee</option>
+                                <option value="1">John Doe - EMP001</option>
+                                <option value="2">Jane Smith - EMP002</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="timesheetWeek" class="form-label">Week Ending</label>
+                            <input type="date" class="form-control" id="timesheetWeek" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="timesheetDetails" class="form-label">Timesheet Details</label>
+                            <textarea class="form-control" id="timesheetDetails" rows="5" required placeholder="Enter timesheet details including hours worked each day, projects worked on, etc."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="submitTimesheetBtn">Submit Timesheet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for functionality -->
+    
+</body>
+<script src="/js/app.js"></script>
+</html>
