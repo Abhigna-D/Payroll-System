@@ -65,4 +65,5 @@ public class DashboardController {
         
         return "index"; // Your main index.html page
     }
+    
 }

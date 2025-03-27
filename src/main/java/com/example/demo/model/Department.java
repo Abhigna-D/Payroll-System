@@ -1,28 +1,19 @@
-package com.example.demo.model;
+    package com.example.demo.model;
 
-import jakarta.persistence.*;
-import lombok.Data;
-import java.util.List;
+    import jakarta.persistence.*;
+    import lombok.Data;
+    
 
-@Data
-@Entity
+    @Data
+    @Entity
 public class Department {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
+    @Column(unique = true, nullable = false)
     private int deptID;
+
+    @Column(unique = true, nullable = false)
     private String name;
-    
-    @OneToMany(mappedBy = "department")
-    private List<Employee> employees;
-    
-    public String getDepartmentDetails() {
-        return "Department: " + name + " (ID: " + deptID + ")";
-    }
-    
-    public void addEmployeeToDept(Employee employee) {
-        employees.add(employee);
-        employee.setDepartment(this);
-    }
 }

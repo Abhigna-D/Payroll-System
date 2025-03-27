@@ -1,6 +1,9 @@
 package com.example.demo.service;
 
+import com.example.demo.model.Role;
+import com.example.demo.model.ERole;
 import com.example.demo.model.User;
+import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -10,6 +13,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -19,6 +24,9 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private RoleRepository roleRepository;
 
     @Override
     @Transactional
@@ -45,16 +53,17 @@ public class UserService implements UserDetailsService {
 
         List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> {
-                    String roleName = role.getName().name();
+                    String roleName = role.getName().name(); // Ensure "ROLE_" prefix
                     System.out.println("Adding role: " + roleName);
                     return new SimpleGrantedAuthority(roleName);
                 })
                 .collect(Collectors.toList());
-
+            
         return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
-                user.getPassword(),
-                authorities);
+            user.getUsername(),
+            user.getPassword(),
+            authorities
+        );
     }
 
     @Transactional
@@ -62,14 +71,74 @@ public class UserService implements UserDetailsService {
         System.out.println("Saving user: " + user.getUsername());
         System.out.println("User password: " + user.getPassword());
         
-        // Ensure the user has at least the employee role
+        // Ensure the user has at least the employee role if no roles are specified
         if (user.getRoles() == null || user.getRoles().isEmpty()) {
-            System.out.println("WARNING: User has no roles assigned during save operation");
+            System.out.println("User has no roles - assigning default EMPLOYEE role");
+            Role employeeRole = roleRepository.findByName(ERole.ROLE_EMPLOYEE)
+                .orElseThrow(() -> new RuntimeException("Default role EMPLOYEE not found"));
+            
+            // Initialize roles set if null
+            if (user.getRoles() == null) {
+                user.setRoles(new HashSet<>());
+            }
+            
+            user.getRoles().add(employeeRole);
         }
         
+        // Debug roles before saving
+        if (user.getRoles() != null) {
+            System.out.println("Saving user with roles: " + 
+                user.getRoles().stream()
+                    .map(r -> r.getName().toString())
+                    .collect(Collectors.joining(", ")));
+        }
+        
+        // Save the user with its roles
         User savedUser = userRepository.save(user);
         userRepository.flush(); // Ensure data is written to the database immediately
+        
+        // Verify the user was saved with roles
+        User verifiedUser = userRepository.findById(savedUser.getId()).orElse(null);
+        if (verifiedUser != null && verifiedUser.getRoles() != null) {
+            System.out.println("Verified saved user roles: " + 
+                verifiedUser.getRoles().stream()
+                    .map(r -> r.getName().toString())
+                    .collect(Collectors.joining(", ")));
+        } else {
+            System.out.println("WARNING: Could not verify user roles after save!");
+        }
+        
         return savedUser;
+    }
+
+    @Transactional
+    public User createUserWithRole(User user, ERole roleName) {
+        // Find the specified role
+        Role role = roleRepository.findByName(roleName)
+            .orElseThrow(() -> new RuntimeException("Role " + roleName + " not found"));
+        
+        // Set the role for the user
+        user.setRoles(Collections.singleton(role));
+        
+        // Save the user with the role
+        return saveUser(user);
+    }
+
+    @Transactional
+    public User addRoleToUser(Long userId, ERole roleName) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        
+        Role role = roleRepository.findByName(roleName)
+            .orElseThrow(() -> new RuntimeException("Role " + roleName + " not found"));
+        
+        // Initialize roles set if null
+        if (user.getRoles() == null) {
+            user.setRoles(new HashSet<>());
+        }
+        
+        user.getRoles().add(role);
+        return userRepository.save(user);
     }
 
     public List<User> getAllUsers() {

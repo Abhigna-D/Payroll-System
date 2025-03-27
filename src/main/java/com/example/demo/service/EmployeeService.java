@@ -2,7 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.model.Employee;
 import com.example.demo.model.SalarySlip;
-import com.example.demo.model.Tax;
+import com.example.demo.model.TaxDeclaration;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,9 +23,13 @@ public interface EmployeeService {
     
     SalarySlip viewSalaryDetails(String employeeID);
     
-    Tax submitTaxDetails(String employeeID, Tax taxDetails);
+    // Changed from Tax to TaxDeclaration
+    TaxDeclaration submitTaxDetails(String employeeID, TaxDeclaration taxDetails);
     
     boolean requestSalaryCorrection(String employeeID, SalarySlip correctedSalary);
     
     boolean submitTimesheet(String employeeID, String details);
+
+    // Changed to return Employee directly instead of Optional<Employee>
+    Employee findByUsername(String username);
 }

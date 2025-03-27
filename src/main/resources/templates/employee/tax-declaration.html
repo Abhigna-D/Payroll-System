@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Declaration - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #f8f9fa;
+            padding: 0.75rem 1.5rem;
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: #0d6efd;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        main {
+            padding-top: 56px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+        }
+        .form-section {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .form-section-title {
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        .form-help-text {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .tax-benefits-info {
+            background-color: #e9ecef;
+            border-left: 4px solid #0d6efd;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .declaration-summary {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .summary-total {
+            font-weight: bold;
+            border-top: 1px solid #dee2e6;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .btn-action {
+            min-width: 120px;
+        }
+        .input-with-icon {
+            position: relative;
+        }
+        .input-with-icon .form-control {
+            padding-left: 30px;
+        }
+        .input-icon {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            color: #6c757d;
+        }
+        /* Stepper CSS */
+        .bs-stepper .step-trigger {
+            padding: 20px 10px;
+        }
+        .bs-stepper-header {
+            margin-bottom: 30px;
+        }
+        .bs-stepper-label {
+            font-weight: 500;
+            margin: 0.25rem 0;
+        }
+        .form-section-subtitle {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Payroll System</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="dropdown text-end me-3">
+            <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${employee != null ? employee.fullName : 'Employee'}">Employee</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="/employee/profile">Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+            </ul>
+        </div>
+    </header>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/employee/dashboard">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/employee/attendance">
+                                <i class="bi bi-calendar-check"></i> Attendance
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/employee/tax-declaration">
+                                <i class="bi bi-file-earmark-text"></i> Tax Declaration
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/employee/salary">
+                                <i class="bi bi-cash-stack"></i> Salary
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/employee/profile">
+                                <i class="bi bi-person-badge"></i> Profile
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Tax Declaration</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-download"></i> Download Form
+                            </button>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="financialYearDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-calendar3"></i> Financial Year 2025-26
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="financialYearDropdown">
+                                <li><a class="dropdown-item" href="#">Financial Year 2025-26</a></li>
+                                <li><a class="dropdown-item" href="#">Financial Year 2024-25</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div th:if="${success}" class="alert alert-success" th:text="${success}">
+                </div>
+                
+                <div th:if="${error}" class="alert alert-danger" th:text="${error}">
+                </div>
+                
+                <!-- Form Status Card -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <h5 class="mb-1">Declaration Status</h5>
+                                <span class="badge bg-warning text-dark" th:if="${taxDeclaration != null && taxDeclaration.status == 'PENDING'}">Pending Approval</span>
+                                <span class="badge bg-success" th:if="${taxDeclaration != null && taxDeclaration.status == 'APPROVED'}">Approved</span>
+                                <span class="badge bg-danger" th:if="${taxDeclaration != null && taxDeclaration.status == 'REJECTED'}">Rejected</span>
+                                <span class="badge bg-secondary" th:if="${taxDeclaration == null}">Not Submitted</span>
+                                <p class="mt-2 mb-0 small text-muted">Last Updated: <span th:if="${taxDeclaration != null}" th:text="${#temporals.format(taxDeclaration.lastUpdateDate, 'dd MMM yyyy')}">15 Mar 2025</span><span th:unless="${taxDeclaration != null}">N/A</span></p>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <small>₹0 / ₹150,000</small>
+                                    <small>Section 80C Utilization</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mt-3 mb-0" th:if="${taxDeclaration != null && taxDeclaration.status == 'REJECTED'}">
+                            <i class="bi bi-info-circle-fill"></i> Your declaration was rejected. Reason: <span th:text="${taxDeclaration.rejectionReason}">Incomplete documentation</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tax Declaration Form -->
+                <form id="taxDeclarationForm" method="post" action="/employee/tax-declaration/save" enctype="multipart/form-data">
+                    <div class="form-section">
+                        <h4 class="form-section-title">Personal Information</h4>
+                        <p class="form-section-subtitle">Basic employee details used for tax filing purposes</p>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="employeeId" class="form-label">Employee ID</label>
+                                <input type="text" class="form-control" id="employeeId" name="employeeId" th:value="${employee != null ? employee.employeeID : ''}" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="name" name="name" th:value="${employee != null ? employee.fullName : ''}" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="pan" class="form-label">PAN Number*</label>
+                                <input type="text" class="form-control" id="pan" name="pan" th:value="${taxDeclaration != null ? taxDeclaration.pan : ''}" placeholder="ABCDE1234F" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="department" class="form-label">Department</label>
+                                <input type="text" class="form-control" id="department" name="department" th:value="${employee != null && employee.department != null ? employee.department.name : ''}" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="designation" class="form-label">Designation</label>
+                                <input type="text" class="form-control" id="designation" name="designation" th:value="${employee != null ? employee.jobTitle : ''}" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="taxRegime" class="form-label">Tax Regime*</label>
+                                <select class="form-select" id="taxRegime" name="taxRegime" required>
+                                    <option value="">Select Tax Regime</option>
+                                    <option value="OLD" th:selected="${taxDeclaration != null && taxDeclaration.taxRegime == 'OLD'}">Old Regime (With Exemptions)</option>
+                                    <option value="NEW" th:selected="${taxDeclaration != null && taxDeclaration.taxRegime == 'NEW'}">New Regime (Lower Rates)</option>
+                                </select>
+                                <div class="form-help-text">
+                                    <i class="bi bi-info-circle-fill"></i> Choose based on your tax planning needs
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4 class="form-section-title">Section 80C Deductions <small class="text-muted">(Max: ₹1,50,000)</small></h4>
+                        <p class="form-section-subtitle">Long-term investments and payments eligible for tax deduction under Section 80C</p>
+                        
+                        <div class="tax-benefits-info mb-4">
+                            <h6><i class="bi bi-lightbulb-fill text-warning"></i> Did you know?</h6>
+                            <p class="mb-0">You can save up to ₹46,800 in taxes by fully utilizing the ₹1,50,000 limit under Section 80C (assuming highest tax bracket).</p>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="epf" class="form-label">Employee Provident Fund (EPF)</label>
+                                <div class="input-with-icon">
+                                    <span class="input-icon">₹</span>
+                                    <input type="number" class="form-control" id="previousTaxableIncome" name="previousTaxableIncome" th:value="${taxDeclaration != null ? taxDeclaration.previousTaxableIncome : ''}" placeholder="0">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3 prev-job-field" style="display: none;">
+                            <div class="col-md-4">
+                                <label for="previousTaxDeducted" class="form-label">TDS Deducted by Previous Employer</label>
+                                <div class="input-with-icon">
+                                    <span class="input-icon">₹</span>
+                                    <input type="number" class="form-control" id="previousTaxDeducted" name="previousTaxDeducted" th:value="${taxDeclaration != null ? taxDeclaration.previousTaxDeducted : ''}" placeholder="0">
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="form16File" class="form-label">Upload Form 16 / Tax Statement</label>
+                                <input class="form-control" type="file" id="form16File" name="form16File">
+                                <div class="form-help-text">Upload PDF copy of Form 16 or Tax Statement from previous employer</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4 class="form-section-title">Upload Supporting Documents</h4>
+                        <p class="form-section-subtitle">Provide proof documents for your tax declarations</p>
+                        
+                        <div class="mb-3">
+                            <label for="section80CDocuments" class="form-label">Section 80C Investment Proofs</label>
+                            <input class="form-control" type="file" id="section80CDocuments" name="section80CDocuments" multiple>
+                            <div class="form-help-text">Upload receipts/certificates for PPF, ELSS, FD, Life Insurance, etc.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="medicalInsuranceDocuments" class="form-label">Medical Insurance Premium Receipts</label>
+                            <input class="form-control" type="file" id="medicalInsuranceDocuments" name="medicalInsuranceDocuments" multiple>
+                            <div class="form-help-text">Upload health insurance premium receipts</div>
+                        </div>
+                        
+                        <div class="mb-3 rent-docs" style="display: none;">
+                            <label for="rentReceipts" class="form-label">Rent Receipts</label>
+                            <input class="form-control" type="file" id="rentReceipts" name="rentReceipts" multiple>
+                            <div class="form-help-text">Upload rent receipts/rent agreement</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="homeLoanDocuments" class="form-label">Home Loan Interest Certificate</label>
+                            <input class="form-control" type="file" id="homeLoanDocuments" name="homeLoanDocuments" multiple>
+                            <div class="form-help-text">Upload annual interest certificate from bank/lender</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="additionalDocuments" class="form-label">Other Supporting Documents</label>
+                            <input class="form-control" type="file" id="additionalDocuments" name="additionalDocuments" multiple>
+                            <div class="form-help-text">Upload any other tax-related documents</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Declaration Summary -->
+                    <div class="form-section">
+                        <h4 class="form-section-title">Declaration Summary</h4>
+                        <p class="form-section-subtitle">Review your total tax saving investments and deductions</p>
+                        
+                        <div class="declaration-summary">
+                            <div class="summary-item">
+                                <span>Section 80C Deductions</span>
+                                <span>₹<span id="total80C">0</span> <small class="text-muted">(Max: ₹1,50,000)</small></span>
+                            </div>
+                            <div class="summary-item">
+                                <span>NPS Contribution (80CCD(1B))</span>
+                                <span>₹<span id="totalNPS">0</span> <small class="text-muted">(Max: ₹50,000)</small></span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Medical Insurance (80D)</span>
+                                <span>₹<span id="totalHealthInsurance">0</span></span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Home Loan Interest (Sec 24)</span>
+                                <span>₹<span id="totalHomeLoanInterest">0</span></span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Education Loan Interest (80E)</span>
+                                <span>₹<span id="totalEducationLoan">0</span></span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Other Deductions</span>
+                                <span>₹<span id="totalOtherDeductions">0</span></span>
+                            </div>
+                            <div class="summary-item summary-total">
+                                <span>Total Deductions</span>
+                                <span>₹<span id="grandTotal">0</span></span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="declarationCheck" name="declarationCheck" required>
+                                <label class="form-check-label" for="declarationCheck">
+                                    I hereby declare that the information provided above is true and correct to the best of my knowledge. I understand that any false information may lead to rejection of my tax declaration and possible disciplinary action.
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4 mb-5">
+                        <a href="/employee/dashboard" class="btn btn-outline-secondary btn-action">
+                            <i class="bi bi-arrow-left"></i> Back to Dashboard
+                        </a>
+                        <div>
+                            <button type="button" class="btn btn-outline-primary btn-action me-2" id="saveAsDraftBtn">
+                                <i class="bi bi-save"></i> Save as Draft
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-action">
+                                <i class="bi bi-check-circle"></i> Submit Declaration
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle rent fields based on isRenting selection
+            const isRentingSelect = document.getElementById('isRenting');
+            const rentFields = document.querySelectorAll('.rent-field');
+            const rentDocs = document.querySelector('.rent-docs');
+            
+            function toggleRentFields() {
+                const isRenting = isRentingSelect.value === 'true';
+                rentFields.forEach(field => {
+                    field.style.display = isRenting ? 'block' : 'none';
+                });
+                rentDocs.style.display = isRenting ? 'block' : 'none';
+            }
+            
+            isRentingSelect.addEventListener('change', toggleRentFields);
+            toggleRentFields(); // Initial state
+            
+            // Toggle previous employment fields
+            const hasPreviousEmploymentSelect = document.getElementById('hasPreviousEmployment');
+            const prevJobFields = document.querySelectorAll('.prev-job-field');
+            
+            function togglePrevJobFields() {
+                const hasPrevJob = hasPreviousEmploymentSelect.value === 'true';
+                prevJobFields.forEach(field => {
+                    field.style.display = hasPrevJob ? 'block' : 'none';
+                });
+            }
+            
+            hasPreviousEmploymentSelect.addEventListener('change', togglePrevJobFields);
+            togglePrevJobFields(); // Initial state
+            
+            // Calculate section 80C total
+            const section80CInputs = [
+                'epf', 'vpf', 'lifeInsurance', 'elss', 'ppf', 
+                'homeLoanPrincipal', 'sukanyaSamriddhi', 'tuitionFees', 
+                'nsc', 'taxSavingFD'
+            ];
+            
+            function calculateTotals() {
+                // Calculate 80C total
+                let total80C = 0;
+                section80CInputs.forEach(id => {
+                    const input = document.getElementById(id);
+                    if (input && input.value) {
+                        total80C += parseInt(input.value, 10) || 0;
+                    }
+                });
+                document.getElementById('total80C').textContent = total80C.toLocaleString();
+                
+                // Update other totals
+                document.getElementById('totalNPS').textContent = 
+                    (parseInt(document.getElementById('nps').value, 10) || 0).toLocaleString();
+                
+                document.getElementById('totalHealthInsurance').textContent = 
+                    (parseInt(document.getElementById('medicalInsurance').value, 10) || 0).toLocaleString();
+                
+                document.getElementById('totalHomeLoanInterest').textContent = 
+                    (parseInt(document.getElementById('homeLoanInterest').value, 10) || 0).toLocaleString();
+                
+                document.getElementById('totalEducationLoan').textContent = 
+                    (parseInt(document.getElementById('educationLoan').value, 10) || 0).toLocaleString();
+                
+                // Calculate other deductions
+                let otherDeductions = 
+                    (parseInt(document.getElementById('donations').value, 10) || 0) + 
+                    (parseInt(document.getElementById('disabilityDeduction').value, 10) || 0);
+                
+                document.getElementById('totalOtherDeductions').textContent = otherDeductions.toLocaleString();
+                
+                // Calculate grand total
+                let grandTotal = total80C + 
+                    (parseInt(document.getElementById('nps').value, 10) || 0) +
+                    (parseInt(document.getElementById('medicalInsurance').value, 10) || 0) +
+                    (parseInt(document.getElementById('homeLoanInterest').value, 10) || 0) +
+                    (parseInt(document.getElementById('educationLoan').value, 10) || 0) +
+                    otherDeductions;
+                
+                document.getElementById('grandTotal').textContent = grandTotal.toLocaleString();
+                
+                // Update 80C progress bar
+                const percentUsed = Math.min(100, (total80C / 150000) * 100);
+                document.querySelector('.progress-bar').style.width = percentUsed + '%';
+                document.querySelector('.progress-bar').setAttribute('aria-valuenow', percentUsed);
+                document.querySelector('.progress-bar').textContent = percentUsed.toFixed(1) + '%';
+                
+                // Update 80C utilization text
+                document.querySelector('.d-flex.justify-content-between.mt-2 small:first-child').textContent = 
+                    '₹' + total80C.toLocaleString() + ' / ₹150,000';
+            }
+            
+            // Add event listeners to all relevant inputs
+            const allInputs = [
+                ...section80CInputs, 
+                'nps', 'medicalInsurance', 'homeLoanInterest', 
+                'educationLoan', 'donations', 'disabilityDeduction'
+            ];
+            
+            allInputs.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('input', calculateTotals);
+                }
+            });
+            
+            // Initialize calculations
+            calculateTotals();
+            
+            // Save as draft functionality
+            document.getElementById('saveAsDraftBtn').addEventListener('click', function() {
+                // Add a hidden input to indicate this is a draft submission
+                const draftInput = document.createElement('input');
+                draftInput.type = 'hidden';
+                draftInput.name = 'isDraft';
+                draftInput.value = 'true';
+                document.getElementById('taxDeclarationForm').appendChild(draftInput);
+                
+                // Remove required attribute from mandatory fields for draft save
+                document.querySelectorAll('[required]').forEach(el => {
+                    el.removeAttribute('required');
+                });
+                
+                // Submit the form
+                document.getElementById('taxDeclarationForm').submit();
+            });
+        });
+    </script>
+</body>
+</html>
+                             

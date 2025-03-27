@@ -3,17 +3,16 @@ package com.example.demo.service;
 import com.example.demo.model.Attendance;
 import com.example.demo.model.Employee;
 import com.example.demo.model.SalarySlip;
-import com.example.demo.model.Tax;
+import com.example.demo.model.TaxDeclaration;
 import com.example.demo.repository.AttendanceRepository;
 import com.example.demo.repository.EmployeeRepository;
 import com.example.demo.repository.SalarySlipRepository;
-import com.example.demo.repository.TaxRepository;
+import com.example.demo.repository.TaxDeclarationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +26,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private SalarySlipRepository salarySlipRepository;
     
     @Autowired
-    private TaxRepository taxRepository;
+    private TaxDeclarationRepository taxDeclarationRepository;
     
     @Autowired
     private AttendanceRepository attendanceRepository;
@@ -54,56 +53,40 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public void deleteEmployee(String employeeID) {
-        employeeRepository.findByEmployeeID(employeeID).ifPresent(employee -> 
-            employeeRepository.delete(employee));
+        Employee employee = employeeRepository.findByEmployeeID(employeeID)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+        employeeRepository.delete(employee);
     }
 
     @Override
     public List<Employee> getEmployeesByDepartment(int deptId) {
-        // You might need to modify this method if your Department entity has a different ID type
-        try {
-            // Try to use the existing method if available
-            return employeeRepository.findByDepartmentId(deptId);
-        } catch (Exception e) {
-            // Fallback method (customize based on your actual model)
-            return Collections.emptyList();
-        }
+        return employeeRepository.findByDepartmentId(deptId);
     }
 
     @Override
     public SalarySlip viewSalaryDetails(String employeeID) {
-        Optional<Employee> employeeOpt = employeeRepository.findByEmployeeID(employeeID);
-        if (employeeOpt.isPresent()) {
-            Employee employee = employeeOpt.get();
-            return employee.getSalaryDetails();
-        }
-        return null;
+        return employeeRepository.findByEmployeeID(employeeID)
+                .map(Employee::getSalaryDetails)
+                .orElse(null);
     }
 
     @Override
     @Transactional
-    public Tax submitTaxDetails(String employeeID, Tax taxDetails) {
-        Optional<Employee> employeeOpt = employeeRepository.findByEmployeeID(employeeID);
-        if (employeeOpt.isPresent()) {
-            Employee employee = employeeOpt.get();
+    public TaxDeclaration submitTaxDetails(String employeeID, TaxDeclaration taxDetails) {
+        return employeeRepository.findByEmployeeID(employeeID).map(employee -> {
             taxDetails.setEmployee(employee);
-            Tax savedTax = taxRepository.save(taxDetails);
-            employee.setTaxDetails(savedTax);  // Updated to use setter instead of method
+            TaxDeclaration savedTax = taxDeclarationRepository.save(taxDetails);
+            // Note: We need to update the Employee class to include a setTaxDeclaration method
+            // employee.setTaxDeclaration(savedTax);
             employeeRepository.save(employee);
             return savedTax;
-        }
-        return null;
+        }).orElse(null);
     }
 
     @Override
     @Transactional
     public boolean requestSalaryCorrection(String employeeID, SalarySlip correctedSalary) {
-        Optional<Employee> employeeOpt = employeeRepository.findByEmployeeID(employeeID);
-        if (employeeOpt.isPresent()) {
-            Employee employee = employeeOpt.get();
-            
-            // Here you would implement the business logic for salary correction requests
-            // For this example, we'll just update the salary details
+        return employeeRepository.findByEmployeeID(employeeID).map(employee -> {
             SalarySlip currentSalary = employee.getSalaryDetails();
             if (currentSalary != null) {
                 currentSalary.setBasicSalary(correctedSalary.getBasicSalary());
@@ -117,38 +100,53 @@ public class EmployeeServiceImpl implements EmployeeService {
                 employee.setSalaryDetails(correctedSalary);
                 employeeRepository.save(employee);
             }
-            
-            // In a real application, you might create a separate entity to track correction requests
-            // For now, we'll just return true to indicate success
             return true;
-        }
-        return false;
+        }).orElse(false);
     }
 
     @Override
     @Transactional
     public boolean submitTimesheet(String employeeID, String details) {
-        Optional<Employee> employeeOpt = employeeRepository.findByEmployeeID(employeeID);
-        if (employeeOpt.isPresent()) {
-            Employee employee = employeeOpt.get();
-            
-            // Parse details and create attendance record
-            // In a real system, you would parse the details string more thoroughly
+        return employeeRepository.findByEmployeeID(employeeID).map(employee -> {
+            // Create new attendance record
             Attendance attendance = new Attendance();
-            attendance.setEmployee(employee);
-            attendance.setMonth(LocalDate.now());
             
-            // Just an example - in a real system you'd parse these from the details
+            // Set employee ID directly instead of using the setEmployee method
+            attendance.setEmployeeId(employee.getEmployeeID());
+            attendance.setDate(LocalDate.now());
+            attendance.setMonth(LocalDate.now());
+
+            // Set default values
             attendance.setDaysPresent(22);
             attendance.setDaysAbsent(0);
             attendance.setDaysLeave(0);
-            
+            attendance.setStatus(Attendance.AttendanceStatus.PRESENT);
+
+            // Save the attendance record
             Attendance savedAttendance = attendanceRepository.save(attendance);
-            employee.setAttendance(savedAttendance);  // Updated to use setter instead of method
+            
+            // If attendanceRecords list is null, initialize it
+            if (employee.getAttendanceRecords() == null) {
+                employee.setAttendanceRecords(new java.util.ArrayList<>());
+            }
+            
+            // Add the new attendance record to the employee's list
+            employee.getAttendanceRecords().add(savedAttendance);
             employeeRepository.save(employee);
             
             return true;
+        }).orElse(false);
+    }
+
+    @Override
+    public Employee findByUsername(String username) {
+        // Changed to return Employee directly instead of Optional<Employee>
+        // This avoids issues with the nested entity loading
+        try {
+            return employeeRepository.findByUser_Username(username);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
-        return false;
     }
 }
