@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .register-container {
+            max-width: 550px;
+            margin: 80px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .register-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .register-header h2 {
+            color: #333;
+            font-weight: 600;
+        }
+        .register-header img {
+            max-width: 80px;
+            margin-bottom: 15px;
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border: none;
+            padding: 10px;
+            font-weight: 500;
+        }
+        .role-selection {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .role-option {
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+            padding: 15px 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .role-option:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9ff;
+        }
+        .role-option.selected {
+            border-color: #0d6efd;
+            background-color: #e6f0ff;
+        }
+        .role-option i {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 10px;
+            color: #6c757d;
+        }
+        .role-option.selected i {
+            color: #0d6efd;
+        }
+        .alert {
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .alert-danger {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="container">
+        <div class="register-container">
+            <div class="register-header">
+                <img src="https://cdn-icons-png.flaticon.com/512/2173/2173478.png" alt="Logo">
+                <h2>Create Account</h2>
+                <p>Register for the Payroll System</p>
+            </div>
+            
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}">
+            </div>
+            
+            <form th:action="@{/register}" method="post" th:object="${user}" id="registerForm">
+                <div class="mb-3">
+                    <label class="form-label">Select Role</label>
+                    <div class="role-selection">
+                        <div class="role-option selected" onclick="selectRole('employee', this)">
+                            <i class="bi bi-person-badge"></i>
+                            <span>Employee</span>
+                        </div>
+                        <div class="role-option" onclick="selectRole('hr', this)">
+                            <i class="bi bi-people"></i>
+                            <span>HR Manager</span>
+                        </div>
+                        <div class="role-option" onclick="selectRole('manager', this)">
+                            <i class="bi bi-briefcase"></i>
+                            <span>Department Manager</span>
+                        </div>
+                        <div class="role-option" onclick="selectRole('finance', this)">
+                            <i class="bi bi-cash-stack"></i>
+                            <span>Finance Officer</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="roleInput" name="role" value="employee">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" class="form-control" id="username" name="username" th:field="*{username}" required>
+                    </div>
+                    <div class="form-text text-muted">
+                        Choose a unique username for login
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input type="email" class="form-control" id="email" name="email" th:field="*{email}" required>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" class="form-control" id="password" name="password" th:field="*{password}" required minlength="6">
+                    </div>
+                    <div class="form-text text-muted">
+                        Password must be at least 6 characters long
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">Create Account</button>
+                </div>
+            </form>
+            
+            <div class="mt-3 text-center">
+                <p>Already have an account? <a th:href="@{/login}">Log In</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function selectRole(role, element) {
+            // Remove selected class from all options
+            document.querySelectorAll('.role-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked option
+            element.classList.add('selected');
+            
+            // Update hidden input value
+            document.getElementById('roleInput').value = role;
+            console.log('Role selected:', role);
+        }
+
+        // On page load, make sure employee role is selected by default
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find employee role option and select it
+            const employeeOption = document.querySelector('.role-option:first-child');
+            if (employeeOption) {
+                employeeOption.classList.add('selected');
+                document.getElementById('roleInput').value = 'employee';
+            }
+            
+            // Form validation
+            const registerForm = document.getElementById('registerForm');
+            if (registerForm) {
+                registerForm.addEventListener('submit', function(event) {
+                    const username = document.getElementById('username').value.trim();
+                    const email = document.getElementById('email').value.trim();
+                    const password = document.getElementById('password').value;
+                    const role = document.getElementById('roleInput').value;
+                    
+                    let isValid = true;
+                    let errorMessage = '';
+                    
+                    // Validate username
+                    if (!username) {
+                        isValid = false;
+                        errorMessage = 'Username is required';
+                    }
+                    
+                    // Validate email
+                    if (!email) {
+                        isValid = false;
+                        errorMessage = 'Email is required';
+                    } else if (!email.includes('@')) {
+                        isValid = false;
+                        errorMessage = 'Please enter a valid email address';
+                    }
+                    
+                    // Validate password
+                    if (!password) {
+                        isValid = false;
+                        errorMessage = 'Password is required';
+                    } else if (password.length < 6) {
+                        isValid = false;
+                        errorMessage = 'Password must be at least 6 characters long';
+                    }
+                    
+                    // Validate role
+                    if (!role) {
+                        isValid = false;
+                        errorMessage = 'Please select a role';
+                    }
+                    
+                    if (!isValid) {
+                        event.preventDefault();
+                        alert(errorMessage);
+                        return false;
+                    }
+                    
+                    // Log form data for debugging
+                    console.log('Submitting registration form with:');
+                    console.log('Username:', username);
+                    console.log('Email:', email);
+                    console.log('Password length:', password.length);
+                    console.log('Role:', role);
+                    
+                    return true;
+                });
+            }
+        });
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

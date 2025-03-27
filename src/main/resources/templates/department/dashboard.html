@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department Manager Dashboard - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #f8f9fa;
+            padding: 0.75rem 1.5rem;
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: #0d6efd;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        main {
+            padding-top: 56px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+        }
+        .dashboard-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+            height: 100%;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        .dashboard-stats {
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .badge-status {
+            font-size: 0.9rem;
+            padding: 0.4rem 0.7rem;
+        }
+        .action-column {
+            width: 150px;
+        }
+        .performance-rating {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .rating-excellent {
+            color: #28a745;
+        }
+        .rating-good {
+            color: #17a2b8;
+        }
+        .rating-average {
+            color: #ffc107;
+        }
+        .rating-poor {
+            color: #dc3545;
+        }
+        .progress {
+            height: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Payroll System</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="dropdown text-end me-3">
+            <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${deptManager != null ? deptManager.name : 'Department Manager'}">Department Manager</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="/department/profile">Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+            </ul>
+        </div>
+    </header>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/department/dashboard">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/department/team">
+                                <i class="bi bi-people"></i> My Team
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/department/overtime">
+                                <i class="bi bi-clock-history"></i> Overtime Approval
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/department/performance">
+                                <i class="bi bi-graph-up"></i> Performance Evaluation
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/department/bonus-recommendations">
+                                <i class="bi bi-cash-coin"></i> Bonus Recommendations
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/department/reports">
+                                <i class="bi bi-file-earmark-text"></i> Reports
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/department/profile">
+                                <i class="bi bi-person-badge"></i> Profile
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Department Manager Dashboard</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                            <i class="bi bi-calendar3"></i> This month
+                        </button>
+                    </div>
+                </div>
+                
+                <div th:if="${success}" class="alert alert-success" th:text="${success}">
+                </div>
+                
+                <div th:if="${error}" class="alert alert-danger" th:text="${error}">
+                </div>
+                
+                <!-- Department Information -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4 th:text="${department != null ? department.name : 'Engineering Department'}">Engineering Department</h4>
+                                <p class="text-muted">
+                                    Manager: <span th:text="${deptManager != null ? deptManager.name : 'John Smith'}">John Smith</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <p>
+                                    Team Size: <span class="fw-bold" th:text="${teamSize != null ? teamSize : '15'}">15</span> members
+                                </p>
+                                <p class="mb-0">
+                                    Average Performance: 
+                                    <span class="fw-bold text-success" th:text="${averagePerformance != null ? averagePerformance : '82%'}">82%</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="dashboard-stats bg-primary bg-opacity-10">
+                            <p class="stat-value" th:text="${pendingOvertimeRequests != null ? pendingOvertimeRequests : '8'}">8</p>
+                            <p class="stat-label">Overtime Requests</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="dashboard-stats bg-success bg-opacity-10">
+                            <p class="stat-value" th:text="${pendingEvaluations != null ? pendingEvaluations : '5'}">5</p>
+                            <p class="stat-label">Pending Evaluations</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="dashboard-stats bg-warning bg-opacity-10">
+                            <p class="stat-value" th:text="${pendingBonusRecommendations != null ? pendingBonusRecommendations : '3'}">3</p>
+                            <p class="stat-label">Bonus Recommendations</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="dashboard-stats bg-info bg-opacity-10">
+                            <p class="stat-value" th:text="${teamAttendance != null ? teamAttendance + '%' : '95%'}">95%</p>
+                            <p class="stat-label">Team Attendance</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Cards -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card dashboard-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-clock-history card-icon text-primary"></i>
+                                <h5 class="card-title">Overtime Approval</h5>
+                                <p class="card-text">Review and approve employee overtime requests.</p>
+                                <a href="/department/overtime" class="btn btn-primary">Manage Overtime</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card dashboard-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-graph-up card-icon text-success"></i>
+                                <h5 class="card-title">Performance Evaluation</h5>
+                                <p class="card-text">Evaluate and manage employee performance.</p>
+                                <a href="/department/performance" class="btn btn-success">Evaluate Performance</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card dashboard-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-cash-coin card-icon text-warning"></i>
+                                <h5 class="card-title">Bonus Recommendations</h5>
+                                <p class="card-text">Recommend bonuses for high-performing employees.</p>
+                                <a href="/department/bonus-recommendations" class="btn btn-warning">Recommend Bonus</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pending Overtime Requests -->
+                <div class="my-4">
+                    <h3>Pending Overtime Requests</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="fs-5">Recent Overtime Requests</span>
+                                <a href="/department/overtime" class="btn btn-sm btn-outline-primary">View All</a>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Employee</th>
+                                            <th>Date</th>
+                                            <th>Hours</th>
+                                            <th>Reason</th>
+                                            <th>Requested On</th>
+                                            <th class="action-column">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- This would be populated with data from the backend -->
+                                        <tr th:if="${overtimeRequests != null && !overtimeRequests.empty}" th:each="request : ${overtimeRequests}">
+                                            <td th:text="${request.employee.name}">Sarah Chen</td>
+                                            <td th:text="${#temporals.format(request.date, 'dd MMM yyyy')}">25 Mar 2025</td>
+                                            <td th:text="${request.hours}">2.5</td>
+                                            <td th:text="${request.reason}">Project deadline</td>
+                                            <td th:text="${#temporals.format(request.requestedDate, 'dd MMM yyyy')}">23 Mar 2025</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a th:href="@{'/department/overtime/approve/' + ${request.id}}" class="btn btn-sm btn-success">
+                                                        <i class="bi bi-check-lg"></i>
+                                                    </a>
+                                                    <a th:href="@{'/department/overtime/reject/' + ${request.id}}" class="btn btn-sm btn-danger">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </a>
+                                                    <a th:href="@{'/department/overtime/details/' + ${request.id}}" class="btn btn-sm btn-info">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${overtimeRequests == null || overtimeRequests.empty}">
+                                            <td colspan="6" class="text-center">No pending overtime requests</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Performance Evaluations -->
+                <div class="my-4">
+                    <h3>Employee Performance</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="fs-5">Recent Performance Evaluations</span>
+                                <a href="/department/performance" class="btn btn-sm btn-outline-success">Manage Evaluations</a>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Employee</th>
+                                            <th>Rating</th>
+                                            <th>Productivity</th>
+                                            <th>Last Evaluated</th>
+                                            <th>Status</th>
+                                            <th class="action-column">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Sample data, would be replaced with backend data -->
+                                        <tr th:if="${performances != null && !performances.empty}" th:each="perf : ${performances}">
+                                            <td th:text="${perf.employee.name}">Michael Brown</td>
+                                            <td>
+                                                <span th:if="${perf.rating >= 90}" class="performance-rating rating-excellent" th:text="${perf.rating + '%'}">95%</span>
+                                                <span th:if="${perf.rating >= 75 && perf.rating < 90}" class="performance-rating rating-good" th:text="${perf.rating + '%'}">85%</span>
+                                                <span th:if="${perf.rating >= 60 && perf.rating < 75}" class="performance-rating rating-average" th:text="${perf.rating + '%'}">70%</span>
+                                                <span th:if="${perf.rating < 60}" class="performance-rating rating-poor" th:text="${perf.rating + '%'}">55%</span>
+                                            </td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar" role="progressbar" th:style="'width: ' + ${perf.productivity} + '%'" th:aria-valuenow="${perf.productivity}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                            </td>
+                                            <td th:text="${#temporals.format(perf.lastEvaluatedDate, 'dd MMM yyyy')}">10 Mar 2025</td>
+                                            <td>
+                                                <span th:if="${perf.status == 'COMPLETED'}" class="badge bg-success">Completed</span>
+                                                <span th:if="${perf.status == 'PENDING'}" class="badge bg-warning">Pending</span>
+                                                <span th:if="${perf.status == 'DUE'}" class="badge bg-danger">Due</span>
+                                            </td>
+                                            <td>
+                                                <a th:href="@{'/department/performance/evaluate/' + ${perf.id}}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-pencil"></i> Evaluate
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${performances == null || performances.empty}">
+                                            <td colspan="6" class="text-center">No pending evaluations</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bonus Recommendations -->
+                <div class="my-4">
+                    <h3>Bonus Recommendations</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="fs-5">Recent Bonus Recommendations</span>
+                                <a href="/department/bonus-recommendations/new" class="btn btn-sm btn-warning">New Recommendation</a>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Employee</th>
+                                            <th>Amount</th>
+                                            <th>Reason</th>
+                                            <th>Recommended Date</th>
+                                            <th>Status</th>
+                                            <th class="action-column">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Sample data, would be replaced with backend data -->
+                                        <tr th:if="${bonusRecommendations != null && !bonusRecommendations.empty}" th:each="bonus : ${bonusRecommendations}">
+                                            <td th:text="${bonus.employee.name}">Emily Johnson</td>
+                                            <td th:text="${'₹' + #numbers.formatDecimal(bonus.amount, 0, 'COMMA', 0, 'POINT')}">₹15,000</td>
+                                            <td th:text="${bonus.reason}">Outstanding project completion</td>
+                                            <td th:text="${#temporals.format(bonus.recommendedDate, 'dd MMM yyyy')}">20 Mar 2025</td>
+                                            <td>
+                                                <span th:if="${bonus.status == 'PENDING'}" class="badge bg-warning">Pending HR Approval</span>
+                                                <span th:if="${bonus.status == 'APPROVED'}" class="badge bg-success">Approved</span>
+                                                <span th:if="${bonus.status == 'REJECTED'}" class="badge bg-danger">Rejected</span>
+                                            </td>
+                                            <td>
+                                                <a th:href="@{'/department/bonus-recommendations/view/' + ${bonus.id}}" class="btn btn-sm btn-outline-info">
+                                                    <i class="bi bi-eye"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${bonusRecommendations == null || bonusRecommendations.empty}">
+                                            <td colspan="6" class="text-center">No bonus recommendations</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Performance Overview -->
+                <div class="my-4">
+                    <h3>Team Performance Overview</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <div class="card border-0 bg-light">
+                                        <div class="card-body text-center">
+                                            <h5 class="text-primary">Top Performer</h5>
+                                            <div class="mt-3">
+                                                <i class="bi bi-trophy text-warning" style="font-size: 2rem;"></i>
+                                                <p class="mb-0 mt-2 fw-bold" th:text="${topPerformer != null ? topPerformer.name : 'Emily Johnson'}">Emily Johnson</p>
+                                                <p class="text-muted" th:text="${topPerformer != null ? topPerformer.position : 'Senior Developer'}">Senior Developer</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-0 bg-light">
+                                        <div class="card-body text-center">
+                                            <h5 class="text-primary">Most Improved</h5>
+                                            <div class="mt-3">
+                                                <i class="bi bi-graph-up-arrow text-success" style="font-size: 2rem;"></i>
+                                                <p class="mb-0 mt-2 fw-bold" th:text="${mostImproved != null ? mostImproved.name : 'Robert Chen'}">Robert Chen</p>
+                                                <p class="text-muted" th:text="${mostImproved != null ? mostImproved.position : 'Developer'}">Developer</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-0 bg-light">
+                                        <div class="card-body text-center">
+                                            <h5 class="text-primary">Needs Attention</h5>
+                                            <div class="mt-3">
+                                                <i class="bi bi-exclamation-triangle text-danger" style="font-size: 2rem;"></i>
+                                                <p class="mb-0 mt-2 fw-bold" th:text="${needsAttention != null ? needsAttention.name : 'Mark Davis'}">Mark Davis</p>
+                                                <p class="text-muted" th:text="${needsAttention != null ? needsAttention.position : 'Junior Developer'}">Junior Developer</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center mt-3">
+                                <a href="/department/team" class="btn btn-outline-primary">View Team Details</a>
+                                <a href="/department/reports/generate" class="btn btn-outline-secondary ms-2">Generate Performance Report</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

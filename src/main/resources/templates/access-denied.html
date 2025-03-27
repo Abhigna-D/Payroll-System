@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .access-denied-container {
+            max-width: 600px;
+            padding: 40px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .access-denied-icon {
+            font-size: 5rem;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #dc3545;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        p {
+            color: #6c757d;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border: none;
+            padding: 10px 20px;
+            font-weight: 500;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="access-denied-container">
+        <i class="bi bi-shield-x access-denied-icon"></i>
+        <h1>Access Denied</h1>
+        <p>Sorry, you don't have permission to access this page. This area is restricted to authorized personnel only.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a th:href="@{/}" class="btn btn-primary">Back to Home</a>
+            <a th:href="@{/logout}" class="btn btn-outline-secondary">Logout</a>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

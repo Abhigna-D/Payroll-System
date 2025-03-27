@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Manager Dashboard - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #f8f9fa;
+            padding: 0.75rem 1.5rem;
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: #0d6efd;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        main {
+            padding-top: 56px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+        }
+        .dashboard-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+            height: 100%;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        .dashboard-stats {
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .badge-status {
+            font-size: 0.9rem;
+            padding: 0.4rem 0.7rem;
+        }
+        .action-column {
+            width: 150px;
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Payroll System</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="dropdown text-end me-3">
+            <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${hrManager != null ? hrManager.name : 'HR Manager'}">HR Manager</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="/hr/profile">Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+            </ul>
+        </div>
+    </header>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/hr/dashboard">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/employees">
+                                <i class="bi bi-people"></i> Employees
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/attendance">
+                                <i class="bi bi-calendar-check"></i> Attendance
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/complaints">
+                                <i class="bi bi-exclamation-triangle"></i> Complaints
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/bonus-approval">
+                                <i class="bi bi-cash-coin"></i> Bonus Approval
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/reports">
+                                <i class="bi bi-bar-chart"></i> Reports
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/tax-management">
+                                <i class="bi bi-file-earmark-text"></i> Tax Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/profile">
+                                <i class="bi bi-person-badge"></i> Profile
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">HR Manager Dashboard</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                            <i class="bi bi-calendar3"></i> This month
+                        </button>
+                    </div>
+                </div>
+                
+                <div th:if="${success}" class="alert alert-success" th:text="${success}">
+                </div>
+                
+                <div th:if="${error}" class="alert alert-danger" th:text="${error}">
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="dashboard-stats bg-primary bg-opacity-10">
+                            <p class="stat-value" th:text="${totalEmployees != null ? totalEmployees : '0'}">125</p>
+                            <p class="stat-label">Total Employees</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="dashboard-stats bg-success bg-opacity-10">
+                            <p class="stat-value" th:text="${attendanceRate != null ? attendanceRate + '%' : '0%'}">92%</p>
+                            <p class="stat-label">Attendance Rate</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="dashboard-stats bg-warning bg-opacity-10">
+                            <p class="stat-value" th:text="${pendingComplaints != null ? pendingComplaints : '0'}">8</p>
+                            <p class="stat-label">Pending Complaints</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="dashboard-stats bg-info bg-opacity-10">
+                            <p class="stat-value" th:text="${pendingBonusRequests != null ? pendingBonusRequests : '0'}">12</p>
+                            <p class="stat-label">Pending Bonuses</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Cards -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card dashboard-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-person-plus card-icon text-primary"></i>
+                                <h5 class="card-title">Add New Employee</h5>
+                                <p class="card-text">Create new employee accounts in the system.</p>
+                                <a href="/hr/employees/new" class="btn btn-primary">Add Employee</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card dashboard-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-calendar-check card-icon text-success"></i>
+                                <h5 class="card-title">Attendance</h5>
+                                <p class="card-text">View and manage employee attendance records.</p>
+                                <a href="/hr/attendance" class="btn btn-success">View Timesheets</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card dashboard-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-exclamation-triangle card-icon text-warning"></i>
+                                <h5 class="card-title">Complaints</h5>
+                                <p class="card-text">Handle employee complaints and grievances.</p>
+                                <a href="/hr/complaints" class="btn btn-warning">View Complaints</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card dashboard-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-cash-coin card-icon text-info"></i>
+                                <h5 class="card-title">Bonus Approval</h5>
+                                <p class="card-text">Review and approve employee bonuses.</p>
+                                <a href="/hr/bonus-approval" class="btn btn-info">Manage Bonuses</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Employee Activity -->
+                <div class="my-4">
+                    <h3>Recent Employees</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="fs-5">Recently Added Employees</span>
+                                <a href="/hr/employees" class="btn btn-sm btn-outline-primary">View All</a>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Position</th>
+                                            <th>Department</th>
+                                            <th>Join Date</th>
+                                            <th class="action-column">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- This would be populated with data from the backend -->
+                                        <tr th:if="${recentEmployees != null && !recentEmployees.empty}" th:each="emp : ${recentEmployees}">
+                                            <td th:text="${emp.employeeID}">EMP001</td>
+                                            <td th:text="${emp.name}">John Doe</td>
+                                            <td th:text="${emp.position}">Developer</td>
+                                            <td th:text="${emp.department.name}">IT</td>
+                                            <td th:text="${#temporals.format(emp.joinDate, 'dd MMM yyyy')}">15 Mar 2025</td>
+                                            <td>
+                                                <a th:href="@{'/hr/employees/view/' + ${emp.employeeID}}" class="btn btn-sm btn-outline-info">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a th:href="@{'/hr/employees/edit/' + ${emp.employeeID}}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${recentEmployees == null || recentEmployees.empty}">
+                                            <td colspan="6" class="text-center">No recent employees found</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pending Approvals -->
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Pending Complaints</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Employee</th>
+                                                <th>Type</th>
+                                                <th>Filed Date</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:if="${pendingComplaintsList != null && !pendingComplaintsList.empty}" th:each="complaint : ${pendingComplaintsList}">
+                                                <td th:text="${complaint.id}">C001</td>
+                                                <td th:text="${complaint.employee.name}">Jane Smith</td>
+                                                <td th:text="${complaint.type}">Workplace</td>
+                                                <td th:text="${#temporals.format(complaint.filedDate, 'dd MMM yyyy')}">22 Mar 2025</td>
+                                                <td>
+                                                    <a th:href="@{'/hr/complaints/view/' + ${complaint.id}}" class="btn btn-sm btn-warning">Review</a>
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${pendingComplaintsList == null || pendingComplaintsList.empty}">
+                                                <td colspan="5" class="text-center">No pending complaints</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <a href="/hr/complaints" class="btn btn-sm btn-outline-warning mt-2">View All Complaints</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Pending Bonus Approvals</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Employee</th>
+                                                <th>Amount</th>
+                                                <th>Requested Date</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:if="${pendingBonusList != null && !pendingBonusList.empty}" th:each="bonus : ${pendingBonusList}">
+                                                <td th:text="${bonus.id}">B001</td>
+                                                <td th:text="${bonus.employee.name}">John Doe</td>
+                                                <td th:text="${'₹' + #numbers.formatDecimal(bonus.amount, 0, 'COMMA', 0, 'POINT')}">₹10,000</td>
+                                                <td th:text="${#temporals.format(bonus.requestDate, 'dd MMM yyyy')}">20 Mar 2025</td>
+                                                <td>
+                                                    <a th:href="@{'/hr/bonus-approval/view/' + ${bonus.id}}" class="btn btn-sm btn-info">Review</a>
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${pendingBonusList == null || pendingBonusList.empty}">
+                                                <td colspan="5" class="text-center">No pending bonus approvals</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <a href="/hr/bonus-approval" class="btn btn-sm btn-outline-info mt-2">View All Bonuses</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

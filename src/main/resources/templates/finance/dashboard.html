@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Officer Dashboard - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #f8f9fa;
+            padding: 0.75rem 1.5rem;
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: #0d6efd;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        main {
+            padding-top: 56px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+        }
+        .dashboard-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+            height: 100%;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        .dashboard-stats {
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .badge-status {
+            font-size: 0.9rem;
+            padding: 0.4rem 0.7rem;
+        }
+        .action-column {
+            width: 150px;
+        }
+        .table-finance th, .table-finance td {
+            vertical-align: middle;
+        }
+        .payslip-card {
+            border-left: 4px solid #0d6efd;
+        }
+        .tax-card {
+            border-left: 4px solid #198754;
+        }
+        .salary-card {
+            border-left: 4px solid #ffc107;
+        }
+        .report-card {
+            border-left: 4px solid #dc3545;
+        }
+        .search-form {
+            position: relative;
+        }
+        .search-form .form-control {
+            padding-left: 2.5rem;
+            border-radius: 20px;
+        }
+        .search-form .bi-search {
+            position: absolute;
+            left: 1rem;
+            top: 0.75rem;
+            color: #6c757d;
+        }
+        .btn-generate {
+            border-radius: 20px;
+        }
+        .status-pending {
+            color: #ffc107;
+        }
+        .status-completed {
+            color: #198754;
+        }
+        .status-failed {
+            color: #dc3545;
+        }
+        .filter-dropdown {
+            min-width: 200px;
+        }
+        .date-badge {
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+            font-weight: 500;
+            border-radius: 12px;
+            padding: 4px 10px;
+        }
+        .finance-summary {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .summary-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .summary-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Payroll System</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="dropdown text-end me-3">
+            <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${financeOfficer != null ? financeOfficer.name : 'Finance Officer'}">Finance Officer</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="/finance/profile">Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+            </ul>
+        </div>
+    </header>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/finance/dashboard">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/employees">
+                                <i class="bi bi-people"></i> Employee Details
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/payslips">
+                                <i class="bi bi-receipt"></i> Payslips
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/tax-details">
+                                <i class="bi bi-percent"></i> Tax Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/salary-disbursement">
+                                <i class="bi bi-cash-stack"></i> Salary Disbursement
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/reports">
+                                <i class="bi bi-bar-chart"></i> Reports
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/profile">
+                                <i class="bi bi-person-badge"></i> Profile
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Finance Officer Dashboard</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                            <i class="bi bi-calendar3"></i> March 2025
+                        </button>
+                    </div>
+                </div>
+                
+                <div th:if="${success}" class="alert alert-success" th:text="${success}">
+                </div>
+                
+                <div th:if="${error}" class="alert alert-danger" th:text="${error}">
+                </div>
+                
+                <!-- Finance Summary Cards -->
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="finance-summary d-flex align-items-center">
+                            <div class="summary-icon text-primary">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <div>
+                                <div class="summary-value" th:text="${totalEmployees != null ? totalEmployees : '152'}">152</div>
+                                <div class="summary-label">Total Employees</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="finance-summary d-flex align-items-center">
+                            <div class="summary-icon text-success">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                            <div>
+                                <div class="summary-value" th:text="${totalSalary != null ? '₹' + #numbers.formatDecimal(totalSalary, 0, 'COMMA', 0, 'POINT') : '₹1,52,35,000'}">₹1,52,35,000</div>
+                                <div class="summary-label">Monthly Salaries</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="finance-summary d-flex align-items-center">
+                            <div class="summary-icon text-warning">
+                                <i class="bi bi-percent"></i>
+                            </div>
+                            <div>
+                                <div class="summary-value" th:text="${totalTax != null ? '₹' + #numbers.formatDecimal(totalTax, 0, 'COMMA', 0, 'POINT') : '₹15,23,500'}">₹15,23,500</div>
+                                <div class="summary-label">Total Tax Amount</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="finance-summary d-flex align-items-center">
+                            <div class="summary-icon text-danger">
+                                <i class="bi bi-receipt"></i>
+                            </div>
+                            <div>
+                                <div class="summary-value" th:text="${pendingPayslips != null ? pendingPayslips : '28'}">28</div>
+                                <div class="summary-label">Pending Payslips</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Access Cards -->
+                <div class="row g-4 my-4">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card dashboard-card payslip-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-receipt card-icon text-primary"></i>
+                                <h5 class="card-title">Generate Payslips</h5>
+                                <p class="card-text">Create and manage employee payslips.</p>
+                                <a href="/finance/payslips/generate" class="btn btn-primary">Generate Payslips</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card dashboard-card tax-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-percent card-icon text-success"></i>
+                                <h5 class="card-title">Tax Details</h5>
+                                <p class="card-text">View and manage employee tax information.</p>
+                                <a href="/finance/tax-details" class="btn btn-success">View Tax Details</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card dashboard-card salary-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-cash-stack card-icon text-warning"></i>
+                                <h5 class="card-title">Salary Disbursement</h5>
+                                <p class="card-text">Process and track salary payments.</p>
+                                <a href="/finance/salary-disbursement" class="btn btn-warning">Manage Disbursements</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card dashboard-card report-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-bar-chart card-icon text-danger"></i>
+                                <h5 class="card-title">Salary Reports</h5>
+                                <p class="card-text">Generate comprehensive salary reports.</p>
+                                <a href="/finance/reports/generate" class="btn btn-danger">Generate Reports</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Search and Generate Section -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4">Quick Payslip Generator</h4>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <form class="search-form">
+                                    <i class="bi bi-search"></i>
+                                    <input type="text" class="form-control" id="employeeSearch" placeholder="Search employee by name or ID...">
+                                </form>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-grid">
+                                    <button class="btn btn-primary btn-generate" id="generatePayslipBtn">
+                                        <i class="bi bi-receipt me-2"></i> Generate Payslip
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Payslips -->
+                <div class="my-4">
+                    <h3>Recent Payslips</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="fs-5">Recently Generated Payslips</span>
+                                <div class="d-flex">
+                                    <div class="dropdown me-2">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-funnel"></i> Filter
+                                        </button>
+                                        <ul class="dropdown-menu filter-dropdown" aria-labelledby="filterDropdown">
+                                            <li><h6 class="dropdown-header">Filter by Status</h6></li>
+                                            <li><a class="dropdown-item" href="#">All Payslips</a></li>
+                                            <li><a class="dropdown-item" href="#">Pending</a></li>
+                                            <li><a class="dropdown-item" href="#">Completed</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><h6 class="dropdown-header">Filter by Department</h6></li>
+                                            <li><a class="dropdown-item" href="#">All Departments</a></li>
+                                            <li><a class="dropdown-item" href="#">IT</a></li>
+                                            <li><a class="dropdown-item" href="#">HR</a></li>
+                                            <li><a class="dropdown-item" href="#">Finance</a></li>
+                                            <li><a class="dropdown-item" href="#">Marketing</a></li>
+                                        </ul>
+                                    </div>
+                                    <a href="/finance/payslips" class="btn btn-sm btn-outline-primary">View All</a>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-finance">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Employee</th>
+                                            <th>Department</th>
+                                            <th>Period</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th class="action-column">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- This would be populated with data from the backend -->
+                                        <tr th:if="${recentPayslips != null && !recentPayslips.empty}" th:each="payslip : ${recentPayslips}">
+                                            <td th:text="${payslip.id}">PS001</td>
+                                            <td th:text="${payslip.employee.name}">Rahul Sharma</td>
+                                            <td th:text="${payslip.employee.department.name}">Engineering</td>
+                                            <td>
+                                                <span class="date-badge" th:text="${payslip.period}">March 2025</span>
+                                            </td>
+                                            <td th:text="${'₹' + #numbers.formatDecimal(payslip.netAmount, 0, 'COMMA', 0, 'POINT')}">₹75,000</td>
+                                            <td>
+                                                <span th:if="${payslip.status == 'PENDING'}" class="status-pending">
+                                                    <i class="bi bi-hourglass-split me-1"></i> Pending
+                                                </span>
+                                                <span th:if="${payslip.status == 'COMPLETED'}" class="status-completed">
+                                                    <i class="bi bi-check-circle me-1"></i> Completed
+                                                </span>
+                                                <span th:if="${payslip.status == 'FAILED'}" class="status-failed">
+                                                    <i class="bi bi-x-circle me-1"></i> Failed
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a th:href="@{'/finance/payslips/view/' + ${payslip.id}}" class="btn btn-sm btn-outline-info">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <a th:href="@{'/finance/payslips/download/' + ${payslip.id}}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-download"></i>
+                                                    </a>
+                                                    <a th:href="@{'/finance/payslips/email/' + ${payslip.id}}" class="btn btn-sm btn-outline-success">
+                                                        <i class="bi bi-envelope"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${recentPayslips == null || recentPayslips.empty}">
+                                            <td colspan="7" class="text-center">No recent payslips found</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Employee Tax Details -->
+                <div class="my-4">
+                    <h3>Employee Tax Details</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="fs-5">Tax Information</span>
+                                <a href="/finance/tax-details" class="btn btn-sm btn-outline-success">View All Tax Details</a>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-finance">
+                                    <thead>
+                                        <tr>
+                                            <th>Employee ID</th>
+                                            <th>Name</th>
+                                            <th>Tax Bracket</th>
+                                            <th>Monthly Tax</th>
+                                            <th>YTD Tax Paid</th>
+                                            <th>Tax Documents</th>
+                                            <th class="action-column">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- This would be populated with data from the backend -->
+                                        <tr th:if="${employeeTaxDetails != null && !employeeTaxDetails.empty}" th:each="tax : ${employeeTaxDetails}">
+                                            <td th:text="${tax.employee.employeeID}">EMP001</td>
+                                            <td th:text="${tax.employee.name}">Priya Patel</td>
+                                            <td th:text="${tax.taxBracket}">20%</td>
+                                            <td th:text="${'₹' + #numbers.formatDecimal(tax.monthlyTax, 0, 'COMMA', 0, 'POINT')}">₹15,000</td>
+                                            <td th:text="${'₹' + #numbers.formatDecimal(tax.ytdTaxPaid, 0, 'COMMA', 0, 'POINT')}">₹1,35,000</td>
+                                            <td>
+                                                <span th:if="${tax.documentsSubmitted == true}" class="badge bg-success">Submitted</span>
+                                                <span th:if="${tax.documentsSubmitted == false}" class="badge bg-warning">Pending</span>
+                                            </td>
+                                            <td>
+                                                <a th:href="@{'/finance/tax-details/view/' + ${tax.id}}" class="btn btn-sm btn-outline-secondary">
+                                                    <i class="bi bi-eye"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${employeeTaxDetails == null || employeeTaxDetails.empty}">
+                                            <td colspan="7" class="text-center">No tax details found</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Salary Disbursement Status -->
+                <div class="my-4">
+                    <h3>Salary Disbursement Status</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="fs-5">Current Month Disbursement</span>
+                                <a href="/finance/salary-disbursement" class="btn btn-sm btn-outline-warning">Manage Disbursements</a>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">Total Employees</h6>
+                                            <h2 class="card-text" th:text="${totalEmployees != null ? totalEmployees : '152'}">152</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">Processed</h6>
+                                            <h2 class="card-text text-success" th:text="${processedSalaries != null ? processedSalaries : '125'}">125</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">Pending</h6>
+                                            <h2 class="card-text text-warning" th:text="${pendingSalaries != null ? pendingSalaries : '23'}">23</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">Failed</h6>
+                                            <h2 class="card-text text-danger" th:text="${failedSalaries != null ? failedSalaries : '4'}">4</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="progress mb-3" style="height: 25px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 82%;" aria-valuenow="82" aria-valuemin="0" aria-valuemax="100">82% Complete</div>
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 15%;" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100">15% Pending</div>
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: 3%;" aria-valuenow="3" aria-valuemin="0" aria-valuemax="100">3% Failed</div>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <a href="/finance/salary-disbursement/process-all" class="btn btn-warning">
+                                    <i class="bi bi-lightning-charge me-1"></i> Process Pending Salaries
+                                </a>
+                                <a href="/finance/salary-disbursement/retry-failed" class="btn btn-danger ms-2">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Retry Failed Transactions
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Reports -->
+                <div class="my-4">
+                    <h3>Salary Reports</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="fs-5">Recent Reports</span>
+                                <a href="/finance/reports/generate" class="btn btn-sm btn-outline-danger">Generate New Report</a>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-finance">
+                                    <thead>
+                                        <tr>
+                                            <th>Report ID</th>
+                                            <th>Title</th>
+                                            <th>Period</th>
+                                            <th>Generated On</th>
+                                            <th>Generated By</th>
+                                            <th class="action-column">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- This would be populated with data from the backend -->
+                                        <tr th:if="${recentReports != null && !recentReports.empty}" th:each="report : ${recentReports}">
+                                            <td th:text="${report.id}">RPT001</td>
+                                            <td th:text="${report.title}">Monthly Salary Report</td>
+                                            <td th:text="${report.period}">March 2025</td>
+                                            <td th:text="${#temporals.format(report.generatedDate, 'dd MMM yyyy, HH:mm')}">25 Mar 2025, 10:30</td>
+                                            <td th:text="${report.generatedBy}">Amit Kumar</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a th:href="@{'/finance/reports/view/' + ${report.id}}" class="btn btn-sm btn-outline-secondary">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <a th:href="@{'/finance/reports/download/' + ${report.id}}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-download"></i>
+                                                    </a>
+                                                    <a th:href="@{'/finance/reports/email/' + ${report.id}}" class="btn btn-sm btn-outline-success">
+                                                        <i class="bi bi-envelope"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${recentReports == null || recentReports.empty}">
+                                            <td colspan="6" class="text-center">No recent reports found</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Generate Report Section -->
+                <div class="my-4">
+                    <h3>Generate New Report</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            <form>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label for="reportType" class="form-label">Report Type</label>
+                                        <select class="form-select" id="reportType">
+                                            <option selected>Select report type</option>
+                                            <option value="monthly">Monthly Salary Report</option>
+                                            <option value="department">Department-wise Report</option>
+                                            <option value="tax">Tax Deduction Report</option>
+                                            <option value="annual">Annual Salary Report</option>
+                                            <option value="custom">Custom Report</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="reportPeriod" class="form-label">Period</label>
+                                        <select class="form-select" id="reportPeriod">
+                                            <option selected>March 2025</option>
+                                            <option>February 2025</option>
+                                            <option>January 2025</option>
+                                            <option>December 2024</option>
+                                            <option>Custom Range</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="reportFormat" class="form-label">Format</label>
+                                        <select class="form-select" id="reportFormat">
+                                            <option value="pdf" selected>PDF</option>
+                                            <option value="excel">Excel</option>
+                                            <option value="csv">CSV</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="includeTaxDetails" checked>
+                                            <label class="form-check-label" for="includeTaxDetails">
+                                                Include tax details
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="includeDeductions" checked>
+                                            <label class="form-check-label" for="includeDeductions">
+                                                Include deductions breakdown
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="includeBonus">
+                                            <label class="form-check-label" for="includeBonus">
+                                                Include bonuses and incentives
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 text-center mt-4">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="bi bi-file-earmark-text me-2"></i> Generate Report
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
