@@ -15,40 +15,40 @@ public class TaxDeclaration {
     @JoinColumn(name = "employee_id", referencedColumnName = "employee_id")
     private Employee employee;
 
+    // Personal Information
     private String pan;
-    private String taxRegime;
     
-    // Section 80C investments
-    private Integer epf = 0;
-    private Integer vpf = 0;
-    private Integer lifeInsurance = 0;
-    private Integer elss = 0;
-    private Integer ppf = 0;
-    private Integer homeLoanPrincipal = 0;
-    private Integer sukanyaSamriddhi = 0;
-    private Integer tuitionFees = 0;
-    private Integer nsc = 0;
-    private Integer taxSavingFD = 0;
+    // Bank Details
+    private String bankName;
+    private String accountNumber;
+    private String ifscCode;
     
-    // Other deductions
-    private Integer nps = 0;
-    private Integer medicalInsurance = 0;
-    private Integer educationLoan = 0;
-    private Integer homeLoanInterest = 0;
-    private Integer donations = 0;
-    private Integer disabilityDeduction = 0;
-    
-    // HRA details
+    // HRA & Rent Details
     private Boolean isRenting = false;
     private Integer monthlyRent = 0;
+    private String landlordName;
     private String landlordPan;
     private String rentalAddress;
+    private LocalDate rentFromDate;
+    private LocalDate rentToDate;
     
-    // Previous employment details
+    // Home Loan Details
+    private Boolean hasHomeLoan = false;
+    private String homeLoanAccountNumber;
+    private String homeLoanBankName;
+    private Integer homeLoanInterest = 0;
+    
+    // Previous Employment Details
     private Boolean hasPreviousEmployment = false;
     private String previousEmployerName;
     private Integer previousTaxableIncome = 0;
     private Integer previousTaxDeducted = 0;
+    
+    // Health Insurance
+    private Integer medicalInsurance = 0;
+    
+    // Professional Tax (Fixed - Monthly)
+    private final Integer professionalTax = 200;
     
     // Status fields
     private String status = "DRAFT"; // DRAFT, PENDING, APPROVED, REJECTED
@@ -82,140 +82,28 @@ public class TaxDeclaration {
         this.pan = pan;
     }
 
-    public String getTaxRegime() {
-        return taxRegime;
+    public String getBankName() {
+        return bankName;
     }
 
-    public void setTaxRegime(String taxRegime) {
-        this.taxRegime = taxRegime;
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
     }
 
-    public Integer getEpf() {
-        return epf;
+    public String getAccountNumber() {
+        return accountNumber;
     }
 
-    public void setEpf(Integer epf) {
-        this.epf = epf;
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
     }
 
-    public Integer getVpf() {
-        return vpf;
+    public String getIfscCode() {
+        return ifscCode;
     }
 
-    public void setVpf(Integer vpf) {
-        this.vpf = vpf;
-    }
-
-    public Integer getLifeInsurance() {
-        return lifeInsurance;
-    }
-
-    public void setLifeInsurance(Integer lifeInsurance) {
-        this.lifeInsurance = lifeInsurance;
-    }
-
-    public Integer getElss() {
-        return elss;
-    }
-
-    public void setElss(Integer elss) {
-        this.elss = elss;
-    }
-
-    public Integer getPpf() {
-        return ppf;
-    }
-
-    public void setPpf(Integer ppf) {
-        this.ppf = ppf;
-    }
-
-    public Integer getHomeLoanPrincipal() {
-        return homeLoanPrincipal;
-    }
-
-    public void setHomeLoanPrincipal(Integer homeLoanPrincipal) {
-        this.homeLoanPrincipal = homeLoanPrincipal;
-    }
-
-    public Integer getSukanyaSamriddhi() {
-        return sukanyaSamriddhi;
-    }
-
-    public void setSukanyaSamriddhi(Integer sukanyaSamriddhi) {
-        this.sukanyaSamriddhi = sukanyaSamriddhi;
-    }
-
-    public Integer getTuitionFees() {
-        return tuitionFees;
-    }
-
-    public void setTuitionFees(Integer tuitionFees) {
-        this.tuitionFees = tuitionFees;
-    }
-
-    public Integer getNsc() {
-        return nsc;
-    }
-
-    public void setNsc(Integer nsc) {
-        this.nsc = nsc;
-    }
-
-    public Integer getTaxSavingFD() {
-        return taxSavingFD;
-    }
-
-    public void setTaxSavingFD(Integer taxSavingFD) {
-        this.taxSavingFD = taxSavingFD;
-    }
-
-    public Integer getNps() {
-        return nps;
-    }
-
-    public void setNps(Integer nps) {
-        this.nps = nps;
-    }
-
-    public Integer getMedicalInsurance() {
-        return medicalInsurance;
-    }
-
-    public void setMedicalInsurance(Integer medicalInsurance) {
-        this.medicalInsurance = medicalInsurance;
-    }
-
-    public Integer getEducationLoan() {
-        return educationLoan;
-    }
-
-    public void setEducationLoan(Integer educationLoan) {
-        this.educationLoan = educationLoan;
-    }
-
-    public Integer getHomeLoanInterest() {
-        return homeLoanInterest;
-    }
-
-    public void setHomeLoanInterest(Integer homeLoanInterest) {
-        this.homeLoanInterest = homeLoanInterest;
-    }
-
-    public Integer getDonations() {
-        return donations;
-    }
-
-    public void setDonations(Integer donations) {
-        this.donations = donations;
-    }
-
-    public Integer getDisabilityDeduction() {
-        return disabilityDeduction;
-    }
-
-    public void setDisabilityDeduction(Integer disabilityDeduction) {
-        this.disabilityDeduction = disabilityDeduction;
+    public void setIfscCode(String ifscCode) {
+        this.ifscCode = ifscCode;
     }
 
     public Boolean getIsRenting() {
@@ -234,6 +122,14 @@ public class TaxDeclaration {
         this.monthlyRent = monthlyRent;
     }
 
+    public String getLandlordName() {
+        return landlordName;
+    }
+
+    public void setLandlordName(String landlordName) {
+        this.landlordName = landlordName;
+    }
+
     public String getLandlordPan() {
         return landlordPan;
     }
@@ -248,6 +144,54 @@ public class TaxDeclaration {
 
     public void setRentalAddress(String rentalAddress) {
         this.rentalAddress = rentalAddress;
+    }
+
+    public LocalDate getRentFromDate() {
+        return rentFromDate;
+    }
+
+    public void setRentFromDate(LocalDate rentFromDate) {
+        this.rentFromDate = rentFromDate;
+    }
+
+    public LocalDate getRentToDate() {
+        return rentToDate;
+    }
+
+    public void setRentToDate(LocalDate rentToDate) {
+        this.rentToDate = rentToDate;
+    }
+
+    public Boolean getHasHomeLoan() {
+        return hasHomeLoan;
+    }
+
+    public void setHasHomeLoan(Boolean hasHomeLoan) {
+        this.hasHomeLoan = hasHomeLoan;
+    }
+
+    public String getHomeLoanAccountNumber() {
+        return homeLoanAccountNumber;
+    }
+
+    public void setHomeLoanAccountNumber(String homeLoanAccountNumber) {
+        this.homeLoanAccountNumber = homeLoanAccountNumber;
+    }
+
+    public String getHomeLoanBankName() {
+        return homeLoanBankName;
+    }
+
+    public void setHomeLoanBankName(String homeLoanBankName) {
+        this.homeLoanBankName = homeLoanBankName;
+    }
+
+    public Integer getHomeLoanInterest() {
+        return homeLoanInterest;
+    }
+
+    public void setHomeLoanInterest(Integer homeLoanInterest) {
+        this.homeLoanInterest = homeLoanInterest;
     }
 
     public Boolean getHasPreviousEmployment() {
@@ -280,6 +224,18 @@ public class TaxDeclaration {
 
     public void setPreviousTaxDeducted(Integer previousTaxDeducted) {
         this.previousTaxDeducted = previousTaxDeducted;
+    }
+
+    public Integer getMedicalInsurance() {
+        return medicalInsurance;
+    }
+
+    public void setMedicalInsurance(Integer medicalInsurance) {
+        this.medicalInsurance = medicalInsurance;
+    }
+
+    public Integer getProfessionalTax() {
+        return professionalTax;
     }
 
     public String getStatus() {
@@ -320,5 +276,12 @@ public class TaxDeclaration {
 
     public void setApprovalDate(LocalDate approvalDate) {
         this.approvalDate = approvalDate;
+    }
+    
+    // Calculate total deductions
+    public Integer calculateTotalDeductions() {
+        return professionalTax + 
+               (medicalInsurance != null ? medicalInsurance : 0) + 
+               (homeLoanInterest != null ? homeLoanInterest : 0);
     }
 }

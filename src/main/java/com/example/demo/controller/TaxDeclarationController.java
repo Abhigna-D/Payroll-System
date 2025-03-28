@@ -5,6 +5,7 @@ import com.example.demo.model.TaxDeclaration;
 import com.example.demo.service.EmployeeService;
 import com.example.demo.service.TaxDeclarationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -42,7 +43,6 @@ public class TaxDeclarationController {
             }
             
             // Get current tax declaration if exists
-            // Changed from getEmployeeID() to getEmployeeID() and converted to Long
             TaxDeclaration taxDeclaration = taxDeclarationService.findByEmployeeId(String.valueOf(employee.getEmployeeID()));
             
             model.addAttribute("employee", employee);
@@ -61,32 +61,38 @@ public class TaxDeclarationController {
      */
     @PostMapping("/employee/tax-declaration/save")
     public String saveTaxDeclaration(
+            // Personal Information
             @RequestParam(value = "pan", required = false) String pan,
-            @RequestParam(value = "taxRegime", required = false) String taxRegime,
-            @RequestParam(value = "epf", required = false) Integer epf,
-            @RequestParam(value = "vpf", required = false) Integer vpf,
-            @RequestParam(value = "lifeInsurance", required = false) Integer lifeInsurance,
-            @RequestParam(value = "elss", required = false) Integer elss,
-            @RequestParam(value = "ppf", required = false) Integer ppf,
-            @RequestParam(value = "homeLoanPrincipal", required = false) Integer homeLoanPrincipal,
-            @RequestParam(value = "sukanyaSamriddhi", required = false) Integer sukanyaSamriddhi,
-            @RequestParam(value = "tuitionFees", required = false) Integer tuitionFees,
-            @RequestParam(value = "nsc", required = false) Integer nsc,
-            @RequestParam(value = "taxSavingFD", required = false) Integer taxSavingFD,
-            @RequestParam(value = "nps", required = false) Integer nps,
-            @RequestParam(value = "medicalInsurance", required = false) Integer medicalInsurance,
-            @RequestParam(value = "educationLoan", required = false) Integer educationLoan,
-            @RequestParam(value = "homeLoanInterest", required = false) Integer homeLoanInterest,
-            @RequestParam(value = "donations", required = false) Integer donations,
-            @RequestParam(value = "disabilityDeduction", required = false) Integer disabilityDeduction,
+            
+            // Bank Details
+            @RequestParam(value = "bankName", required = false) String bankName,
+            @RequestParam(value = "accountNumber", required = false) String accountNumber,
+            @RequestParam(value = "ifscCode", required = false) String ifscCode,
+            
+            // HRA & Rent Details
             @RequestParam(value = "isRenting", required = false) Boolean isRenting,
             @RequestParam(value = "monthlyRent", required = false) Integer monthlyRent,
+            @RequestParam(value = "landlordName", required = false) String landlordName,
             @RequestParam(value = "landlordPan", required = false) String landlordPan,
             @RequestParam(value = "rentalAddress", required = false) String rentalAddress,
+            @RequestParam(value = "rentFromDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate rentFromDate,
+            @RequestParam(value = "rentToDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate rentToDate,
+            
+            // Home Loan Details
+            @RequestParam(value = "hasHomeLoan", required = false) Boolean hasHomeLoan,
+            @RequestParam(value = "homeLoanAccountNumber", required = false) String homeLoanAccountNumber,
+            @RequestParam(value = "homeLoanBankName", required = false) String homeLoanBankName,
+            @RequestParam(value = "homeLoanInterest", required = false) Integer homeLoanInterest,
+            
+            // Previous Employment Details
             @RequestParam(value = "hasPreviousEmployment", required = false) Boolean hasPreviousEmployment,
             @RequestParam(value = "previousEmployerName", required = false) String previousEmployerName,
             @RequestParam(value = "previousTaxableIncome", required = false) Integer previousTaxableIncome,
             @RequestParam(value = "previousTaxDeducted", required = false) Integer previousTaxDeducted,
+            
+            // Health Insurance
+            @RequestParam(value = "medicalInsurance", required = false) Integer medicalInsurance,
+            
             @RequestParam(value = "isDraft", required = false) Boolean isDraft,
             RedirectAttributes redirectAttributes) {
         
@@ -104,7 +110,6 @@ public class TaxDeclarationController {
             }
             
             // Get current tax declaration or create new one
-            // Changed from getId() to getEmployeeID() and converted to Long
             TaxDeclaration taxDeclaration = taxDeclarationService.findByEmployeeId(String.valueOf(employee.getEmployeeID()));
             if (taxDeclaration == null) {
                 taxDeclaration = new TaxDeclaration();
@@ -112,33 +117,37 @@ public class TaxDeclarationController {
                 taxDeclaration.setCreationDate(LocalDate.now());
             }
             
-            // Update tax declaration fields
+            // Update personal information
             taxDeclaration.setPan(pan);
-            taxDeclaration.setTaxRegime(taxRegime);
-            taxDeclaration.setEpf(epf != null ? epf : 0);
-            taxDeclaration.setVpf(vpf != null ? vpf : 0);
-            taxDeclaration.setLifeInsurance(lifeInsurance != null ? lifeInsurance : 0);
-            taxDeclaration.setElss(elss != null ? elss : 0);
-            taxDeclaration.setPpf(ppf != null ? ppf : 0);
-            taxDeclaration.setHomeLoanPrincipal(homeLoanPrincipal != null ? homeLoanPrincipal : 0);
-            taxDeclaration.setSukanyaSamriddhi(sukanyaSamriddhi != null ? sukanyaSamriddhi : 0);
-            taxDeclaration.setTuitionFees(tuitionFees != null ? tuitionFees : 0);
-            taxDeclaration.setNsc(nsc != null ? nsc : 0);
-            taxDeclaration.setTaxSavingFD(taxSavingFD != null ? taxSavingFD : 0);
-            taxDeclaration.setNps(nps != null ? nps : 0);
-            taxDeclaration.setMedicalInsurance(medicalInsurance != null ? medicalInsurance : 0);
-            taxDeclaration.setEducationLoan(educationLoan != null ? educationLoan : 0);
-            taxDeclaration.setHomeLoanInterest(homeLoanInterest != null ? homeLoanInterest : 0);
-            taxDeclaration.setDonations(donations != null ? donations : 0);
-            taxDeclaration.setDisabilityDeduction(disabilityDeduction != null ? disabilityDeduction : 0);
+            
+            // Update bank details
+            taxDeclaration.setBankName(bankName);
+            taxDeclaration.setAccountNumber(accountNumber);
+            taxDeclaration.setIfscCode(ifscCode);
+            
+            // Update HRA & rent details
             taxDeclaration.setIsRenting(isRenting != null ? isRenting : false);
             taxDeclaration.setMonthlyRent(monthlyRent != null ? monthlyRent : 0);
+            taxDeclaration.setLandlordName(landlordName);
             taxDeclaration.setLandlordPan(landlordPan);
             taxDeclaration.setRentalAddress(rentalAddress);
+            taxDeclaration.setRentFromDate(rentFromDate);
+            taxDeclaration.setRentToDate(rentToDate);
+            
+            // Update home loan details
+            taxDeclaration.setHasHomeLoan(hasHomeLoan != null ? hasHomeLoan : false);
+            taxDeclaration.setHomeLoanAccountNumber(homeLoanAccountNumber);
+            taxDeclaration.setHomeLoanBankName(homeLoanBankName);
+            taxDeclaration.setHomeLoanInterest(homeLoanInterest != null ? homeLoanInterest : 0);
+            
+            // Update previous employment details
             taxDeclaration.setHasPreviousEmployment(hasPreviousEmployment != null ? hasPreviousEmployment : false);
             taxDeclaration.setPreviousEmployerName(previousEmployerName);
             taxDeclaration.setPreviousTaxableIncome(previousTaxableIncome != null ? previousTaxableIncome : 0);
             taxDeclaration.setPreviousTaxDeducted(previousTaxDeducted != null ? previousTaxDeducted : 0);
+            
+            // Update health insurance
+            taxDeclaration.setMedicalInsurance(medicalInsurance != null ? medicalInsurance : 0);
             
             // Set status based on draft flag
             if (isDraft != null && isDraft) {
