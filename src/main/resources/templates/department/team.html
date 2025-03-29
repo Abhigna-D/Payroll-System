@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Team - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #f8f9fa;
+            padding: 0.75rem 1.5rem;
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: #0d6efd;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        main {
+            padding-top: 56px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        .table {
+            margin-bottom: 0;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            border-top: none;
+            font-weight: 600;
+            color: #495057;
+        }
+        .table td {
+            vertical-align: middle;
+            padding: 0.75rem;
+        }
+        .table tbody tr:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+        .employee-card {
+            transition: transform 0.3s ease;
+        }
+        .employee-card:hover {
+            transform: translateY(-5px);
+        }
+        .department-info {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .employee-count {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        .search-box {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Payroll System</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="dropdown text-end me-3">
+            <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${deptManager != null ? deptManager.name : 'Department Manager'}">Department Manager</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="/department/profile">Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+            </ul>
+        </div>
+    </header>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/department/dashboard">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/department/team">
+                                <i class="bi bi-people"></i> My Team
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/department/overtime">
+                                <i class="bi bi-clock-history"></i> Overtime Approval
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/department/bonus-recommendations">
+                                <i class="bi bi-cash-coin"></i> Bonus Recommendations
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/department/reports">
+                                <i class="bi bi-file-earmark-text"></i> Reports
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">My Team</h1>
+                </div>
+                
+                <!-- Department Info Card -->
+                <div class="department-info row">
+                    <div class="col-md-6">
+                        <h4 th:text="${department != null ? department.name : 'Department'}" class="text-primary mb-3">Department Name</h4>
+                        <p><strong>Department ID:</strong> <span th:text="${department != null ? department.deptID : ''}">DEP001</span></p>
+                        <p><strong>Manager:</strong> <span th:text="${deptManager != null ? deptManager.name : ''}">John Doe</span></p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <p class="mb-1">Total Employees</p>
+                        <p class="employee-count" th:text="${employees != null ? employees.size() : '0'}">0</p>
+                    </div>
+                </div>
+                
+                <!-- Search Box -->
+                <div class="search-box">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search employees...">
+                    </div>
+                </div>
+                
+                <!-- Employees Table -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="employeesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Employee ID</th>
+                                        <th>Name</th>
+                                        <th>Job Title</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Joining Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${employees == null || employees.empty}">
+                                        <td colspan="7" class="text-center">No employees found in this department</td>
+                                    </tr>
+                                    <tr th:each="employee : ${employees}" th:unless="${employees == null || employees.empty}">
+                                        <td th:text="${employee.employeeID}">EMP001</td>
+                                        <td th:text="${employee.FullName}">John Doe</td>
+                                        <td th:text="${employee.jobTitle}">Software Engineer</td>
+                                        <td th:text="${employee.workEmail}">john.doe@example.com</td>
+                                        <td th:text="${employee.workPhone}">+1234567890</td>
+                                        <td th:text="${#temporals.format(employee.joiningDate, 'dd MMM yyyy')}">01 Jan 2023</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary view-employee-btn" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#employeeDetailsModal" 
+                                                    th:data-employee-id="${employee.employeeID}">
+                                                <i class="bi bi-eye"></i> View
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Employee Cards (alternative view) -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3>Team Members</h3>
+                            <button class="btn btn-sm btn-outline-primary" id="toggleViewBtn">
+                                <i class="bi bi-grid"></i> Toggle View
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row" id="cardsView" style="display: none;">
+                    <div th:if="${employees == null || employees.empty}" class="col-12">
+                        <div class="alert alert-info">No employees found in this department</div>
+                    </div>
+                    <div th:each="employee : ${employees}" th:unless="${employees == null || employees.empty}" class="col-md-4 mb-4">
+                        <div class="card employee-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                        <span class="fs-4" th:text="${#strings.substring(employee.FullName, 0, 1)}">J</span>
+                                    </div>
+                                    <div>
+                                        <h5 class="card-title mb-0" th:text="${employee.FullName}">John Doe</h5>
+                                        <p class="card-subtitle text-muted" th:text="${employee.jobTitle}">Software Engineer</p>
+                                    </div>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between px-0">
+                                        <span class="text-muted">ID:</span>
+                                        <span th:text="${employee.employeeID}">EMP001</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between px-0">
+                                        <span class="text-muted">Email:</span>
+                                        <span th:text="${employee.workEmail}">john.doe@example.com</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between px-0">
+                                        <span class="text-muted">Phone:</span>
+                                        <span th:text="${employee.workPhone}">+1234567890</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between px-0">
+                                        <span class="text-muted">Joined:</span>
+                                        <span th:text="${#temporals.format(employee.joiningDate, 'dd MMM yyyy')}">01 Jan 2023</span>
+                                    </li>
+                                </ul>
+                                <div class="mt-3 text-center">
+                                    <button class="btn btn-primary view-employee-btn" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#employeeDetailsModal" 
+                                            th:data-employee-id="${employee.employeeID}">
+                                        <i class="bi bi-eye"></i> View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Employee Details Modal -->
+    <div class="modal fade" id="employeeDetailsModal" tabindex="-1" aria-labelledby="employeeDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="employeeDetailsModalLabel">Employee Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="modalLoadingSpinner" class="text-center my-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading employee details...</p>
+                    </div>
+                    
+                    <div id="modalContent" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-12 mb-4 text-center">
+                                <div class="d-inline-block bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                                    <span class="fs-1" id="employeeInitial">J</span>
+                                </div>
+                                <h3 id="employeeName">John Doe</h3>
+                                <p class="text-muted" id="employeeJobTitle">Software Engineer</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="bi bi-person me-2"></i>Basic Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Employee ID</label>
+                                            <p class="form-control-plaintext" id="employeeID">EMP001</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Date of Birth</label>
+                                            <p class="form-control-plaintext" id="employeeDOB">01 Jan 1990</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Gender</label>
+                                            <p class="form-control-plaintext" id="employeeGender">Male</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Nationality</label>
+                                            <p class="form-control-plaintext" id="employeeNationality">Indian</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Address</label>
+                                            <p class="form-control-plaintext" id="employeeAddress">123 Main St, Bangalore</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="bi bi-building me-2"></i>Employment Details</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Department</label>
+                                            <p class="form-control-plaintext" id="employeeDepartment">IT Department</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Employee Type</label>
+                                            <p class="form-control-plaintext" id="employeeType">Full-Time</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Joining Date</label>
+                                            <p class="form-control-plaintext" id="employeeJoiningDate">01 Jan 2023</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="bi bi-telephone me-2"></i>Contact Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Work Email</label>
+                                            <p class="form-control-plaintext" id="employeeWorkEmail">john.doe@example.com</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Personal Email</label>
+                                            <p class="form-control-plaintext" id="employeePersonalEmail">john.personal@gmail.com</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Work Phone</label>
+                                            <p class="form-control-plaintext" id="employeeWorkPhone">+1234567890</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Personal Phone</label>
+                                            <p class="form-control-plaintext" id="employeePersonalPhone">+9876543210</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="bi bi-shield-plus me-2"></i>Emergency Contact</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Name</label>
+                                            <p class="form-control-plaintext" id="emergencyContactName">Jane Doe</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Relationship</label>
+                                            <p class="form-control-plaintext" id="emergencyContactRelationship">Spouse</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Phone</label>
+                                            <p class="form-control-plaintext" id="emergencyContactPhone">+1234567890</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Error display -->
+                    <div id="modalError" class="alert alert-danger mt-3" style="display: none;">
+                        Failed to load employee details. Please try again.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle between table and cards view
+            const toggleViewBtn = document.getElementById('toggleViewBtn');
+            const tableView = document.getElementById('employeesTable').closest('.card');
+            const cardsView = document.getElementById('cardsView');
+            
+            toggleViewBtn.addEventListener('click', function() {
+                if (tableView.style.display === 'none') {
+                    tableView.style.display = 'block';
+                    cardsView.style.display = 'none';
+                    toggleViewBtn.innerHTML = '<i class="bi bi-grid"></i> Toggle View';
+                } else {
+                    tableView.style.display = 'none';
+                    cardsView.style.display = 'flex';
+                    toggleViewBtn.innerHTML = '<i class="bi bi-table"></i> Toggle View';
+                }
+            });
+            
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            const tableRows = document.querySelectorAll('#employeesTable tbody tr');
+            const cardElements = document.querySelectorAll('.employee-card');
+            
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = searchInput.value.toLowerCase();
+                
+                // Search in table view
+                tableRows.forEach(row => {
+                    if (row.textContent.toLowerCase().includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                
+                // Search in card view
+                cardElements.forEach(card => {
+                    if (card.textContent.toLowerCase().includes(searchTerm)) {
+                        card.closest('.col-md-4').style.display = '';
+                    } else {
+                        card.closest('.col-md-4').style.display = 'none';
+                    }
+                });
+            });
+            
+            // Modal functionality for viewing employee details
+            const employeeDetailsModal = document.getElementById('employeeDetailsModal');
+            if (employeeDetailsModal) {
+                employeeDetailsModal.addEventListener('show.bs.modal', function (event) {
+                    // Button that triggered the modal
+                    const button = event.relatedTarget;
+                    
+                    // Get employee ID
+                    const employeeId = button.getAttribute('data-employee-id');
+                    if (!employeeId) {
+                        showModalError();
+                        return;
+                    }
+                    
+                    // Show loading state
+                    document.getElementById('modalLoadingSpinner').style.display = 'block';
+                    document.getElementById('modalContent').style.display = 'none';
+                    document.getElementById('modalError').style.display = 'none';
+                    
+                    // Fetch employee details
+                    fetch(`/department/employee/${employeeId}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Failed to fetch employee details');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            // Hide loading spinner, show content
+                            document.getElementById('modalLoadingSpinner').style.display = 'none';
+                            document.getElementById('modalContent').style.display = 'block';
+                            
+                            // Update the modal with employee information
+                            document.getElementById('employeeName').textContent = data.name || 'Not Available';
+                            document.getElementById('employeeJobTitle').textContent = data.jobTitle || 'Not Available';
+                            document.getElementById('employeeID').textContent = data.id || 'Not Available';
+                            document.getElementById('employeeDOB').textContent = data.dob || 'Not Available';
+                            document.getElementById('employeeGender').textContent = data.gender || 'Not Available';
+                            document.getElementById('employeeNationality').textContent = data.nationality || 'Not Available';
+                            document.getElementById('employeeAddress').textContent = data.address || 'Not Available';
+                            document.getElementById('employeeDepartment').textContent = data.departmentName || 'Not Available';
+                            document.getElementById('employeeType').textContent = data.type || 'Not Available';
+                            document.getElementById('employeeJoiningDate').textContent = data.joiningDate || 'Not Available';
+                            document.getElementById('employeeWorkEmail').textContent = data.workEmail || 'Not Available';
+                            document.getElementById('employeePersonalEmail').textContent = data.personalEmail || 'Not Available';
+                            document.getElementById('employeeWorkPhone').textContent = data.workPhone || 'Not Available';
+                            document.getElementById('employeePersonalPhone').textContent = data.personalPhone || 'Not Available';
+                            document.getElementById('emergencyContactName').textContent = data.emergencyName || 'Not Available';
+                            document.getElementById('emergencyContactRelationship').textContent = data.emergencyRelation || 'Not Available';
+                            document.getElementById('emergencyContactPhone').textContent = data.emergencyPhone || 'Not Available';
+                            
+                            // Set employee initial
+                            if (data.name) {
+                                document.getElementById('employeeInitial').textContent = data.name.charAt(0);
+                            } else {
+                                document.getElementById('employeeInitial').textContent = '?';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching employee details:', error);
+                            showModalError();
+                        });
+                });
+                
+                function showModalError() {
+                    document.getElementById('modalLoadingSpinner').style.display = 'none';
+                    document.getElementById('modalContent').style.display = 'none';
+                    document.getElementById('modalError').style.display = 'block';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

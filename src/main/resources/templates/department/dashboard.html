@@ -116,7 +116,7 @@
                 <i class="bi bi-person-circle me-1"></i> <span th:text="${deptManager != null ? deptManager.name : 'Department Manager'}">Department Manager</span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
-                <li><a class="dropdown-item" href="/department/profile">Profile</a></li>
+                
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="/logout">Sign out</a></li>
             </ul>
@@ -177,38 +177,26 @@
                 
                 
                 <!-- Action Cards -->
-                <div class="row g-4 mb-4">
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card dashboard-card">
-                            <div class="card-body text-center">
-                                <i class="bi bi-clock-history card-icon text-primary"></i>
-                                <h5 class="card-title">Overtime Approval</h5>
-                                <p class="card-text">Review and approve employee overtime requests.</p>
-                                <a href="/department/overtime" class="btn btn-primary">Manage Overtime</a>
-                            </div>
+                <div class="d-flex flex-wrap gap-4 mb-4">
+                    <div class="card dashboard-card flex-fill">
+                        <div class="card-body text-center">
+                            <i class="bi bi-clock-history card-icon text-primary"></i>
+                            <h5 class="card-title">Overtime Approval</h5>
+                            <p class="card-text">Review and approve employee overtime requests.</p>
+                            <a href="/department/overtime" class="btn btn-primary">Manage Overtime</a>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card dashboard-card">
-                            <div class="card-body text-center">
-                                <i class="bi bi-graph-up card-icon text-success"></i>
-                                <h5 class="card-title">Performance Evaluation</h5>
-                                <p class="card-text">Evaluate and manage employee performance.</p>
-                                <a href="/department/performance" class="btn btn-success">Evaluate Performance</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card dashboard-card">
-                            <div class="card-body text-center">
-                                <i class="bi bi-cash-coin card-icon text-warning"></i>
-                                <h5 class="card-title">Bonus Recommendations</h5>
-                                <p class="card-text">Recommend bonuses for high-performing employees.</p>
-                                <a href="/department/bonus-recommendations" class="btn btn-warning">Recommend Bonus</a>
-                            </div>
+                
+                    <div class="card dashboard-card flex-fill">
+                        <div class="card-body text-center">
+                            <i class="bi bi-cash-coin card-icon text-warning"></i>
+                            <h5 class="card-title">Bonus Recommendations</h5>
+                            <p class="card-text">Recommend bonuses for high-performing employees.</p>
+                            <a href="/department/bonus-recommendations" class="btn btn-warning">Recommend Bonus</a>
                         </div>
                     </div>
                 </div>
+                
                 
                 <!-- Pending Overtime Requests -->
                 <div class="my-4">

@@ -155,37 +155,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
                 
-                <!-- Filter Controls -->
-                <div class="filter-controls mb-4">
-                    <form id="filterForm" method="get" action="/department/overtime">
-                        <div class="row g-3 align-items-center">
-                            <div class="col-md-3">
-                                <label for="filterEmployee" class="form-label">Employee:</label>
-                                <select class="form-select" id="filterEmployee" name="employeeId">
-                                    <option value="">All Employees</option>
-                                    <!-- This would be populated from the backend -->
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="filterStatus" class="form-label">Status:</label>
-                                <select class="form-select" id="filterStatus" name="status">
-                                    <option value="">All</option>
-                                    <option value="PENDING">Pending</option>
-                                    <option value="APPROVED">Approved</option>
-                                    <option value="REJECTED">Rejected</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="filterStartDate" class="form-label">From Date:</label>
-                                <input type="date" class="form-control" id="filterStartDate" name="startDate">
-                            </div>
-                            <div class="col-md-3">
-                                <label for="filterEndDate" class="form-label">To Date:</label>
-                                <input type="date" class="form-control" id="filterEndDate" name="endDate">
-                            </div>
-                            <div class="col-md-1 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary">Filter</button>
-                            </div>
+               
                         </div>
                     </form>
                 </div>
