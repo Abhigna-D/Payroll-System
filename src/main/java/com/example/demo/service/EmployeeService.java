@@ -32,4 +32,8 @@ public interface EmployeeService {
 
     // Changed to return Employee directly instead of Optional<Employee>
     Employee findByUsername(String username);
+    Employee findByEmployeeId(String employeeId);
+    
+    // Find all employees in a department
+    List<Employee> findByDepartmentId(Long departmentId);
 }

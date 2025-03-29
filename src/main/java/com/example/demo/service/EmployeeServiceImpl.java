@@ -149,4 +149,26 @@ public class EmployeeServiceImpl implements EmployeeService {
             return null;
         }
     }
+    
+    // Implement the missing method findByEmployeeId
+    @Override
+    public Employee findByEmployeeId(String employeeId) {
+        Optional<Employee> employee = employeeRepository.findByEmployeeID(employeeId);
+        return employee.orElse(null);
+    }
+    
+    // Implement the missing method findByDepartmentId
+    @Override
+    public List<Employee> findByDepartmentId(Long departmentId) {
+        try {
+            // Handle potential type mismatch - your existing method uses int, new one uses Long
+            if (departmentId == null) {
+                return List.of();
+            }
+            return employeeRepository.findByDepartmentId(departmentId.intValue());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of();
+        }
+    }
 }

@@ -1,11 +1,10 @@
-    package com.example.demo.model;
+package com.example.demo.model;
 
-    import jakarta.persistence.*;
-    import lombok.Data;
-    
+import jakarta.persistence.*;
+import lombok.Data;
 
-    @Data
-    @Entity
+@Data
+@Entity
 public class Department {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

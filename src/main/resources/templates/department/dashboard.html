@@ -143,11 +143,7 @@
                                 <i class="bi bi-clock-history"></i> Overtime Approval
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/department/performance">
-                                <i class="bi bi-graph-up"></i> Performance Evaluation
-                            </a>
-                        </li>
+                        
                         <li class="nav-item">
                             <a class="nav-link" href="/department/bonus-recommendations">
                                 <i class="bi bi-cash-coin"></i> Bonus Recommendations
@@ -158,11 +154,7 @@
                                 <i class="bi bi-file-earmark-text"></i> Reports
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/department/profile">
-                                <i class="bi bi-person-badge"></i> Profile
-                            </a>
-                        </li>
+                        
                     </ul>
                 </div>
             </nav>
@@ -171,9 +163,7 @@
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Department Manager Dashboard</h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
-                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
-                            <i class="bi bi-calendar3"></i> This month
-                        </button>
+                        
                     </div>
                 </div>
                 
@@ -183,56 +173,8 @@
                 <div th:if="${error}" class="alert alert-danger" th:text="${error}">
                 </div>
                 
-                <!-- Department Information -->
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h4 th:text="${department != null ? department.name : 'Engineering Department'}">Engineering Department</h4>
-                                <p class="text-muted">
-                                    Manager: <span th:text="${deptManager != null ? deptManager.name : 'John Smith'}">John Smith</span>
-                                </p>
-                            </div>
-                            <div class="col-md-6 text-md-end">
-                                <p>
-                                    Team Size: <span class="fw-bold" th:text="${teamSize != null ? teamSize : '15'}">15</span> members
-                                </p>
-                                <p class="mb-0">
-                                    Average Performance: 
-                                    <span class="fw-bold text-success" th:text="${averagePerformance != null ? averagePerformance : '82%'}">82%</span>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 
-                <!-- Quick Stats -->
-                <div class="row g-4 mb-4">
-                    <div class="col-md-3">
-                        <div class="dashboard-stats bg-primary bg-opacity-10">
-                            <p class="stat-value" th:text="${pendingOvertimeRequests != null ? pendingOvertimeRequests : '8'}">8</p>
-                            <p class="stat-label">Overtime Requests</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="dashboard-stats bg-success bg-opacity-10">
-                            <p class="stat-value" th:text="${pendingEvaluations != null ? pendingEvaluations : '5'}">5</p>
-                            <p class="stat-label">Pending Evaluations</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="dashboard-stats bg-warning bg-opacity-10">
-                            <p class="stat-value" th:text="${pendingBonusRecommendations != null ? pendingBonusRecommendations : '3'}">3</p>
-                            <p class="stat-label">Bonus Recommendations</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="dashboard-stats bg-info bg-opacity-10">
-                            <p class="stat-value" th:text="${teamAttendance != null ? teamAttendance + '%' : '95%'}">95%</p>
-                            <p class="stat-label">Team Attendance</p>
-                        </div>
-                    </div>
-                </div>
+                
                 
                 <!-- Action Cards -->
                 <div class="row g-4 mb-4">
@@ -321,63 +263,7 @@
                     </div>
                 </div>
                 
-                <!-- Performance Evaluations -->
-                <div class="my-4">
-                    <h3>Employee Performance</h3>
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between mb-3">
-                                <span class="fs-5">Recent Performance Evaluations</span>
-                                <a href="/department/performance" class="btn btn-sm btn-outline-success">Manage Evaluations</a>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Employee</th>
-                                            <th>Rating</th>
-                                            <th>Productivity</th>
-                                            <th>Last Evaluated</th>
-                                            <th>Status</th>
-                                            <th class="action-column">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Sample data, would be replaced with backend data -->
-                                        <tr th:if="${performances != null && !performances.empty}" th:each="perf : ${performances}">
-                                            <td th:text="${perf.employee.name}">Michael Brown</td>
-                                            <td>
-                                                <span th:if="${perf.rating >= 90}" class="performance-rating rating-excellent" th:text="${perf.rating + '%'}">95%</span>
-                                                <span th:if="${perf.rating >= 75 && perf.rating < 90}" class="performance-rating rating-good" th:text="${perf.rating + '%'}">85%</span>
-                                                <span th:if="${perf.rating >= 60 && perf.rating < 75}" class="performance-rating rating-average" th:text="${perf.rating + '%'}">70%</span>
-                                                <span th:if="${perf.rating < 60}" class="performance-rating rating-poor" th:text="${perf.rating + '%'}">55%</span>
-                                            </td>
-                                            <td>
-                                                <div class="progress">
-                                                    <div class="progress-bar" role="progressbar" th:style="'width: ' + ${perf.productivity} + '%'" th:aria-valuenow="${perf.productivity}" aria-valuemin="0" aria-valuemax="100"></div>
-                                                </div>
-                                            </td>
-                                            <td th:text="${#temporals.format(perf.lastEvaluatedDate, 'dd MMM yyyy')}">10 Mar 2025</td>
-                                            <td>
-                                                <span th:if="${perf.status == 'COMPLETED'}" class="badge bg-success">Completed</span>
-                                                <span th:if="${perf.status == 'PENDING'}" class="badge bg-warning">Pending</span>
-                                                <span th:if="${perf.status == 'DUE'}" class="badge bg-danger">Due</span>
-                                            </td>
-                                            <td>
-                                                <a th:href="@{'/department/performance/evaluate/' + ${perf.id}}" class="btn btn-sm btn-outline-primary">
-                                                    <i class="bi bi-pencil"></i> Evaluate
-                                                </a>
-                                            </td>
-                                        </tr>
-                                        <tr th:if="${performances == null || performances.empty}">
-                                            <td colspan="6" class="text-center">No pending evaluations</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                
                 
                 <!-- Bonus Recommendations -->
                 <div class="my-4">
@@ -472,10 +358,7 @@
                                 </div>
                             </div>
                             
-                            <div class="text-center mt-3">
-                                <a href="/department/team" class="btn btn-outline-primary">View Team Details</a>
-                                <a href="/department/reports/generate" class="btn btn-outline-secondary ms-2">Generate Performance Report</a>
-                            </div>
+                            
                         </div>
                     </div>
                 </div>

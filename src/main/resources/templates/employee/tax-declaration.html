@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simplified Tax Declaration - Payroll System</title>
+    <title>Update Tax Declaration - Payroll System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
@@ -47,59 +47,26 @@
             box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
         }
         .form-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
             background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-            padding: 20px;
-            margin-bottom: 20px;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
         .form-section-title {
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
             border-bottom: 1px solid #dee2e6;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            color: #495057;
         }
-        .form-section-subtitle {
-            color: #6c757d;
-            font-size: 0.9rem;
-            margin-bottom: 20px;
+        .form-label {
+            font-weight: 500;
         }
-        .form-help-text {
-            font-size: 0.85rem;
-            color: #6c757d;
-            margin-top: 5px;
-        }
-        .declaration-summary {
+        .form-alert {
+            padding: 0.75rem;
+            margin-bottom: 1rem;
             background-color: #f8f9fa;
-            border-radius: 5px;
-            padding: 15px;
-            margin-top: 20px;
-        }
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        .summary-total {
-            font-weight: bold;
-            border-top: 1px solid #dee2e6;
-            padding-top: 10px;
-            margin-top: 10px;
-        }
-        .btn-action {
-            min-width: 120px;
-        }
-        .input-with-icon {
-            position: relative;
-        }
-        .input-with-icon .form-control {
-            padding-left: 30px;
-        }
-        .input-icon {
-            position: absolute;
-            left: 10px;
-            top: 10px;
-            color: #6c757d;
+            border-left: 4px solid #0d6efd;
+            border-radius: 0.25rem;
         }
     </style>
 </head>
@@ -111,7 +78,7 @@
         </button>
         <div class="dropdown text-end me-3">
             <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-person-circle me-1"></i> <span th:text="${employee != null ? employee.fullName : 'Employee'}">Employee</span>
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${employee != null ? employee.FullName : 'Employee'}">Employee</span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
                 <li><a class="dropdown-item" href="/employee/profile">Profile</a></li>
@@ -137,18 +104,18 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="/employee/payslips">
+                                <i class="bi bi-receipt"></i> Payslips
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/employee/leave">
+                                <i class="bi bi-calendar-x"></i> Leave Requests
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link active" href="/employee/tax-declaration">
                                 <i class="bi bi-file-earmark-text"></i> Tax Declaration
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/employee/salary">
-                                <i class="bi bi-cash-stack"></i> Salary
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/employee/profile">
-                                <i class="bi bi-person-badge"></i> Profile
                             </a>
                         </li>
                     </ul>
@@ -157,151 +124,136 @@
             
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Tax Declaration</h1>
+                    <h1 class="h2">Update Tax Declaration</h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="financialYearDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-calendar3"></i> Financial Year 2025-26
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="financialYearDropdown">
-                                <li><a class="dropdown-item" href="#">Financial Year 2025-26</a></li>
-                                <li><a class="dropdown-item" href="#">Financial Year 2024-25</a></li>
-                            </ul>
-                        </div>
+                        <a href="/employee/tax-declaration" class="btn btn-sm btn-outline-secondary me-2">
+                            <i class="bi bi-arrow-left"></i> Back
+                        </a>
                     </div>
                 </div>
                 
-                <div th:if="${success}" class="alert alert-success" th:text="${success}">
+                <!-- Status Alert -->
+                <div th:if="${taxDeclaration.status == 'REJECTED'}" class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Declaration Rejected</h4>
+                    <p>Your tax declaration was rejected. Please review the reason below and make the necessary corrections.</p>
+                    <hr>
+                    <p class="mb-0"><strong>Rejection Reason:</strong> <span th:text="${taxDeclaration.rejectionReason}">Incomplete documentation</span></p>
                 </div>
+                <!-- Status Box - Add this right after the existing status alert -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Declaration Status</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <p><strong>Status:</strong> 
+                    <span class="badge bg-warning text-dark" th:if="${taxDeclaration.status == 'PENDING'}">Pending Approval</span>
+                    <span class="badge bg-success" th:if="${taxDeclaration.status == 'APPROVED'}">Approved</span>
+                    <span class="badge bg-danger" th:if="${taxDeclaration.status == 'REJECTED'}">Rejected</span>
+                    <span class="badge bg-secondary" th:if="${taxDeclaration.status == 'DRAFT'}">Draft</span>
+                </p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Submission Date:</strong> <span th:text="${#temporals.format(taxDeclaration.lastUpdateDate, 'dd MMM yyyy')}">15 Mar 2025</span></p>
+            </div>
+            <div class="col-md-4">
+                <p th:if="${taxDeclaration.status == 'APPROVED' && taxDeclaration.approvalDate != null}">
+                    <strong>Approval Date:</strong> <span th:text="${#temporals.format(taxDeclaration.approvalDate, 'dd MMM yyyy')}">20 Mar 2025</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
                 
-                <div th:if="${error}" class="alert alert-danger" th:text="${error}">
-                </div>
-                
-                <!-- Form Status Card -->
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-md-6">
-                                <h5 class="mb-1">Declaration Status</h5>
-                                <span class="badge bg-warning text-dark" th:if="${taxDeclaration != null && taxDeclaration.status == 'PENDING'}">Pending Approval</span>
-                                <span class="badge bg-success" th:if="${taxDeclaration != null && taxDeclaration.status == 'APPROVED'}">Approved</span>
-                                <span class="badge bg-danger" th:if="${taxDeclaration != null && taxDeclaration.status == 'REJECTED'}">Rejected</span>
-                                <span class="badge bg-secondary" th:if="${taxDeclaration == null}">Not Submitted</span>
-                                <p class="mt-2 mb-0 small text-muted">Last Updated: <span th:if="${taxDeclaration != null}" th:text="${#temporals.format(taxDeclaration.lastUpdateDate, 'dd MMM yyyy')}">15 Mar 2025</span><span th:unless="${taxDeclaration != null}">N/A</span></p>
-                            </div>
-                            <div class="col-md-6">
-                                <p class="mb-0">Professional Tax: <strong>₹200</strong> per month</p>
-                            </div>
-                        </div>
-                        <div class="alert alert-info mt-3 mb-0" th:if="${taxDeclaration != null && taxDeclaration.status == 'REJECTED'}">
-                            <i class="bi bi-info-circle-fill"></i> Your declaration was rejected. Reason: <span th:text="${taxDeclaration.rejectionReason}">Incomplete documentation</span>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Tax Declaration Form -->
-                <form id="taxDeclarationForm" method="post" action="/employee/tax-declaration/save">
+                <form th:action="@{/employee/tax-declaration/update}" method="post" id="taxDeclarationForm" class="needs-validation" novalidate>
+                    <input type="hidden" name="id" th:value="${taxDeclaration.id}">
+                    
                     <!-- Personal Information Section -->
                     <div class="form-section">
-                        <h4 class="form-section-title">Personal Information</h4>
-                        <p class="form-section-subtitle">Basic employee details used for tax filing purposes</p>
-                        
+                        <h3 class="form-section-title"><i class="bi bi-person me-2"></i>Personal Information</h3>
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label for="employeeId" class="form-label">Employee ID</label>
-                                <input type="text" class="form-control" id="employeeId" name="employeeId" th:value="${employee != null ? employee.employeeID : ''}" readonly>
+                                <input type="text" class="form-control" id="employeeId" th:value="${employee.employeeID}" readonly>
                             </div>
                             <div class="col-md-4">
-                                <label for="name" class="form-label">Full Name</label>
-                                <input type="text" class="form-control" id="name" name="name" th:value="${employee != null ? employee.fullName : ''}" readonly>
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="name" th:value="${employee.FullName}" readonly>
                             </div>
                             <div class="col-md-4">
-                                <label for="pan" class="form-label">PAN Number*</label>
-                                <input type="text" class="form-control" id="pan" name="pan" th:value="${taxDeclaration != null ? taxDeclaration.pan : ''}" placeholder="ABCDE1234F" required>
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="department" class="form-label">Department</label>
-                                <input type="text" class="form-control" id="department" name="department" th:value="${employee != null && employee.department != null ? employee.department.name : ''}" readonly>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="designation" class="form-label">Designation</label>
-                                <input type="text" class="form-control" id="designation" name="designation" th:value="${employee != null ? employee.jobTitle : ''}" readonly>
+                                <label for="pan" class="form-label">PAN Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="pan" name="pan" th:value="${taxDeclaration.pan}" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" maxlength="10" required>
+                                <div class="invalid-feedback">Please enter a valid PAN number (e.g., ABCDE1234F).</div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Bank Details Section -->
                     <div class="form-section">
-                        <h4 class="form-section-title">Bank Account Details</h4>
-                        <p class="form-section-subtitle">Your bank account information for salary processing</p>
-                        
+                        <h3 class="form-section-title"><i class="bi bi-bank me-2"></i>Bank Details</h3>
                         <div class="row mb-3">
                             <div class="col-md-4">
-                                <label for="bankName" class="form-label">Bank Name*</label>
-                                <input type="text" class="form-control" id="bankName" name="bankName" placeholder="Enter bank name" required>
+                                <label for="bankName" class="form-label">Bank Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="bankName" name="bankName" th:value="${taxDeclaration.bankName}" required>
+                                <div class="invalid-feedback">Please enter your bank name.</div>
                             </div>
                             <div class="col-md-4">
-                                <label for="accountNumber" class="form-label">Account Number*</label>
-                                <input type="text" class="form-control" id="accountNumber" name="accountNumber" placeholder="Enter account number" required>
+                                <label for="accountNumber" class="form-label">Account Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="accountNumber" name="accountNumber" th:value="${taxDeclaration.accountNumber}" required>
+                                <div class="invalid-feedback">Please enter your account number.</div>
                             </div>
                             <div class="col-md-4">
-                                <label for="ifscCode" class="form-label">IFSC Code*</label>
-                                <input type="text" class="form-control" id="ifscCode" name="ifscCode" placeholder="Enter IFSC code" required>
+                                <label for="ifscCode" class="form-label">IFSC Code <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="ifscCode" name="ifscCode" th:value="${taxDeclaration.ifscCode}" required>
+                                <div class="invalid-feedback">Please enter your bank's IFSC code.</div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- HRA & Rent Details Section -->
                     <div class="form-section">
-                        <h4 class="form-section-title">HRA & Rent Details</h4>
-                        <p class="form-section-subtitle">Complete this section if you're living in a rented accommodation</p>
+                        <h3 class="form-section-title"><i class="bi bi-house me-2"></i>HRA & Rent Details</h3>
                         
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="isRenting" class="form-label">Are you living in rented accommodation?*</label>
-                                <select class="form-select" id="isRenting" name="isRenting" required>
-                                    <option value="false" th:selected="${taxDeclaration != null && taxDeclaration.isRenting == false}">No</option>
-                                    <option value="true" th:selected="${taxDeclaration != null && taxDeclaration.isRenting == true}">Yes</option>
-                                </select>
-                            </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="isRenting" name="isRenting" th:checked="${taxDeclaration.isRenting}">
+                            <label class="form-check-label" for="isRenting">
+                                I live in a rented accommodation
+                            </label>
                         </div>
                         
-                        <div class="rent-fields" style="display:none;">
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="rentalAddress" class="form-label">Rental Address*</label>
-                                    <textarea class="form-control" id="rentalAddress" name="rentalAddress" rows="3" th:text="${taxDeclaration != null ? taxDeclaration.rentalAddress : ''}"></textarea>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="monthlyRent" class="form-label">Monthly Rent Amount*</label>
-                                    <div class="input-with-icon">
-                                        <span class="input-icon">₹</span>
-                                        <input type="number" class="form-control" id="monthlyRent" name="monthlyRent" th:value="${taxDeclaration != null ? taxDeclaration.monthlyRent : ''}" placeholder="0">
-                                    </div>
-                                    <div class="row mt-3">
-                                        <div class="col-md-6">
-                                            <label for="rentFromDate" class="form-label">From Date*</label>
-                                            <input type="date" class="form-control" id="rentFromDate" name="rentFromDate">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="rentToDate" class="form-label">To Date*</label>
-                                            <input type="date" class="form-control" id="rentToDate" name="rentToDate">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div id="rentDetailsSection" th:style="${taxDeclaration.isRenting ? 'display: block;' : 'display: none;'}">
                             <div class="row mb-3">
                                 <div class="col-md-4">
-                                    <label for="landlordName" class="form-label">Landlord Name*</label>
-                                    <input type="text" class="form-control" id="landlordName" name="landlordName" placeholder="Enter landlord's name">
+                                    <label for="monthlyRent" class="form-label">Monthly Rent (₹) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="monthlyRent" name="monthlyRent" th:value="${taxDeclaration.monthlyRent}">
+                                    <div class="invalid-feedback">Please enter your monthly rent amount.</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="landlordName" class="form-label">Landlord Name</label>
+                                    <input type="text" class="form-control" id="landlordName" name="landlordName" th:value="${taxDeclaration.landlordName}">
                                 </div>
                                 <div class="col-md-4">
                                     <label for="landlordPan" class="form-label">Landlord PAN</label>
-                                    <input type="text" class="form-control" id="landlordPan" name="landlordPan" th:value="${taxDeclaration != null ? taxDeclaration.landlordPan : ''}" placeholder="ABCDE1234F">
-                                    <div class="form-help-text">Required if rent exceeds ₹1,00,000 per annum</div>
+                                    <input type="text" class="form-control" id="landlordPan" name="landlordPan" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" maxlength="10" th:value="${taxDeclaration.landlordPan}">
+                                    <div class="invalid-feedback">Please enter a valid PAN number.</div>
+                                    <small class="form-text text-muted">Required if monthly rent exceeds ₹8,333</small>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="rentalAddress" class="form-label">Rental Address</label>
+                                    <textarea class="form-control" id="rentalAddress" name="rentalAddress" rows="2" th:text="${taxDeclaration.rentalAddress}"></textarea>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="rentFromDate" class="form-label">From Date</label>
+                                    <input type="date" class="form-control" id="rentFromDate" name="rentFromDate" th:value="${taxDeclaration.rentFromDate}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="rentToDate" class="form-label">To Date</label>
+                                    <input type="date" class="form-control" id="rentToDate" name="rentToDate" th:value="${taxDeclaration.rentToDate}">
                                 </div>
                             </div>
                         </div>
@@ -309,139 +261,94 @@
                     
                     <!-- Home Loan Details Section -->
                     <div class="form-section">
-                        <h4 class="form-section-title">Home Loan Details</h4>
-                        <p class="form-section-subtitle">Complete this section if you have an active home loan</p>
+                        <h3 class="form-section-title"><i class="bi bi-house-door me-2"></i>Home Loan Details</h3>
                         
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="hasHomeLoan" class="form-label">Do you have a home loan?*</label>
-                                <select class="form-select" id="hasHomeLoan" name="hasHomeLoan" required>
-                                    <option value="false" selected>No</option>
-                                    <option value="true">Yes</option>
-                                </select>
-                            </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="hasHomeLoan" name="hasHomeLoan" th:checked="${taxDeclaration.hasHomeLoan}">
+                            <label class="form-check-label" for="hasHomeLoan">
+                                I have a home loan
+                            </label>
                         </div>
                         
-                        <div class="home-loan-fields" style="display:none;">
+                        <div id="homeLoanDetailsSection" th:style="${taxDeclaration.hasHomeLoan ? 'display: block;' : 'display: none;'}">
                             <div class="row mb-3">
                                 <div class="col-md-4">
-                                    <label for="homeLoanAccountNumber" class="form-label">Home Loan Account Number*</label>
-                                    <input type="text" class="form-control" id="homeLoanAccountNumber" name="homeLoanAccountNumber" placeholder="Enter loan account number">
+                                    <label for="homeLoanAccountNumber" class="form-label">Loan Account Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="homeLoanAccountNumber" name="homeLoanAccountNumber" th:value="${taxDeclaration.homeLoanAccountNumber}">
+                                    <div class="invalid-feedback">Please enter your loan account number.</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="homeLoanBankName" class="form-label">Bank/Financial Institution*</label>
-                                    <input type="text" class="form-control" id="homeLoanBankName" name="homeLoanBankName" placeholder="Enter bank/institution name">
+                                    <label for="homeLoanBankName" class="form-label">Bank/Institution Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="homeLoanBankName" name="homeLoanBankName" th:value="${taxDeclaration.homeLoanBankName}">
+                                    <div class="invalid-feedback">Please enter the bank or institution name.</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="homeLoanInterest" class="form-label">Annual Interest Amount*</label>
-                                    <div class="input-with-icon">
-                                        <span class="input-icon">₹</span>
-                                        <input type="number" class="form-control" id="homeLoanInterest" name="homeLoanInterest" th:value="${taxDeclaration != null ? taxDeclaration.homeLoanInterest : ''}" placeholder="0">
-                                    </div>
+                                    <label for="homeLoanInterest" class="form-label">Annual Interest (₹) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="homeLoanInterest" name="homeLoanInterest" th:value="${taxDeclaration.homeLoanInterest}">
+                                    <div class="invalid-feedback">Please enter the annual interest amount.</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Previous Employment Income Section -->
+                    <!-- Previous Employment Section -->
                     <div class="form-section">
-                        <h4 class="form-section-title">Income from Previous Employer</h4>
-                        <p class="form-section-subtitle">Complete this section if you've changed jobs this financial year</p>
+                        <h3 class="form-section-title"><i class="bi bi-building me-2"></i>Previous Employment (This Financial Year)</h3>
                         
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="hasPreviousEmployment" class="form-label">Did you change jobs this financial year?*</label>
-                                <select class="form-select" id="hasPreviousEmployment" name="hasPreviousEmployment" required>
-                                    <option value="false" th:selected="${taxDeclaration != null && taxDeclaration.hasPreviousEmployment == false}">No</option>
-                                    <option value="true" th:selected="${taxDeclaration != null && taxDeclaration.hasPreviousEmployment == true}">Yes</option>
-                                </select>
-                            </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="hasPreviousEmployment" name="hasPreviousEmployment" th:checked="${taxDeclaration.hasPreviousEmployment}">
+                            <label class="form-check-label" for="hasPreviousEmployment">
+                                I was employed elsewhere during this financial year
+                            </label>
                         </div>
                         
-                        <div class="prev-job-fields" style="display:none;">
+                        <div id="previousEmploymentSection" th:style="${taxDeclaration.hasPreviousEmployment ? 'display: block;' : 'display: none;'}">
                             <div class="row mb-3">
                                 <div class="col-md-4">
-                                    <label for="previousEmployerName" class="form-label">Previous Employer Name*</label>
-                                    <input type="text" class="form-control" id="previousEmployerName" name="previousEmployerName" th:value="${taxDeclaration != null ? taxDeclaration.previousEmployerName : ''}" placeholder="Enter previous employer name">
+                                    <label for="previousEmployerName" class="form-label">Previous Employer <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="previousEmployerName" name="previousEmployerName" th:value="${taxDeclaration.previousEmployerName}">
+                                    <div class="invalid-feedback">Please enter your previous employer's name.</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="previousTaxableIncome" class="form-label">Taxable Income Received*</label>
-                                    <div class="input-with-icon">
-                                        <span class="input-icon">₹</span>
-                                        <input type="number" class="form-control" id="previousTaxableIncome" name="previousTaxableIncome" th:value="${taxDeclaration != null ? taxDeclaration.previousTaxableIncome : ''}" placeholder="0">
-                                    </div>
+                                    <label for="previousTaxableIncome" class="form-label">Taxable Income (₹) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="previousTaxableIncome" name="previousTaxableIncome" th:value="${taxDeclaration.previousTaxableIncome}">
+                                    <div class="invalid-feedback">Please enter your previous taxable income.</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="previousTaxDeducted" class="form-label">TDS Deducted by Previous Employer*</label>
-                                    <div class="input-with-icon">
-                                        <span class="input-icon">₹</span>
-                                        <input type="number" class="form-control" id="previousTaxDeducted" name="previousTaxDeducted" th:value="${taxDeclaration != null ? taxDeclaration.previousTaxDeducted : ''}" placeholder="0">
-                                    </div>
+                                    <label for="previousTaxDeducted" class="form-label">Tax Deducted (TDS) (₹) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="previousTaxDeducted" name="previousTaxDeducted" th:value="${taxDeclaration.previousTaxDeducted}">
+                                    <div class="invalid-feedback">Please enter the tax deducted at source.</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Health Insurance Section -->
+                    <!-- Other Deductions Section -->
                     <div class="form-section">
-                        <h4 class="form-section-title">Health Insurance (Section 80D)</h4>
-                        <p class="form-section-subtitle">Enter health insurance premium paid for tax deduction</p>
+                        <h3 class="form-section-title"><i class="bi bi-shield-plus me-2"></i>Other Deductions</h3>
                         
                         <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="medicalInsurance" class="form-label">Health Insurance Premium Amount*</label>
-                                <div class="input-with-icon">
-                                    <span class="input-icon">₹</span>
-                                    <input type="number" class="form-control" id="medicalInsurance" name="medicalInsurance" th:value="${taxDeclaration != null ? taxDeclaration.medicalInsurance : ''}" placeholder="0" required>
-                                </div>
+                            <div class="col-md-6">
+                                <label for="medicalInsurance" class="form-label">Medical Insurance Premium (₹)</label>
+                                <input type="number" class="form-control" id="medicalInsurance" name="medicalInsurance" th:value="${taxDeclaration.medicalInsurance}">
+                                <small class="form-text text-muted">Enter the total premium paid for health insurance policies.</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="professionalTax" class="form-label">Professional Tax</label>
+                                <input type="text" class="form-control" value="₹200/month (automatically deducted)" readonly>
+                                <small class="form-text text-muted">Professional tax is automatically calculated and deducted from your salary.</small>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Declaration Summary -->
+                    <!-- Form Actions -->
                     <div class="form-section">
-                        <h4 class="form-section-title">Declaration Summary</h4>
-                        <p class="form-section-subtitle">Review your tax saving deductions</p>
-                        
-                        <div class="declaration-summary">
-                            <div class="summary-item">
-                                <span>Professional Tax</span>
-                                <span>₹200</span>
-                            </div>
-                            <div class="summary-item">
-                                <span>Medical Insurance (80D)</span>
-                                <span>₹<span id="totalHealthInsurance">0</span></span>
-                            </div>
-                            <div class="summary-item">
-                                <span>Home Loan Interest (Section 24)</span>
-                                <span>₹<span id="totalHomeLoanInterest">0</span></span>
-                            </div>
-                            <div class="summary-item summary-total">
-                                <span>Total Deductions</span>
-                                <span>₹<span id="grandTotal">2,400</span></span>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="declarationCheck" name="declarationCheck" required>
-                                <label class="form-check-label" for="declarationCheck">
-                                    I hereby declare that the information provided above is true and correct to the best of my knowledge. I understand that any false information may lead to rejection of my tax declaration and possible disciplinary action.
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between mt-4 mb-5">
-                        <a href="/employee/dashboard" class="btn btn-outline-secondary btn-action">
-                            <i class="bi bi-arrow-left"></i> Back to Dashboard
-                        </a>
-                        <div>
-                            <button type="button" class="btn btn-outline-primary btn-action me-2" id="saveAsDraftBtn">
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-secondary" name="isDraft" value="true">
                                 <i class="bi bi-save"></i> Save as Draft
                             </button>
-                            <button type="submit" class="btn btn-primary btn-action">
-                                <i class="bi bi-check-circle"></i> Submit Declaration
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="bi bi-check2-circle"></i> Submit Declaration
                             </button>
                         </div>
                     </div>
@@ -453,80 +360,150 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Toggle rent fields based on isRenting selection
-            const isRentingSelect = document.getElementById('isRenting');
-            const rentFields = document.querySelector('.rent-fields');
+            // Show/hide rent details based on checkbox
+            const isRentingCheckbox = document.getElementById('isRenting');
+            const rentDetailsSection = document.getElementById('rentDetailsSection');
             
-            function toggleRentFields() {
-                const isRenting = isRentingSelect.value === 'true';
-                rentFields.style.display = isRenting ? 'block' : 'none';
-            }
-            
-            isRentingSelect.addEventListener('change', toggleRentFields);
-            toggleRentFields(); // Initial state
-            
-            // Toggle home loan fields
-            const hasHomeLoanSelect = document.getElementById('hasHomeLoan');
-            const homeLoanFields = document.querySelector('.home-loan-fields');
-            
-            function toggleHomeLoanFields() {
-                const hasHomeLoan = hasHomeLoanSelect.value === 'true';
-                homeLoanFields.style.display = hasHomeLoan ? 'block' : 'none';
-            }
-            
-            hasHomeLoanSelect.addEventListener('change', toggleHomeLoanFields);
-            toggleHomeLoanFields(); // Initial state
-            
-            // Toggle previous employment fields
-            const hasPreviousEmploymentSelect = document.getElementById('hasPreviousEmployment');
-            const prevJobFields = document.querySelector('.prev-job-fields');
-            
-            function togglePrevJobFields() {
-                const hasPrevJob = hasPreviousEmploymentSelect.value === 'true';
-                prevJobFields.style.display = hasPrevJob ? 'block' : 'none';
-            }
-            
-            hasPreviousEmploymentSelect.addEventListener('change', togglePrevJobFields);
-            togglePrevJobFields(); // Initial state
-            
-            // Calculate totals for summary
-            function calculateTotals() {
-                // Get health insurance amount
-                const healthInsuranceAmount = parseInt(document.getElementById('medicalInsurance').value, 10) || 0;
-                document.getElementById('totalHealthInsurance').textContent = healthInsuranceAmount.toLocaleString();
+            isRentingCheckbox.addEventListener('change', function() {
+                rentDetailsSection.style.display = this.checked ? 'block' : 'none';
                 
-                // Get home loan interest amount
-                const homeLoanInterestAmount = parseInt(document.getElementById('homeLoanInterest').value, 10) || 0;
-                document.getElementById('totalHomeLoanInterest').textContent = homeLoanInterestAmount.toLocaleString();
-                
-                // Calculate grand total (fixed professional tax + health insurance + home loan interest)
-                const grandTotal = 200 + healthInsuranceAmount + homeLoanInterestAmount;
-                document.getElementById('grandTotal').textContent = grandTotal.toLocaleString();
-            }
+                // Toggle required attribute for relevant fields
+                document.getElementById('monthlyRent').required = this.checked;
+            });
             
-            // Add event listeners to relevant inputs
-            document.getElementById('medicalInsurance').addEventListener('input', calculateTotals);
-            document.getElementById('homeLoanInterest').addEventListener('input', calculateTotals);
+            // Show/hide home loan details based on checkbox
+            const hasHomeLoanCheckbox = document.getElementById('hasHomeLoan');
+            const homeLoanDetailsSection = document.getElementById('homeLoanDetailsSection');
             
-            // Initialize calculations
-            calculateTotals();
+            hasHomeLoanCheckbox.addEventListener('change', function() {
+                homeLoanDetailsSection.style.display = this.checked ? 'block' : 'none';
+                
+                // Toggle required attribute for relevant fields
+                document.getElementById('homeLoanAccountNumber').required = this.checked;
+                document.getElementById('homeLoanBankName').required = this.checked;
+                document.getElementById('homeLoanInterest').required = this.checked;
+            });
             
-            // Save as draft functionality
-            document.getElementById('saveAsDraftBtn').addEventListener('click', function() {
-                // Add a hidden input to indicate this is a draft submission
-                const draftInput = document.createElement('input');
-                draftInput.type = 'hidden';
-                draftInput.name = 'isDraft';
-                draftInput.value = 'true';
-                document.getElementById('taxDeclarationForm').appendChild(draftInput);
+            // Show/hide previous employment details based on checkbox
+            const hasPreviousEmploymentCheckbox = document.getElementById('hasPreviousEmployment');
+            const previousEmploymentSection = document.getElementById('previousEmploymentSection');
+            
+            hasPreviousEmploymentCheckbox.addEventListener('change', function() {
+                previousEmploymentSection.style.display = this.checked ? 'block' : 'none';
                 
-                // Remove required attribute from mandatory fields for draft save
-                document.querySelectorAll('[required]').forEach(el => {
-                    el.removeAttribute('required');
-                });
+                // Toggle required attribute for relevant fields
+                document.getElementById('previousEmployerName').required = this.checked;
+                document.getElementById('previousTaxableIncome').required = this.checked;
+                document.getElementById('previousTaxDeducted').required = this.checked;
+            });
+            
+            // Form validation
+            const form = document.getElementById('taxDeclarationForm');
+            
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
                 
-                // Submit the form
-                document.getElementById('taxDeclarationForm').submit();
+                // Additional validation for required fields based on checkbox states
+                if (isRentingCheckbox.checked && document.getElementById('monthlyRent').value === '') {
+                    document.getElementById('monthlyRent').classList.add('is-invalid');
+                    event.preventDefault();
+                }
+                
+                if (hasHomeLoanCheckbox.checked) {
+                    const homeLoanAccountNumber = document.getElementById('homeLoanAccountNumber');
+                    const homeLoanBankName = document.getElementById('homeLoanBankName');
+                    const homeLoanInterest = document.getElementById('homeLoanInterest');
+                    
+                    if (homeLoanAccountNumber.value === '') {
+                        homeLoanAccountNumber.classList.add('is-invalid');
+                        event.preventDefault();
+                    }
+                    
+                    if (homeLoanBankName.value === '') {
+                        homeLoanBankName.classList.add('is-invalid');
+                        event.preventDefault();
+                    }
+                    
+                    if (homeLoanInterest.value === '') {
+                        homeLoanInterest.classList.add('is-invalid');
+                        event.preventDefault();
+                    }
+                }
+                
+                if (hasPreviousEmploymentCheckbox.checked) {
+                    const previousEmployerName = document.getElementById('previousEmployerName');
+                    const previousTaxableIncome = document.getElementById('previousTaxableIncome');
+                    const previousTaxDeducted = document.getElementById('previousTaxDeducted');
+                    
+                    if (previousEmployerName.value === '') {
+                        previousEmployerName.classList.add('is-invalid');
+                        event.preventDefault();
+                    }
+                    
+                    if (previousTaxableIncome.value === '') {
+                        previousTaxableIncome.classList.add('is-invalid');
+                        event.preventDefault();
+                    }
+                    
+                    if (previousTaxDeducted.value === '') {
+                        previousTaxDeducted.classList.add('is-invalid');
+                        event.preventDefault();
+                    }
+                }
+                
+                form.classList.add('was-validated');
+            });
+            
+            // PAN validation
+            const panInput = document.getElementById('pan');
+            
+            panInput.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+            
+            panInput.addEventListener('blur', function() {
+                const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+                
+                if (this.value !== '' && !panRegex.test(this.value)) {
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                }
+            });
+            
+            // Date range validation for rent period
+            const rentFromDate = document.getElementById('rentFromDate');
+            const rentToDate = document.getElementById('rentToDate');
+            
+            rentToDate.addEventListener('change', function() {
+                if (rentFromDate.value && rentToDate.value) {
+                    const fromDate = new Date(rentFromDate.value);
+                    const toDate = new Date(rentToDate.value);
+                    
+                    if (toDate < fromDate) {
+                        this.setCustomValidity('To date cannot be earlier than From date');
+                        this.classList.add('is-invalid');
+                    } else {
+                        this.setCustomValidity('');
+                        this.classList.remove('is-invalid');
+                    }
+                }
+            });
+            
+            // Confirmation before submission
+            const submitBtn = document.getElementById('submitBtn');
+            
+            submitBtn.addEventListener('click', function(event) {
+                if (form.checkValidity()) {
+                    const confirmed = confirm('Are you sure you want to submit your tax declaration? Once submitted, it will be reviewed by the finance team.');
+                    
+                    if (!confirmed) {
+                        event.preventDefault();
+                    }
+                }
             });
         });
     </script>

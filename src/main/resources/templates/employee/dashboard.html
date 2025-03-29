@@ -151,35 +151,7 @@
                 <div th:if="${error}" class="alert alert-danger" th:text="${error}">
                 </div>
                 
-                <!-- Quick Stats -->
-                <div class="row g-4 mb-4">
-                    <div class="col-md-3">
-                        <div class="dashboard-stats bg-primary bg-opacity-10">
-                            <p class="stat-value" th:text="${employeeStatus != null ? employeeStatus.daysPresent : '0'}">22</p>
-                            <p class="stat-label">Days Present</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="dashboard-stats bg-success bg-opacity-10">
-                            <p class="stat-value" th:text="${employeeStatus != null ? employeeStatus.leaveBalance : '0'}">12</p>
-                            <p class="stat-label">Leave Balance</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="dashboard-stats bg-warning bg-opacity-10">
-                            <p class="stat-value" th:if="${salarySlip != null}" th:text="${'₹' + #numbers.formatDecimal(salarySlip.netSalary, 0, 'COMMA', 0, 'POINT')}">₹45,000</p>
-                            <p class="stat-value" th:unless="${salarySlip != null}">₹0</p>
-                            <p class="stat-label">Net Salary</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="dashboard-stats bg-info bg-opacity-10">
-                            <p class="stat-value" th:if="${taxDeclaration != null}" th:text="${taxDeclaration.status}">PENDING</p>
-                            <p class="stat-value" th:unless="${taxDeclaration != null}">NOT FILED</p>
-                            <p class="stat-label">Tax Status</p>
-                        </div>
-                    </div>
-                </div>
+               
                 
                 <!-- Action Cards -->
                 <div class="row g-4">
