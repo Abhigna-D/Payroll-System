@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Details - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #f8f9fa;
+            padding: 0.75rem 1.5rem;
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: #0d6efd;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        main {
+            padding-top: 56px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+        }
+        .employee-table th {
+            background-color: #f8f9fa;
+        }
+        .employee-details-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+        }
+        .employee-details-card:hover {
+            transform: translateY(-5px);
+        }
+        .search-form {
+            position: relative;
+        }
+        .search-form .form-control {
+            padding-left: 2.5rem;
+            border-radius: 20px;
+        }
+        .search-form .bi-search {
+            position: absolute;
+            left: 1rem;
+            top: 0.75rem;
+            color: #6c757d;
+        }
+        .action-column {
+            width: 150px;
+        }
+        .filter-dropdown {
+            min-width: 200px;
+        }
+        .department-badge {
+            font-size: 0.8rem;
+            padding: 0.35em 0.65em;
+            border-radius: 50rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Payroll System</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="dropdown text-end me-3">
+            <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${financeOfficer != null ? financeOfficer.name : 'Finance Officer'}">Finance Officer</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="/finance/profile">Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+            </ul>
+        </div>
+    </header>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/dashboard">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/finance/employees">
+                                <i class="bi bi-people"></i> Employee Details
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/payslips">
+                                <i class="bi bi-receipt"></i> Payslips
+                            </a>
+                        </li>
+                        
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/salary-disbursement">
+                                <i class="bi bi-cash-stack"></i> Salary Disbursement
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/reports">
+                                <i class="bi bi-bar-chart"></i> Reports
+                            </a>
+                        </li>
+                        
+                    </ul>
+                </div>
+            </nav>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Employee Details</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                            <i class="bi bi-calendar3"></i> March 2025
+                        </button>
+                    </div>
+                </div>
+                
+                <div th:if="${success}" class="alert alert-success" th:text="${success}">
+                </div>
+                
+                <div th:if="${error}" class="alert alert-danger" th:text="${error}">
+                </div>
+                
+                <!-- Search and Filter Section -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <form class="search-form">
+                                    <i class="bi bi-search"></i>
+                                    <input type="text" class="form-control" id="employeeSearch" placeholder="Search employee by name, ID, or department...">
+                                </form>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <div class="btn-group me-2">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-funnel"></i> Filter
+                                    </button>
+                                    <ul class="dropdown-menu filter-dropdown" aria-labelledby="filterDropdown">
+                                        <li><h6 class="dropdown-header">Filter by Department</h6></li>
+                                        <li><a class="dropdown-item" href="#">All Departments</a></li>
+                                        <li><a class="dropdown-item" href="#">IT</a></li>
+                                        <li><a class="dropdown-item" href="#">HR</a></li>
+                                        <li><a class="dropdown-item" href="#">Finance</a></li>
+                                        <li><a class="dropdown-item" href="#">Marketing</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><h6 class="dropdown-header">Filter by Employee Type</h6></li>
+                                        <li><a class="dropdown-item" href="#">All Types</a></li>
+                                        <li><a class="dropdown-item" href="#">Full-time</a></li>
+                                        <li><a class="dropdown-item" href="#">Part-time</a></li>
+                                        
+                                    </ul>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Employee Details Table -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover employee-table">
+                                <thead>
+                                    <tr>
+                                        <th>Employee ID</th>
+                                        <th>Name</th>
+                                        <th>Department</th>
+                                        <th>Job Title</th>
+                                        <th>Office Location</th>
+                                        <th>Joining Date</th>
+                                        <th>Employee Type</th>
+                                        <th class="action-column">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${employees.empty}">
+                                        <td colspan="8" class="text-center">No Employees Found</td>
+                                    </tr>
+                                    <tr th:each="employee : ${employees}">
+                                        <td th:text="${employee.employeeID}">EMP001</td>
+                                        <td th:text="${employee.FullName}">Rahul Sharma</td>
+                                        <td>
+                                            <span class="badge bg-primary department-badge" th:if="${employee.department != null}" th:text="${employee.department.name}">Engineering</span>
+                                            <span class="badge bg-secondary department-badge" th:if="${employee.department == null}">No Department</span>
+                                        </td>
+                                        <td th:text="${employee.jobTitle}">Software Engineer</td>
+                                        <td th:text="${employee.officeLocation}">Bangalore</td>
+                                        <td th:text="${#temporals.format(employee.joiningDate, 'dd MMM yyyy')}">01 Jan 2023</td>
+                                        <td th:text="${employee.employeeType}">Full-time</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a th:href="@{'/finance/employees/view/' + ${employee.employeeID}}" class="btn btn-sm btn-outline-info">
+                                                    <i class="bi bi-eye"></i>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <nav aria-label="Page navigation example" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats Section -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="card employee-details-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-people text-primary" style="font-size: 2rem;"></i>
+                                <h5 class="mt-2">Total Employees</h5>
+                                <h3 th:text="${employees.size()}">152</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card employee-details-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-building text-success" style="font-size: 2rem;"></i>
+                                <h5 class="mt-2">Departments</h5>
+                                <h3>5</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card employee-details-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-briefcase text-warning" style="font-size: 2rem;"></i>
+                                <h5 class="mt-2">Job Positions</h5>
+                                <h3>5</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card employee-details-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-geo-alt text-danger" style="font-size: 2rem;"></i>
+                                <h5 class="mt-2">Office Locations</h5>
+                                <h3>5</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Department Distribution -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Department Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Department</th>
+                                        <th>Employees</th>
+                                        <th>Average Salary</th>
+                                        <th>Progress</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Engineering</td>
+                                        <td>45</td>
+                                        <td>₹85,000</td>
+                                        <td width="40%">
+                                            <div class="progress" style="height: 10px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 30%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Marketing</td>
+                                        <td>22</td>
+                                        <td>₹72,000</td>
+                                        <td width="40%">
+                                            <div class="progress" style="height: 10px;">
+                                                <div class="progress-bar bg-info" role="progressbar" style="width: 15%;" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>HR</td>
+                                        <td>18</td>
+                                        <td>₹68,000</td>
+                                        <td width="40%">
+                                            <div class="progress" style="height: 10px;">
+                                                <div class="progress-bar bg-warning" role="progressbar" style="width: 12%;" aria-valuenow="12" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Finance</td>
+                                        <td>15</td>
+                                        <td>₹80,000</td>
+                                        <td width="40%">
+                                            <div class="progress" style="height: 10px;">
+                                                <div class="progress-bar bg-danger" role="progressbar" style="width: 10%;" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Sales</td>
+                                        <td>28</td>
+                                        <td>₹75,000</td>
+                                        <td width="40%">
+                                            <div class="progress" style="height: 10px;">
+                                                <div class="progress-bar bg-primary" role="progressbar" style="width: 18%;" aria-valuenow="18" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simple search functionality
+        document.getElementById('employeeSearch').addEventListener('keyup', function() {
+            let searchValue = this.value.toLowerCase();
+            let rows = document.querySelectorAll('table.employee-table tbody tr');
+            
+            rows.forEach(row => {
+                let text = row.textContent.toLowerCase();
+                if (text.includes(searchValue)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
