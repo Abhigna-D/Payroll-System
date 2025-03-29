@@ -2,8 +2,10 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Attendance;
 import com.example.demo.model.Employee;
+import com.example.demo.model.OvertimeRequest;
 import com.example.demo.service.AttendanceService;
 import com.example.demo.service.EmployeeService;
+import com.example.demo.service.OvertimeRequestService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -24,6 +26,9 @@ public class AttendanceController {
 
     @Autowired
     private EmployeeService employeeService;
+    
+    @Autowired
+    private OvertimeRequestService overtimeRequestService;
 
     /**
      * Display employee attendance page
@@ -96,6 +101,10 @@ public class AttendanceController {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM yyyy");
             String formattedMonth = selectedMonth.format(formatter);
             
+            // Get recent overtime requests
+            List<OvertimeRequest> recentOvertimeRequests = overtimeRequestService
+                    .getEmployeeOvertimeRequests(employee.getEmployeeID());
+            
             // Add to model
             model.addAttribute("employee", employee);
             model.addAttribute("attendanceRecords", attendanceRecords);
@@ -104,6 +113,7 @@ public class AttendanceController {
             model.addAttribute("previousMonth", selectedMonth.minusMonths(1));
             model.addAttribute("nextMonth", selectedMonth.plusMonths(1));
             model.addAttribute("currentMonth", YearMonth.now());
+            model.addAttribute("recentOvertimeRequests", recentOvertimeRequests);
             
             // Add statistics
             model.addAttribute("daysPresent", daysPresent);

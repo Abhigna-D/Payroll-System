@@ -70,90 +70,6 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        .calendar-container {
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-            padding: 20px;
-        }
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .month-nav {
-            display: flex;
-            align-items: center;
-        }
-        .month-nav a {
-            margin: 0 10px;
-            color: #0d6efd;
-            text-decoration: none;
-        }
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-        }
-        .calendar-day {
-            aspect-ratio: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border-radius: 5px;
-            font-weight: 500;
-        }
-        .calendar-day.header {
-            font-weight: bold;
-            color: #495057;
-        }
-        .calendar-day .date {
-            font-size: 1.2rem;
-            margin-bottom: 5px;
-        }
-        .calendar-day .status {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-        }
-        .status-present {
-            background-color: #d1e7dd;
-            color: #0f5132;
-        }
-        .status-absent {
-            background-color: #f8d7da;
-            color: #842029;
-        }
-        .status-leave {
-            background-color: #fff3cd;
-            color: #664d03;
-        }
-        .status-wfh {
-            background-color: #cfe2ff;
-            color: #084298;
-        }
-        .status-half-day {
-            background-color: #e2e3e5;
-            color: #41464b;
-        }
-        .legend {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin: 0 10px;
-        }
-        .legend-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 3px;
-            margin-right: 5px;
-        }
     </style>
 </head>
 <body>
@@ -164,7 +80,7 @@
         </button>
         <div class="dropdown text-end me-3">
             <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-person-circle me-1"></i> <span th:text="${employee != null ? employee.FullName : 'Employee'}">Employee</span>
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${employee != null ? employee.fullName : 'Employee'}">Employee</span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
                 <li><a class="dropdown-item" href="/employee/profile">Profile</a></li>
@@ -217,38 +133,35 @@
                 <div class="row mb-4">
                     <div class="col-md-2">
                         <div class="stat-card bg-success bg-opacity-10">
-                            <p class="stat-value" th:text="${daysPresent}">22</p>
+                            <p class="stat-value" th:text="${daysPresent != null ? daysPresent : '0'}">22</p>
                             <p class="stat-label">Present</p>
                         </div>
                     </div>
                     <div class="col-md-2">
                         <div class="stat-card bg-danger bg-opacity-10">
-                            <p class="stat-value" th:text="${daysAbsent}">2</p>
+                            <p class="stat-value" th:text="${daysAbsent != null ? daysAbsent : '0'}">2</p>
                             <p class="stat-label">Absent</p>
                         </div>
                     </div>
                     <div class="col-md-2">
                         <div class="stat-card bg-warning bg-opacity-10">
-                            <p class="stat-value" th:text="${daysSickLeave}">1</p>
+                            <p class="stat-value" th:text="${daysSickLeave != null ? daysSickLeave : '0'}">1</p>
                             <p class="stat-label">Sick Leave</p>
                         </div>
                     </div>
                     <div class="col-md-2">
                         <div class="stat-card bg-primary bg-opacity-10">
-                            <p class="stat-value" th:text="${daysWorkFromHome}">3</p>
+                            <p class="stat-value" th:text="${daysWorkFromHome != null ? daysWorkFromHome : '0'}">3</p>
                             <p class="stat-label">WFH</p>
                         </div>
                     </div>
                     <div class="col-md-2">
                         <div class="stat-card bg-secondary bg-opacity-10">
-                            <p class="stat-value" th:text="${daysHalfDay}">0</p>
+                            <p class="stat-value" th:text="${daysHalfDay != null ? daysHalfDay : '0'}">0</p>
                             <p class="stat-label">Half Day</p>
                         </div>
                     </div>
-    
-                    </div>
                 </div>
-                
                 
                 <!-- Attendance Table -->
                 <div class="card attendance-card">
@@ -287,6 +200,13 @@
                             </table>
                         </div>
                     </div>
+                </div>
+                
+                <!-- Overtime Request Button -->
+                <div class="mt-4 text-end">
+                    <a href="/employee/overtime-form" class="btn btn-primary">
+                        <i class="bi bi-clock-history me-1"></i> Request Overtime
+                    </a>
                 </div>
             </main>
         </div>
