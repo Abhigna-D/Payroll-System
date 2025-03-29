@@ -71,5 +71,12 @@ public class TaxDeclarationServiceImpl implements TaxDeclarationService {
         declaration.setStatus("REJECTED");
         declaration.setRejectionReason(reason);
         return saveTaxDeclaration(declaration);
+
     }
+    // TaxDeclarationServiceImpl.java
+@Override
+public List<TaxDeclaration> findByStatus(String status) {
+    return taxDeclarationRepository.findByStatus(status);
+}
+
 }

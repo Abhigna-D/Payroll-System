@@ -46,41 +46,6 @@
             background-color: rgba(0, 0, 0, 0.25);
             box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
         }
-        .tax-declaration-table th {
-            background-color: #f8f9fa;
-        }
-        .search-form {
-            position: relative;
-        }
-        .search-form .form-control {
-            padding-left: 2.5rem;
-            border-radius: 20px;
-        }
-        .search-form .bi-search {
-            position: absolute;
-            left: 1rem;
-            top: 0.75rem;
-            color: #6c757d;
-        }
-        .action-column {
-            width: 150px;
-        }
-        .filter-dropdown {
-            min-width: 200px;
-        }
-        .status-badge {
-            font-size: 0.8rem;
-            padding: 0.35em 0.65em;
-            border-radius: 50rem;
-        }
-        .date-badge {
-            background-color: rgba(13, 110, 253, 0.1);
-            color: #0d6efd;
-            font-weight: 500;
-            border-radius: 12px;
-            padding: 4px 10px;
-            font-size: 0.85rem;
-        }
     </style>
 </head>
 <body>
@@ -143,17 +108,6 @@
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Tax Declarations</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="dropdown me-2">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="taxYearDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-calendar3"></i> Financial Year 2025-26
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="taxYearDropdown">
-                                <li><a class="dropdown-item" href="#">Financial Year 2025-26</a></li>
-                                <li><a class="dropdown-item" href="#">Financial Year 2024-25</a></li>
-                            </ul>
-                        </div>
-                    </div>
                 </div>
                 
                 <div th:if="${success}" class="alert alert-success" th:text="${success}">
@@ -166,59 +120,34 @@
                 <!-- Filter Tabs -->
                 <ul class="nav nav-tabs mb-4">
                     <li class="nav-item">
-                        <a class="nav-link active" href="/finance/tax-declarations?status=PENDING">Pending Approval</a>
+                        <a class="nav-link" th:classappend="${param.status != null && param.status[0] == 'PENDING' ? 'active' : ''}" href="/finance/tax-declarations?status=PENDING">Pending Approval</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/finance/tax-declarations?status=APPROVED">Approved</a>
+                        <a class="nav-link" th:classappend="${param.status != null && param.status[0] == 'APPROVED' ? 'active' : ''}" href="/finance/tax-declarations?status=APPROVED">Approved</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/finance/tax-declarations?status=REJECTED">Rejected</a>
+                        <a class="nav-link" th:classappend="${param.status != null && param.status[0] == 'REJECTED' ? 'active' : ''}" href="/finance/tax-declarations?status=REJECTED">Rejected</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/finance/tax-declarations">All Declarations</a>
+                        <a class="nav-link" th:classappend="${param.status == null ? 'active' : ''}" href="/finance/tax-declarations">All Declarations</a>
                     </li>
                 </ul>
-                
-                <!-- Search and Filter Section -->
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <form class="search-form">
-                                    <i class="bi bi-search"></i>
-                                    <input type="text" class="form-control" id="declarationSearch" placeholder="Search by employee name, ID, or department...">
-                                </form>
-                            </div>
-                            <div class="col-md-6 text-end">
-                                <div class="btn-group me-2">
-                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-funnel"></i> Filter by Department
-                                    </button>
-                                    <ul class="dropdown-menu filter-dropdown" aria-labelledby="filterDropdown">
-                                        <li><a class="dropdown-item" href="#">All Departments</a></li>
-                                        <li><a class="dropdown-item" href="#">IT</a></li>
-                                        <li><a class="dropdown-item" href="#">HR</a></li>
-                                        <li><a class="dropdown-item" href="#">Finance</a></li>
-                                        <li><a class="dropdown-item" href="#">Marketing</a></li>
-                                    </ul>
-                                </div>
-                                <button class="btn btn-success" id="approveAllBtn">
-                                    <i class="bi bi-check-all"></i> Approve Selected
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 
                 <!-- Tax Declarations Table -->
                 <div class="card mb-4">
                     <div class="card-body">
-                        <h5 class="card-title mb-3">Pending Tax Declarations</h5>
+                        <div class="d-flex justify-content-between mb-3">
+                            <h5 class="card-title">Tax Declarations</h5>
+                            <button class="btn btn-success" id="approveAllBtn" th:if="${param.status != null && param.status[0] == 'PENDING'}">
+                                <i class="bi bi-check-all"></i> Approve Selected
+                            </button>
+                        </div>
+                        
                         <div class="table-responsive">
-                            <table class="table table-hover tax-declaration-table">
+                            <table class="table table-striped table-hover">
                                 <thead>
                                     <tr>
-                                        <th>
+                                        <th th:if="${param.status != null && param.status[0] == 'PENDING'}">
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" id="selectAllCheckbox">
                                             </div>
@@ -228,59 +157,38 @@
                                         <th>Department</th>
                                         <th>Submission Date</th>
                                         <th>Status</th>
-                                        <th>Total Deductions</th>
-                                        <th class="action-column">Actions</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr th:if="${pendingDeclarations.empty}">
-                                        <td colspan="8" class="text-center">No pending tax declarations found</td>
+                                    <tr th:if="${declarations == null || declarations.isEmpty()}">
+                                        <td colspan="7" class="text-center">No tax declarations found</td>
                                     </tr>
-                                    <tr th:each="declaration : ${pendingDeclarations}">
-                                        <td>
+                                    <tr th:each="declaration : ${declarations}" th:if="${declarations != null && !declarations.isEmpty()}">
+                                        <td th:if="${param.status != null && param.status[0] == 'PENDING'}">
                                             <div class="form-check">
                                                 <input class="form-check-input declaration-checkbox" type="checkbox" th:value="${declaration.id}">
                                             </div>
                                         </td>
                                         <td th:text="${declaration.employee.employeeID}">EMP001</td>
                                         <td th:text="${declaration.employee.FullName}">Rahul Sharma</td>
+                                        <td th:text="${declaration.employee.department != null ? declaration.employee.department.name : 'N/A'}">Engineering</td>
+                                        <td th:text="${#temporals.format(declaration.lastUpdateDate, 'dd MMM yyyy')}">15 Mar 2025</td>
                                         <td>
-                                            <span class="badge bg-primary" th:if="${declaration.employee.department != null}" th:text="${declaration.employee.department.name}">Engineering</span>
-                                            <span class="badge bg-secondary" th:unless="${declaration.employee.department != null}">No Department</span>
+                                            <span class="badge bg-warning text-dark" th:if="${declaration.status == 'PENDING'}">Pending</span>
+                                            <span class="badge bg-success" th:if="${declaration.status == 'APPROVED'}">Approved</span>
+                                            <span class="badge bg-danger" th:if="${declaration.status == 'REJECTED'}">Rejected</span>
+                                            <span class="badge bg-secondary" th:if="${declaration.status == 'DRAFT'}">Draft</span>
                                         </td>
                                         <td>
-                                            <span class="date-badge" th:text="${#temporals.format(declaration.lastUpdateDate, 'dd MMM yyyy')}">15 Mar 2025</span>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-warning text-dark" th:text="${declaration.status}">PENDING</span>
-                                        </td>
-                                        <td th:text="${'₹' + #numbers.formatDecimal(declaration.calculateTotalDeductions(), 0, 'COMMA', 0, 'POINT')}">₹25,000</td>
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                <a th:href="@{'/finance/tax-declarations/view/' + ${declaration.id}}" class="btn btn-sm btn-outline-info">
-                                                    <i class="bi bi-eye"></i> View
-                                                </a>
-                                            </div>
+                                            <a th:href="@{'/finance/tax-declarations/view/' + ${declaration.id}}" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-                        
-                        <!-- Pagination -->
-                        <nav aria-label="Page navigation" class="mt-4">
-                            <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-                                </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">Next</a>
-                                </li>
-                            </ul>
-                        </nav>
                     </div>
                 </div>
             </main>
@@ -294,62 +202,49 @@
             const selectAllCheckbox = document.getElementById('selectAllCheckbox');
             const declarationCheckboxes = document.querySelectorAll('.declaration-checkbox');
             
-            selectAllCheckbox.addEventListener('change', function() {
-                declarationCheckboxes.forEach(checkbox => {
-                    checkbox.checked = selectAllCheckbox.checked;
+            if(selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    declarationCheckboxes.forEach(checkbox => {
+                        checkbox.checked = selectAllCheckbox.checked;
+                    });
                 });
-            });
-            
-            // Search functionality
-            const searchInput = document.getElementById('declarationSearch');
-            
-            searchInput.addEventListener('keyup', function() {
-                const searchTerm = searchInput.value.toLowerCase();
-                const rows = document.querySelectorAll('table.tax-declaration-table tbody tr');
-                
-                rows.forEach(row => {
-                    const text = row.textContent.toLowerCase();
-                    if (text.includes(searchTerm)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-            });
+            }
             
             // Approve selected button
             const approveAllBtn = document.getElementById('approveAllBtn');
             
-            approveAllBtn.addEventListener('click', function() {
-                const selectedIds = [];
-                
-                declarationCheckboxes.forEach(checkbox => {
-                    if (checkbox.checked) {
-                        selectedIds.push(checkbox.value);
+            if(approveAllBtn) {
+                approveAllBtn.addEventListener('click', function() {
+                    const selectedIds = [];
+                    
+                    declarationCheckboxes.forEach(checkbox => {
+                        if (checkbox.checked) {
+                            selectedIds.push(checkbox.value);
+                        }
+                    });
+                    
+                    if (selectedIds.length === 0) {
+                        alert('Please select at least one tax declaration to approve');
+                        return;
+                    }
+                    
+                    if (confirm('Are you sure you want to approve ' + selectedIds.length + ' selected tax declaration(s)?')) {
+                        // Submit form to approve multiple declarations
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '/finance/tax-declarations/approve-multiple';
+                        
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'ids';
+                        input.value = selectedIds.join(',');
+                        
+                        form.appendChild(input);
+                        document.body.appendChild(form);
+                        form.submit();
                     }
                 });
-                
-                if (selectedIds.length === 0) {
-                    alert('Please select at least one tax declaration to approve');
-                    return;
-                }
-                
-                if (confirm('Are you sure you want to approve ' + selectedIds.length + ' selected tax declaration(s)?')) {
-                    // Submit form to approve multiple declarations
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '/finance/tax-declarations/approve-multiple';
-                    
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'ids';
-                    input.value = selectedIds.join(',');
-                    
-                    form.appendChild(input);
-                    document.body.appendChild(form);
-                    form.submit();
-                }
-            });
+            }
         });
     </script>
 </body>

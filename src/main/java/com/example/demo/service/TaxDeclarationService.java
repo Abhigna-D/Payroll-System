@@ -44,4 +44,7 @@ public interface TaxDeclarationService {
      * Reject tax declaration
      */
     TaxDeclaration rejectTaxDeclaration(Long id, String reason);
+    // TaxDeclarationService.java
+List<TaxDeclaration> findByStatus(String status);
+
 }

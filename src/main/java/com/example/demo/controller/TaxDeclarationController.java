@@ -1,5 +1,5 @@
 package com.example.demo.controller;
-
+import java.util.stream.Collectors;
 import com.example.demo.model.Employee;
 import com.example.demo.model.TaxDeclaration;
 import com.example.demo.service.EmployeeService;
@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.List;
+
 
 @Controller
 public class TaxDeclarationController {
@@ -173,5 +175,161 @@ public class TaxDeclarationController {
         }
         
         return "redirect:/employee/tax-declaration";
+    }
+    
+     // FINANCE OFFICER ENDPOINTS
+    
+    /**
+     * List all tax declarations for finance officer
+     */
+    @GetMapping("/finance/tax-declarations")
+    public String listTaxDeclarations(@RequestParam(value = "status", required = false) String status, Model model) {
+        try {
+            List<TaxDeclaration> declarations;
+            
+            // Filter declarations by status if provided
+            if (status != null && !status.isEmpty()) {
+                declarations = taxDeclarationService.findByStatus(status);
+                model.addAttribute("activeStatus", status);
+            } else {
+                declarations = taxDeclarationService.findAll();
+                model.addAttribute("activeStatus", "ALL");
+            }
+            
+            // By default, also filter for pending declarations to display in the main table
+            // If the status is already "PENDING", we'll use the same list
+            if (!"PENDING".equals(status)) {
+                List<TaxDeclaration> pendingDeclarations = declarations.stream()
+                    .filter(d -> "PENDING".equals(d.getStatus()))
+                    .collect(Collectors.toList());
+                model.addAttribute("pendingDeclarations", pendingDeclarations);
+            } else {
+                model.addAttribute("pendingDeclarations", declarations);
+            }
+            
+            model.addAttribute("declarations", declarations);
+            return "finance/tax-declarations";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/error";
+        }
+    }
+    
+    /**
+     * View details of a specific tax declaration
+     */
+    @GetMapping("/finance/tax-declarations/view/{id}")
+    public String viewTaxDeclarationDetails(@PathVariable Long id, Model model) {
+        try {
+            TaxDeclaration declaration = taxDeclarationService.findById(id);
+            
+            if (declaration == null) {
+                return "redirect:/finance/tax-declarations?error=Declaration+not+found";
+            }
+            
+            model.addAttribute("declaration", declaration);
+            return "finance/tax-declaration-view";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/error";
+        }
+    }
+    
+    /**
+     * Approve a tax declaration
+     */
+    @PostMapping("/finance/tax-declarations/approve/{id}")
+    public String approveTaxDeclaration(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            TaxDeclaration declaration = taxDeclarationService.findById(id);
+            
+            if (declaration == null) {
+                redirectAttributes.addFlashAttribute("error", "Tax declaration not found");
+                return "redirect:/finance/tax-declarations";
+            }
+            
+            declaration.setStatus("APPROVED");
+            declaration.setApprovalDate(LocalDate.now());
+            declaration.setLastUpdateDate(LocalDate.now());
+            
+            taxDeclarationService.saveTaxDeclaration(declaration);
+            
+            redirectAttributes.addFlashAttribute("success", "Tax declaration approved successfully");
+            return "redirect:/finance/tax-declarations";
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Error approving tax declaration: " + e.getMessage());
+            return "redirect:/finance/tax-declarations/view/" + id;
+        }
+    }
+    
+    /**
+     * Reject a tax declaration
+     */
+    @PostMapping("/finance/tax-declarations/reject/{id}")
+    public String rejectTaxDeclaration(
+            @PathVariable Long id,
+            @RequestParam("rejectionReason") String rejectionReason,
+            RedirectAttributes redirectAttributes) {
+        try {
+            TaxDeclaration declaration = taxDeclarationService.findById(id);
+            
+            if (declaration == null) {
+                redirectAttributes.addFlashAttribute("error", "Tax declaration not found");
+                return "redirect:/finance/tax-declarations";
+            }
+            
+            declaration.setStatus("REJECTED");
+            declaration.setRejectionReason(rejectionReason);
+            declaration.setLastUpdateDate(LocalDate.now());
+            
+            taxDeclarationService.saveTaxDeclaration(declaration);
+            
+            redirectAttributes.addFlashAttribute("success", "Tax declaration rejected successfully");
+            return "redirect:/finance/tax-declarations";
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Error rejecting tax declaration: " + e.getMessage());
+            return "redirect:/finance/tax-declarations/view/" + id;
+        }
+    }
+    
+    /**
+     * Approve multiple tax declarations
+     */
+    @PostMapping("/finance/tax-declarations/approve-multiple")
+    public String approveMultipleDeclarations(
+            @RequestParam("ids") String ids,
+            RedirectAttributes redirectAttributes) {
+        try {
+            String[] idArray = ids.split(",");
+            int successCount = 0;
+            
+            for (String idStr : idArray) {
+                try {
+                    Long id = Long.parseLong(idStr);
+                    TaxDeclaration declaration = taxDeclarationService.findById(id);
+                    
+                    if (declaration != null && "PENDING".equals(declaration.getStatus())) {
+                        declaration.setStatus("APPROVED");
+                        declaration.setApprovalDate(LocalDate.now());
+                        declaration.setLastUpdateDate(LocalDate.now());
+                        
+                        taxDeclarationService.saveTaxDeclaration(declaration);
+                        successCount++;
+                    }
+                } catch (NumberFormatException e) {
+                    // Skip invalid IDs
+                    continue;
+                }
+            }
+            
+            redirectAttributes.addFlashAttribute("success", successCount + " tax declaration(s) approved successfully");
+            return "redirect:/finance/tax-declarations";
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Error approving tax declarations: " + e.getMessage());
+            return "redirect:/finance/tax-declarations";
+        }
     }
 }
