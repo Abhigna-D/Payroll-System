@@ -148,14 +148,7 @@
                         <a href="/finance/employees" class="btn btn-sm btn-outline-secondary me-2">
                             <i class="bi bi-arrow-left"></i> Back to Employee List
                         </a>
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-printer"></i> Print
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-success">
-                                <i class="bi bi-file-earmark-excel"></i> Export
-                            </button>
-                        </div>
+                        
                     </div>
                 </div>
                 
@@ -170,23 +163,23 @@
                     <div class="profile-header">
                         <div class="row align-items-center">
                             <div class="col-md-2 text-center">
-                                <img src="https://via.placeholder.com/120" alt="Employee Profile" class="profile-image">
+                                
                             </div>
                             <div class="col-md-10">
-                                <h1 th:text="${employee.FullName}">Rahul Sharma</h1>
+                                <h1 th:text="${employee.FullName}"></h1>
                                 <p class="mb-0" th:text="${employee.jobTitle + ' | ' + (employee.department != null ? employee.department.name : 'No Department')}">Software Engineer | Engineering</p>
                                 <div class="d-flex mt-2">
                                     <span class="badge bg-light text-dark me-2">
                                         <i class="bi bi-briefcase me-1"></i>
-                                        <span th:text="${employee.employeeType}">Full-time</span>
+                                        <span th:text="${employee.employeeType}"></span>
                                     </span>
                                     <span class="badge bg-light text-dark me-2">
                                         <i class="bi bi-geo-alt me-1"></i>
-                                        <span th:text="${employee.officeLocation}">Bangalore</span>
+                                        <span th:text="${employee.officeLocation}"></span>
                                     </span>
                                     <span class="badge bg-light text-dark me-2">
                                         <i class="bi bi-calendar-check me-1"></i>
-                                        <span th:text="${#temporals.format(employee.joiningDate, 'dd MMM yyyy')}">01 Jan 2023</span>
+                                        <span th:text="${#temporals.format(employee.joiningDate, 'dd MMM yyyy')}"></span>
                                     </span>
                                 </div>
                             </div>
@@ -301,55 +294,6 @@
                                 </div>
                             </div>
                             
-                            <!-- Work Details Tab -->
-                            <div class="tab-pane fade" id="work" role="tabpanel" aria-labelledby="work-tab">
-                                <div class="row g-4">
-                                    <div class="col-md-6">
-                                        <div class="card h-100">
-                                            <div class="card-body">
-                                                <h5 class="card-title"><i class="bi bi-briefcase me-2"></i>Employment Details</h5>
-                                                <hr>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Job Title</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.jobTitle}">Software Engineer</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Department</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.department != null ? employee.department.name : 'No Department'}">Engineering</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Reporting Manager</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.reportingManager}">Vikram Patel</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Joining Date</div>
-                                                    <div class="col-md-7 info-value" th:text="${#temporals.format(employee.joiningDate, 'dd MMM yyyy')}">01 Jan 2023</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Employee Type</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.employeeType}">Full-time</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card h-100">
-                                            <div class="card-body">
-                                                <h5 class="card-title"><i class="bi bi-building me-2"></i>Work Location</h5>
-                                                <hr>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Office Location</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.officeLocation}">Bangalore</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Work Schedule</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.workSchedule}">9 AM - 6 PM</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                             
                             <!-- Salary Information Tab -->
                             <div class="tab-pane fade" id="salary" role="tabpanel" aria-labelledby="salary-tab">
@@ -416,105 +360,192 @@
                             </div>
                             
                             <!-- Tax Details Tab -->
-                            <div class="tab-pane fade" id="tax" role="tabpanel" aria-labelledby="tax-tab">
-                                <div class="row g-4">
-                                    <div class="col-md-6">
-                                        <div class="card h-100">
-                                            <div class="card-body">
-                                                <h5 class="card-title"><i class="bi bi-percent me-2"></i>Tax Information</h5>
-                                                <hr>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">PAN Number</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.taxDeclaration != null ? employee.taxDeclaration.panNumber : 'Not Available'}">ABCDE1234F</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Tax Regime</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.taxDeclaration != null ? employee.taxDeclaration.taxRegime : 'Not Available'}">New</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Tax Bracket</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.taxDeclaration != null ? employee.taxDeclaration.taxBracket : 'Not Available'}">20%</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Monthly TDS</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.taxDeclaration != null ? '₹' + #numbers.formatDecimal(employee.taxDeclaration.monthlyTaxDeduction, 0, 'COMMA', 0, 'POINT') : 'Not Available'}">₹5,000</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">YTD Tax Paid</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.taxDeclaration != null ? '₹' + #numbers.formatDecimal(employee.taxDeclaration.ytdTaxPaid, 0, 'COMMA', 0, 'POINT') : 'Not Available'}">₹15,000</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card h-100">
-                                            <div class="card-body">
-                                                <h5 class="card-title"><i class="bi bi-file-earmark-text me-2"></i>Tax Documents</h5>
-                                                <hr>
-                                                <div class="list-group">
-                                                    <a href="#" class="list-group-item list-group-item-action">
-                                                        <div class="d-flex w-100 justify-content-between">
-                                                            <h6 class="mb-1">Form 16</h6>
-                                                            <small>FY 2024-25</small>
-                                                        </div>
-                                                        <p class="mb-1">Annual Income Tax Certificate</p>
-                                                    </a>
-                                                    <a href="#" class="list-group-item list-group-item-action">
-                                                        <div class="d-flex w-100 justify-content-between">
-                                                            <h6 class="mb-1">Investment Proof</h6>
-                                                            <small>Submitted on 15 Jan 2025</small>
-                                                        </div>
-                                                        <p class="mb-1">80C, 80D, & Other Investment Proofs</p>
-                                                    </a>
-                                                    <a href="#" class="list-group-item list-group-item-action">
-                                                        <div class="d-flex w-100 justify-content-between">
-                                                            <h6 class="mb-1">HRA Declaration</h6>
-                                                            <small>Submitted on 15 Jan 2025</small>
-                                                        </div>
-                                                        <p class="mb-1">House Rent Allowance Declaration</p>
-                                                    </a>
-                                                </div>
-                                                <div class="text-center mt-3">
-                                                    <a href="#" class="btn btn-sm btn-outline-primary">View All Documents</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
+<div class="tab-pane fade" id="tax" role="tabpanel" aria-labelledby="tax-tab">
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-percent me-2"></i>Tax Information</h5>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-md-5 info-label">PAN Number</div>
+                        <div class="col-md-7 info-value" th:text="${employee.taxDeclaration != null ? employee.taxDeclaration.pan : 'Not Available'}">ABCDE1234F</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-5 info-label">Professional Tax</div>
+                        <div class="col-md-7 info-value" th:text="${employee.taxDeclaration != null ? '₹' + employee.taxDeclaration.professionalTax + '/month' : 'Not Available'}">₹200/month</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-5 info-label">Declaration Status</div>
+                        <div class="col-md-7 info-value">
+                            <span class="badge bg-warning text-dark" th:if="${employee.taxDeclaration != null && employee.taxDeclaration.status == 'PENDING'}">Pending Approval</span>
+                            <span class="badge bg-success" th:if="${employee.taxDeclaration != null && employee.taxDeclaration.status == 'APPROVED'}">Approved</span>
+                            <span class="badge bg-danger" th:if="${employee.taxDeclaration != null && employee.taxDeclaration.status == 'REJECTED'}">Rejected</span>
+                            <span class="badge bg-secondary" th:if="${employee.taxDeclaration == null || employee.taxDeclaration.status == 'DRAFT'}">Draft</span>
+                        </div>
+                    </div>
+                    <div class="row mb-3" th:if="${employee.taxDeclaration != null && employee.taxDeclaration.status == 'REJECTED'}">
+                        <div class="col-md-5 info-label">Rejection Reason</div>
+                        <div class="col-md-7 info-value text-danger" th:text="${employee.taxDeclaration.rejectionReason}">Incomplete documentation</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-5 info-label">Last Updated</div>
+                        <div class="col-md-7 info-value" th:text="${employee.taxDeclaration != null && employee.taxDeclaration.lastUpdateDate != null ? #temporals.format(employee.taxDeclaration.lastUpdateDate, 'dd MMM yyyy') : 'Not Available'}">15 Mar 2025</div>
+                    </div>
+                    <div class="row mb-3" th:if="${employee.taxDeclaration != null && employee.taxDeclaration.approvalDate != null}">
+                        <div class="col-md-5 info-label">Approval Date</div>
+                        <div class="col-md-7 info-value" th:text="${#temporals.format(employee.taxDeclaration.approvalDate, 'dd MMM yyyy')}">20 Mar 2025</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-5 info-label">Total Deductions</div>
+                        <div class="col-md-7 info-value fw-bold" th:text="${employee.taxDeclaration != null ? '₹' + #numbers.formatDecimal(employee.taxDeclaration.calculateTotalDeductions(), 0, 'COMMA', 0, 'POINT') : 'Not Available'}">₹5,000</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-house me-2"></i>Housing & Insurance Details</h5>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-md-5 info-label">Rented Accommodation</div>
+                        <div class="col-md-7 info-value" th:text="${employee.taxDeclaration != null && employee.taxDeclaration.isRenting ? 'Yes' : 'No'}">Yes</div>
+                    </div>
+                    <div class="row mb-3" th:if="${employee.taxDeclaration != null && employee.taxDeclaration.isRenting}">
+                        <div class="col-md-5 info-label">Monthly Rent</div>
+                        <div class="col-md-7 info-value" th:text="${'₹' + #numbers.formatDecimal(employee.taxDeclaration.monthlyRent, 0, 'COMMA', 0, 'POINT')}">₹15,000</div>
+                    </div>
+                    <div class="row mb-3" th:if="${employee.taxDeclaration != null && employee.taxDeclaration.isRenting && !#strings.isEmpty(employee.taxDeclaration.rentalAddress)}">
+                        <div class="col-md-5 info-label">Rental Address</div>
+                        <div class="col-md-7 info-value" th:text="${employee.taxDeclaration.rentalAddress}">123 Main St, Bangalore</div>
+                    </div>
+                    <div class="row mb-3" th:if="${employee.taxDeclaration != null && employee.taxDeclaration.isRenting && !#strings.isEmpty(employee.taxDeclaration.landlordName)}">
+                        <div class="col-md-5 info-label">Landlord Name</div>
+                        <div class="col-md-7 info-value" th:text="${employee.taxDeclaration.landlordName}">John Doe</div>
+                    </div>
+                    <div class="row mb-3" th:if="${employee.taxDeclaration != null && employee.taxDeclaration.isRenting && !#strings.isEmpty(employee.taxDeclaration.landlordPan)}">
+                        <div class="col-md-5 info-label">Landlord PAN</div>
+                        <div class="col-md-7 info-value" th:text="${employee.taxDeclaration.landlordPan}">ABCDE1234F</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-5 info-label">Home Loan</div>
+                        <div class="col-md-7 info-value" th:text="${employee.taxDeclaration != null && employee.taxDeclaration.hasHomeLoan ? 'Yes' : 'No'}">No</div>
+                    </div>
+                    <div class="row mb-3" th:if="${employee.taxDeclaration != null && employee.taxDeclaration.hasHomeLoan}">
+                        <div class="col-md-5 info-label">Loan Interest</div>
+                        <div class="col-md-7 info-value" th:text="${'₹' + #numbers.formatDecimal(employee.taxDeclaration.homeLoanInterest, 0, 'COMMA', 0, 'POINT')}">₹120,000</div>
+                    </div>
+                    <div class="row mb-3" th:if="${employee.taxDeclaration != null && employee.taxDeclaration.hasHomeLoan && !#strings.isEmpty(employee.taxDeclaration.homeLoanBankName)}">
+                        <div class="col-md-5 info-label">Loan Provider</div>
+                        <div class="col-md-7 info-value" th:text="${employee.taxDeclaration.homeLoanBankName}">HDFC Bank</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-5 info-label">Medical Insurance</div>
+                        <div class="col-md-7 info-value" th:text="${employee.taxDeclaration != null ? '₹' + #numbers.formatDecimal(employee.taxDeclaration.medicalInsurance, 0, 'COMMA', 0, 'POINT') : 'Not Available'}">₹25,000</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-briefcase me-2"></i>Previous Employment Details</h5>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-md-5 info-label">Previous Employment</div>
+                        <div class="col-md-7 info-value" th:text="${employee.taxDeclaration != null && employee.taxDeclaration.hasPreviousEmployment ? 'Yes' : 'No'}">No</div>
+                    </div>
+                    <div th:if="${employee.taxDeclaration != null && employee.taxDeclaration.hasPreviousEmployment}">
+                        <div class="row mb-3">
+                            <div class="col-md-5 info-label">Previous Employer</div>
+                            <div class="col-md-7 info-value" th:text="${employee.taxDeclaration.previousEmployerName}">ABC Corp</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-5 info-label">Previous Taxable Income</div>
+                            <div class="col-md-7 info-value" th:text="${'₹' + #numbers.formatDecimal(employee.taxDeclaration.previousTaxableIncome, 0, 'COMMA', 0, 'POINT')}">₹450,000</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-5 info-label">Previous TDS Deducted</div>
+                            <div class="col-md-7 info-value" th:text="${'₹' + #numbers.formatDecimal(employee.taxDeclaration.previousTaxDeducted, 0, 'COMMA', 0, 'POINT')}">₹45,000</div>
+                        </div>
+                    </div>
+                    <div class="row mb-3" th:unless="${employee.taxDeclaration != null && employee.taxDeclaration.hasPreviousEmployment}">
+                        <div class="col-12">
+                            <p class="text-muted">No previous employment details declared for this financial year.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-bank me-2"></i>Bank Account Details</h5>
+                    <hr>
+                    <div th:if="${employee.taxDeclaration != null && !#strings.isEmpty(employee.taxDeclaration.bankName)}">
+                        <div class="row mb-3">
+                            <div class="col-md-5 info-label">Bank Name</div>
+                            <div class="col-md-7 info-value" th:text="${employee.taxDeclaration.bankName}">HDFC Bank</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-5 info-label">Account Number</div>
+                            <div class="col-md-7 info-value" th:text="${employee.taxDeclaration.accountNumber}">XXXX XXXX 5678</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-5 info-label">IFSC Code</div>
+                            <div class="col-md-7 info-value" th:text="${employee.taxDeclaration.ifscCode}">HDFC0001234</div>
+                        </div>
+                    </div>
+                    <div class="row mb-3" th:unless="${employee.taxDeclaration != null && !#strings.isEmpty(employee.taxDeclaration.bankName)}">
+                        <div class="col-12">
+                            <p class="text-muted">No bank account details available in tax declaration.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+</div>
                             <!-- Bank Account Tab -->
-                            <div class="tab-pane fade" id="bank" role="tabpanel" aria-labelledby="bank-tab">
-                                <div class="row g-4">
-                                    <div class="col-md-6">
-                                        <div class="card h-100">
-                                            <div class="card-body">
-                                                <h5 class="card-title"><i class="bi bi-bank me-2"></i>Bank Account Details</h5>
-                                                <hr>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Account Holder</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.bankAccount != null ? employee.bankAccount.accountHolderName : 'Not Available'}">Rahul Sharma</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Bank Name</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.bankAccount != null ? employee.bankAccount.bankName : 'Not Available'}">HDFC Bank</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Account Number</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.bankAccount != null ? employee.bankAccount.accountNumber : 'Not Available'}">XXXX XXXX 1234</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">IFSC Code</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.bankAccount != null ? employee.bankAccount.ifscCode : 'Not Available'}">HDFC0001234</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Account Type</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.bankAccount != null ? employee.bankAccount.accountType : 'Not Available'}">Savings</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Branch</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.bankAccount != null ? employee.bankAccount.branchName : 'Not Available'}">Koramangala</div>
-                                                </div>
+
+        
+        <!-- Bank account from tax declaration - only if different -->
+        <div class="col-md-6" th:if="${employee.taxDeclaration != null 
+            && !#strings.isEmpty(employee.taxDeclaration.bankName)
+            && (employee.bankAccount == null 
+                || !employee.bankAccount.bankName.equals(employee.taxDeclaration.bankName)
+                || !employee.bankAccount.accountNumber.equals(employee.taxDeclaration.accountNumber))}">
+<div class="card h-100">
+<div class="card-body">
+<h5 class="card-title"><i class="bi bi-bank me-2"></i>Tax Declaration Bank Details</h5>
+<hr>
+
+<div class="row mb-3">
+<div class="col-md-5 info-label">Account Holder</div>
+<div class="col-md-7 info-value" th:text="${employee != null ? employee.FullName : 'Not Available'}">Rahul Sharma</div>
+</div>
+
+<div class="row mb-3">
+<div class="col-md-5 info-label">Bank Name</div>
+<div class="col-md-7 info-value" th:text="${employee.taxDeclaration.bankName}">HDFC Bank</div>
+</div>
+<div class="row mb-3">
+<div class="col-md-5 info-label">Account Number</div>
+<div class="col-md-7 info-value" th:text="${employee.taxDeclaration.accountNumber}">XXXX XXXX 5678</div>
+</div>
+<div class="row mb-3">
+<div class="col-md-5 info-label">IFSC Code</div>
+<div class="col-md-7 info-value" th:text="${employee.taxDeclaration.ifscCode}">HDFC0001234</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+
                                             </div>
                                         </div>
                                     </div>
