@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Bonus Recommendation - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Include your existing CSS styles -->
+</head>
+<body>
+    <!-- Include your header and navigation -->
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Payroll System</a>
+        <!-- Other header content -->
+    </header>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Include your sidebar navigation -->
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <!-- Sidebar content -->
+            </nav>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">View Bonus Recommendation</h1>
+                    <a th:href="@{/department/bonus-recommendations}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to List
+                    </a>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Recommendation Details</h5>
+                        <span th:if="${recommendation.status == T(com.yourcompany.payroll.model.BonusRecommendationStatus).PENDING}" 
+                              class="badge bg-warning">Pending</span>
+                        <span th:if="${recommendation.status == T(com.yourcompany.payroll.model.BonusRecommendationStatus).UNDER_REVIEW}" 
+                              class="badge bg-info">Under Review</span>
+                        <span th:if="${recommendation.status == T(com.yourcompany.payroll.model.BonusRecommendationStatus).APPROVED}" 
+                              class="badge bg-success">Approved</span>
+                        <span th:if="${recommendation.status == T(com.yourcompany.payroll.model.BonusRecommendationStatus).REJECTED}" 
+                              class="badge bg-danger">Rejected</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6 class="text-muted">Employee Information</h6>
+                                <p class="mb-1"><strong>Name:</strong> <span th:text="${recommendation.employee.name}">Employee Name</span></p>
+                                <p class="mb-1"><strong>Position:</strong> <span th:text="${recommendation.employee.position}">Position</span></p>
+                                <p class="mb-1"><strong>Department:</strong> <span th:text="${recommendation.employee.department}">Department</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-muted">Recommendation Information</h6>
+                                <p class="mb-1"><strong>Amount:</strong> <span th:text="${'₹' + #numbers.formatDecimal(recommendation.amount, 0, 'COMMA', 0, 'POINT')}">₹15,000</span></p>
+                                <p class="mb-1"><strong>Recommended On:</strong> <span th:text="${#temporals.format(recommendation.recommendedDate, 'dd MMM yyyy')}">Date</span></p>
+                                <p class="mb-1"><strong>Recommended By:</strong> <span th:text="${recommendation.recommendedBy.name}">Manager</span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h6 class="text-muted">Reason for Bonus</h6>
+                            <div class="p-3 bg-light rounded">
+                                <p th:text="${recommendation.reason}">Reason text</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Rejection reason if applicable -->
+                        <div class="mb-4" th:if="${recommendation.status == T(com.yourcompany.payroll.model.BonusRecommendationStatus).REJECTED}">
+                            <h6 class="text-muted">Rejection Reason</h6>
+                            <div class="p-3 bg-light rounded">
+                                <p th:text="${recommendation.rejectionReason}">Rejection reason</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Timeline -->
+                        <h6 class="text-muted">Status Timeline</h6>
+                        <div class="position-relative ms-4 mt-3">
+                            <div class="position-absolute top-0 start-0 bottom-0" style="width: 2px; background-color: #dee2e6;"></div>
+                            
+                            <!-- Timeline items -->
+                            <div class="position-relative mb-4">
+                                <div class="position-absolute" style="width: 16px; height: 16px; background-color: #0d6efd; border-radius: 50%; left: -8px;"></div>
+                                <div class="ms-4">
+                                    <p class="mb-1 fw-bold">Recommendation Submitted</p>
+                                    <p class="text-muted small" th:text="${#temporals.format(recommendation.recommendedDate, 'dd MMM yyyy, HH:mm')}">Date</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Other timeline events would be added dynamically based on state transitions -->
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

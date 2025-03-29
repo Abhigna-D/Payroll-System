@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Bonus Recommendation - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Include your existing CSS styles -->
+</head>
+<body>
+    <!-- Include your header and navigation -->
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Payroll System</a>
+        <!-- Other header content -->
+    </header>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Include your sidebar navigation -->
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <!-- Sidebar content -->
+            </nav>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">New Bonus Recommendation</h1>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <form th:action="@{/department/bonus-recommendations/new}" 
+                              th:object="${bonusRecommendationDTO}" 
+                              method="post" 
+                              class="needs-validation" 
+                              novalidate>
+                            
+                            <div class="alert alert-info mb-4">
+                                <i class="bi bi-info-circle"></i> 
+                                Complete this form to recommend a bonus for an employee. HR will review your recommendation.
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="employeeId" class="form-label">Select Employee</label>
+                                    <select id="employeeId" th:field="*{employeeId}" class="form-select" required>
+                                        <option value="">-- Select Employee --</option>
+                                        <option th:each="employee : ${employees}" 
+        th:value="${employee.employeeID}" 
+        th:text="${employee.FullName}"></option>
+                                    </select>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('employeeId')}" th:errors="*{employeeId}">
+                                        Please select an employee.
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="amount" class="form-label">Bonus Amount (₹)</label>
+                                    <input type="number" id="amount" th:field="*{amount}" class="form-control" required min="1000" step="500">
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}">
+                                        Please enter a valid amount.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="reason" class="form-label">Reason for Bonus</label>
+                                <textarea id="reason" th:field="*{reason}" class="form-control" rows="4" required minlength="10" maxlength="500"></textarea>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('reason')}" th:errors="*{reason}">
+                                    Please provide a reason (10-500 characters).
+                                </div>
+                                <div class="form-text">
+                                    Explain why this employee deserves a bonus. Include specific achievements or contributions.
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a th:href="@{/department/bonus-recommendations}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-lg"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-lg"></i> Submit Recommendation
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form validation script
+        (function() {
+            'use strict';
+            
+            // Fetch all forms we want to apply validation to
+            var forms = document.querySelectorAll('.needs-validation');
+            
+            // Loop over them and prevent submission
+            Array.prototype.slice.call(forms).forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+    </script>
+ </body>
+ </html>

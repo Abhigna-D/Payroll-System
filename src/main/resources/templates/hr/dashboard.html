@@ -130,7 +130,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/hr/bonus-approval">
+                            <a class="nav-link" href="/hr/bonus-recommendations">
                                 <i class="bi bi-cash-coin"></i> Bonus Approval
                             </a>
                         </li>
@@ -235,7 +235,7 @@
                                 <i class="bi bi-cash-coin card-icon text-info"></i>
                                 <h5 class="card-title">Bonus Approval</h5>
                                 <p class="card-text">Review and approve employee bonuses.</p>
-                                <a href="/hr/bonus-approval" class="btn btn-info">Manage Bonuses</a>
+                                <a href="/hr/bonus-recommendations" class="btn btn-info">Manage Bonuses</a>
                             </div>
                         </div>
                     </div>
@@ -266,10 +266,10 @@
                                         <!-- This would be populated with data from the backend -->
                                         <tr th:if="${recentEmployees != null && !recentEmployees.empty}" th:each="emp : ${recentEmployees}">
                                             <td th:text="${emp.employeeID}">EMP001</td>
-                                            <td th:text="${emp.name}">John Doe</td>
-                                            <td th:text="${emp.position}">Developer</td>
-                                            <td th:text="${emp.department.name}">IT</td>
-                                            <td th:text="${#temporals.format(emp.joinDate, 'dd MMM yyyy')}">15 Mar 2025</td>
+                                            <td th:text="${emp.FullName}">John Doe</td>
+                                            <td th:text="${emp.jobTitle}">Developer</td>
+                                            <td th:text="${emp.department != null ? emp.department.name : ''}">IT</td>
+                                            <td th:text="${#temporals.format(emp.joiningDate, 'dd MMM yyyy')}">15 Mar 2025</td>
                                             <td>
                                                 <a th:href="@{'/hr/employees/view/' + ${emp.employeeID}}" class="btn btn-sm btn-outline-info">
                                                     <i class="bi bi-eye"></i>
@@ -311,7 +311,7 @@
                                         <tbody>
                                             <tr th:if="${pendingComplaintsList != null && !pendingComplaintsList.empty}" th:each="complaint : ${pendingComplaintsList}">
                                                 <td th:text="${complaint.id}">C001</td>
-                                                <td th:text="${complaint.employee.name}">Jane Smith</td>
+                                                <td th:text="${complaint.employee.FullName}">Jane Smith</td>
                                                 <td th:text="${complaint.type}">Workplace</td>
                                                 <td th:text="${#temporals.format(complaint.filedDate, 'dd MMM yyyy')}">22 Mar 2025</td>
                                                 <td>
@@ -349,11 +349,11 @@
                                         <tbody>
                                             <tr th:if="${pendingBonusList != null && !pendingBonusList.empty}" th:each="bonus : ${pendingBonusList}">
                                                 <td th:text="${bonus.id}">B001</td>
-                                                <td th:text="${bonus.employee.name}">John Doe</td>
+                                                <td th:text="${bonus.employee.FullName}">John Doe</td>
                                                 <td th:text="${'₹' + #numbers.formatDecimal(bonus.amount, 0, 'COMMA', 0, 'POINT')}">₹10,000</td>
-                                                <td th:text="${#temporals.format(bonus.requestDate, 'dd MMM yyyy')}">20 Mar 2025</td>
+                                                <td th:text="${#temporals.format(bonus.recommendedDate, 'dd MMM yyyy')}">20 Mar 2025</td>
                                                 <td>
-                                                    <a th:href="@{'/hr/bonus-approval/view/' + ${bonus.id}}" class="btn btn-sm btn-info">Review</a>
+                                                    <a th:href="@{'/hr/bonus-recommendations/view/' + ${bonus.id}}" class="btn btn-sm btn-info">Review</a>
                                                 </td>
                                             </tr>
                                             <tr th:if="${pendingBonusList == null || pendingBonusList.empty}">
@@ -362,7 +362,7 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                <a href="/hr/bonus-approval" class="btn btn-sm btn-outline-info mt-2">View All Bonuses</a>
+                                <a href="/hr/bonus-recommendations" class="btn btn-sm btn-outline-info mt-2">View All Bonuses</a>
                             </div>
                         </div>
                     </div>

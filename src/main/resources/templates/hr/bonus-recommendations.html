@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR - Bonus Recommendations - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #f8f9fa;
+            padding: 0.75rem 1.5rem;
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: #0d6efd;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        main {
+            padding-top: 56px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Navigation -->
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Payroll System</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="dropdown text-end me-3">
+            <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${hrManager != null ? hrManager.name : 'HR Manager'}">HR Manager</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="/hr/profile">Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+            </ul>
+        </div>
+    </header>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/dashboard">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/employees">
+                                <i class="bi bi-people"></i> Employees
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/attendance">
+                                <i class="bi bi-calendar-check"></i> Attendance
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/complaints">
+                                <i class="bi bi-exclamation-triangle"></i> Complaints
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/hr/bonus-recommendations">
+                                <i class="bi bi-cash-coin"></i> Bonus Approval
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/reports">
+                                <i class="bi bi-bar-chart"></i> Reports
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Bonus Recommendations</h1>
+                </div>
+                
+                <!-- Alert messages -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                
+                <!-- Tabs for different statuses -->
+                <ul class="nav nav-tabs mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#pending" data-bs-toggle="tab">Pending</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#under-review" data-bs-toggle="tab">Under Review</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#completed" data-bs-toggle="tab">Completed</a>
+                    </li>
+                </ul>
+                
+                <div class="tab-content">
+                    <!-- Pending Recommendations tab -->
+                    <div class="tab-pane fade show active" id="pending">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">New Bonus Recommendations</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee</th>
+                                                <th>Department</th>
+                                                <th>Amount</th>
+                                                <th>Recommended By</th>
+                                                <th>Date</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="rec : ${pendingRecommendations}" 
+                                                th:if="${rec.status != null && rec.status.toString() == 'PENDING'}">
+                                                <td th:text="${rec.employee.FullName}">Employee Name</td>
+                                                <td th:text="${rec.employee.department != null ? rec.employee.department.name : ''}">Department</td>
+                                                <td th:text="${'₹' + #numbers.formatDecimal(rec.amount, 0, 'COMMA', 0, 'POINT')}">₹15,000</td>
+                                                <td th:text="${rec.recommendedBy.username}">Manager Name</td>
+                                                <td th:text="${#temporals.format(rec.recommendedDate, 'dd MMM yyyy')}">20 Mar 2025</td>
+                                                <td>
+                                                    <span class="badge bg-warning">Pending</span>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <a th:href="@{'/hr/bonus-recommendations/view/' + ${rec.id}}" 
+                                                           class="btn btn-sm btn-outline-primary">
+                                                            <i class="bi bi-eye"></i> Review
+                                                        </a>
+                                                        <a th:href="@{'/hr/bonus-recommendations/review/' + ${rec.id}}" 
+                                                           class="btn btn-sm btn-outline-info">
+                                                            <i class="bi bi-arrow-right-circle"></i> Start Review
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${pendingRecommendations == null || pendingRecommendations.empty}">
+                                                <td colspan="7" class="text-center">No pending bonus recommendations found</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Under Review tab -->
+                    <!-- Under Review tab -->
+                    <div class="tab-pane fade" id="under-review">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Recommendations Under Review</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee</th>
+                                                <th>Department</th>
+                                                <th>Amount</th>
+                                                <th>Recommended By</th>
+                                                <th>Date</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="rec : ${pendingRecommendations}" 
+                                                th:if="${rec.status != null && rec.status.name() == 'UNDER_REVIEW'}">
+                                                <td th:text="${rec.employee.fullName}">Employee Name</td>
+                                                <td th:text="${rec.employee.department != null ? rec.employee.department.name : ''}">Department</td>
+                                                <td th:text="${'₹' + #numbers.formatDecimal(rec.amount, 0, 'COMMA', 0, 'POINT')}">₹15,000</td>
+                                                <td th:text="${rec.recommendedBy.username}">Manager Name</td>
+                                                <td th:text="${#temporals.format(rec.recommendedDate, 'dd MMM yyyy')}">20 Mar 2025</td>
+                                                <td>
+                                                    <a th:href="@{'/hr/bonus-recommendations/view/' + ${rec.id}}" 
+                                                        class="btn btn-sm btn-primary">
+                                                        <i class="bi bi-check-circle"></i> Make Decision
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${#lists.isEmpty(pendingRecommendations.?[status.name() == 'UNDER_REVIEW'])}">
+                                                <td colspan="6" class="text-center">No recommendations under review</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Completed tab -->
+                    <div class="tab-pane fade" id="completed">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Completed Recommendations</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee</th>
+                                                <th>Department</th>
+                                                <th>Amount</th>
+                                                <th>Recommended By</th>
+                                                <th>Date</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="rec : ${pendingRecommendations}" 
+                                                th:if="${rec.status != null && (rec.status.toString() == 'APPROVED' || rec.status.toString() == 'REJECTED')}">
+                                                <td th:text="${rec.employee.FullName}">Employee Name</td>
+                                                <td th:text="${rec.employee.department != null ? rec.employee.department.name : ''}">Department</td>
+                                                <td th:text="${'₹' + #numbers.formatDecimal(rec.amount, 0, 'COMMA', 0, 'POINT')}">₹15,000</td>
+                                                <td th:text="${rec.recommendedBy.username}">Manager Name</td>
+                                                <td th:text="${#temporals.format(rec.recommendedDate, 'dd MMM yyyy')}">20 Mar 2025</td>
+                                                <td>
+                                                    <span th:if="${rec.status.toString() == 'APPROVED'}" 
+                                                          class="badge bg-success">Approved</span>
+                                                    <span th:if="${rec.status.toString() == 'REJECTED'}" 
+                                                          class="badge bg-danger">Rejected</span>
+                                                </td>
+                                                <td>
+                                                    <a th:href="@{'/hr/bonus-recommendations/view/' + ${rec.id}}" 
+                                                        class="btn btn-sm btn-outline-secondary">
+                                                        <i class="bi bi-eye"></i> View
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${#lists.isEmpty(pendingRecommendations.?[status.toString() == 'APPROVED' || status.toString() == 'REJECTED'])}">
+                                                <td colspan="7" class="text-center">No completed recommendations</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </main>
+                </div>
+                </div>
+                
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                <script>
+                    // Optional: Add some client-side interactivity
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Tab switching logic
+                        const navLinks = document.querySelectorAll('.nav-tabs .nav-link');
+                        navLinks.forEach(link => {
+                            link.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                const targetTab = this.getAttribute('href').substring(1);
+                                
+                                // Remove active classes
+                                navLinks.forEach(nl => nl.classList.remove('active'));
+                                this.classList.add('active');
+                                
+                                // Hide all tab panes
+                                document.querySelectorAll('.tab-pane').forEach(pane => {
+                                    pane.classList.remove('show', 'active');
+                                });
+                                
+                                // Show selected tab pane
+                                const activePane = document.getElementById(targetTab);
+                                if (activePane) {
+                                    activePane.classList.add('show', 'active');
+                                }
+                            });
+                        });
+                    });
+                </script>
+                </body>
+                </html>
