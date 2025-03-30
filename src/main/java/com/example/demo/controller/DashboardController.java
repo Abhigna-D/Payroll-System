@@ -1,13 +1,23 @@
 package com.example.demo.controller;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+
+import com.example.demo.model.Complaint;
+import com.example.demo.model.Employee;
+import com.example.demo.service.ComplaintService;
+import com.example.demo.service.EmployeeService;
 
 @Controller
 public class DashboardController {
+    
 
     @GetMapping("/dashboard")
     public String dashboard() {
@@ -65,5 +75,6 @@ public class DashboardController {
         
         return "index"; // Your main index.html page
     }
+    
     
 }

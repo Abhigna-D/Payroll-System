@@ -157,9 +157,7 @@
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">HR Manager Dashboard</h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
-                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
-                            <i class="bi bi-calendar3"></i> This month
-                        </button>
+                        
                     </div>
                 </div>
                 
@@ -169,33 +167,7 @@
                 <div th:if="${error}" class="alert alert-danger" th:text="${error}">
                 </div>
                 
-                <!-- Quick Stats -->
-                <div class="row g-4 mb-4">
-                    <div class="col-md-3">
-                        <div class="dashboard-stats bg-primary bg-opacity-10">
-                            <p class="stat-value" th:text="${totalEmployees != null ? totalEmployees : '0'}">125</p>
-                            <p class="stat-label">Total Employees</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="dashboard-stats bg-success bg-opacity-10">
-                            <p class="stat-value" th:text="${attendanceRate != null ? attendanceRate + '%' : '0%'}">92%</p>
-                            <p class="stat-label">Attendance Rate</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="dashboard-stats bg-warning bg-opacity-10">
-                            <p class="stat-value" th:text="${pendingComplaints != null ? pendingComplaints : '0'}">8</p>
-                            <p class="stat-label">Pending Complaints</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="dashboard-stats bg-info bg-opacity-10">
-                            <p class="stat-value" th:text="${pendingBonusRequests != null ? pendingBonusRequests : '0'}">12</p>
-                            <p class="stat-label">Pending Bonuses</p>
-                        </div>
-                    </div>
-                </div>
+
                 
                 <!-- Action Cards -->
                 <div class="row g-4 mb-4">

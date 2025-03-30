@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.Complaint;
 import com.example.demo.model.Employee;
+import com.example.demo.service.ComplaintService;
 import com.example.demo.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -9,12 +11,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.util.List;
+
 
 @Controller
 public class EmployeeViewController {
 
     @Autowired
     private EmployeeService employeeService;
+    @Autowired
+    private ComplaintService complaintService;
 
     /**
      * Display employee profile page
@@ -107,6 +113,40 @@ public class EmployeeViewController {
         }
         
         return "redirect:/employee/profile";
+    }
+    @GetMapping("/employee/dashboard-complaints")
+    public String viewDashboardComplaints(Model model) {
+        try {
+            // Get logged in user
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = auth.getName();
+            
+            // Get employee details
+            Employee employee = employeeService.findByUsername(username);
+            
+            // If employee is null, redirect to error page
+            if (employee == null) {
+                return "redirect:/error";
+            }
+            
+            // Add employee to model
+            model.addAttribute("employee", employee);
+            
+            // Get recent complaints for this employee (limit to 5)
+            List<Complaint> recentComplaints = complaintService.getComplaintsByEmployeeId(employee.getEmployeeID());
+            
+            // If there are more than 5 complaints, keep only the 5 most recent
+            if (recentComplaints.size() > 5) {
+                recentComplaints = recentComplaints.subList(0, 5);
+            }
+            
+            model.addAttribute("complaints", recentComplaints);
+            
+            return "employee/dashboard-complaints";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/error";
+        }
     }
    
 }

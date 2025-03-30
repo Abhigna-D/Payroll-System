@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Complaint - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .sidebar { position: fixed; top: 0; bottom: 0; left: 0; z-index: 100; padding: 48px 0 0; box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1); background-color: #343a40; }
+        .sidebar .nav-link { font-weight: 500; color: #f8f9fa; padding: 0.75rem 1.5rem; }
+        .sidebar .nav-link.active { color: #fff; background-color: #0d6efd; }
+        .sidebar .nav-link:hover { color: #fff; background-color: rgba(255, 255, 255, 0.1); }
+        .sidebar .nav-link i { margin-right: 10px; }
+        main { padding-top: 56px; }
+        .navbar-brand { padding-top: 0.75rem; padding-bottom: 0.75rem; background-color: rgba(0, 0, 0, 0.25); box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25); }
+        .complaint-card { border-radius: 10px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); margin-bottom: 20px; }
+        .badge-status { font-size: 0.9rem; padding: 0.4rem 0.7rem; }
+    </style>
+</head>
+<body>
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Payroll System</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="dropdown text-end me-3">
+            <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${employee != null ? employee.fullName : 'Employee'}">Employee</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="/employee/profile">Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+            </ul>
+        </div>
+    </header>
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item"><a class="nav-link" href="/employee/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/employee/attendance"><i class="bi bi-calendar-check"></i> Attendance</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/employee/tax-declaration"><i class="bi bi-file-earmark-text"></i> Tax Declaration</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/employee/salary"><i class="bi bi-cash-stack"></i> Salary</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/employee/profile"><i class="bi bi-person-badge"></i> Profile</a></li>
+                        <li class="nav-item"><a class="nav-link active" href="/employee/complaint"><i class="bi bi-exclamation-triangle"></i> Complaints</a></li>
+                    </ul>
+                </div>
+            </nav>
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">File Complaint</h1>
+                </div>
+                <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+                <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+                <div class="card complaint-card mb-4">
+                    <div class="card-header bg-danger text-white"><h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>New Complaint</h5></div>
+                    <div class="card-body">
+                        <form th:action="@{/employee/complaint/submit}" method="post">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="employeeId" class="form-label">Employee ID</label>
+                                    <input type="text" class="form-control" id="employeeId" name="employeeId" th:value="${employee != null ? employee.employeeID : ''}" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="fullName" class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="fullName" name="fullName" th:value="${employee != null ? employee.fullName : ''}" readonly>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="contactNumber" class="form-label">Contact Number</label>
+                                    <input type="text" class="form-control" id="contactNumber" name="contactNumber" th:value="${employee != null ? employee.personalPhone : ''}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" th:value="${employee != null ? employee.workEmail : ''}" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="complaintText" class="form-label">Complaint Details</label>
+                                <textarea class="form-control" id="complaintText" name="complaintText" rows="5" required placeholder="Please describe your complaint in detail..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-danger">Submit Complaint</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Previous Complaints -->
+                <div class="card complaint-card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>My Complaints</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Submission Date</th>
+                                        <th>Complaint Summary</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${complaints != null && !complaints.empty}" th:each="complaint : ${complaints}">
+                                        <td th:text="${complaint.id}">1</td>
+                                        <td th:text="${#temporals.format(complaint.submissionDate, 'dd MMM yyyy HH:mm')}">01 Mar 2025</td>
+                                        <td>
+                                            <span th:text="${#strings.length(complaint.complaintText) > 50 ? #strings.substring(complaint.complaintText, 0, 50) + '...' : complaint.complaintText}">
+                                                Complaint text preview...
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span th:if="${complaint.status.name() == 'SUBMITTED'}" class="badge bg-info badge-status">Submitted</span>
+                                            <span th:if="${complaint.status.name() == 'UNDER_REVIEW'}" class="badge bg-warning badge-status">Under Review</span>
+                                            <span th:if="${complaint.status.name() == 'IN_PROGRESS'}" class="badge bg-primary badge-status">In Progress</span>
+                                            <span th:if="${complaint.status.name() == 'RESOLVED'}" class="badge bg-success badge-status">Resolved</span>
+                                            <span th:if="${complaint.status.name() == 'REJECTED'}" class="badge bg-danger badge-status">Rejected</span>
+                                        </td>
+                                        <td>
+                                            <a th:href="@{/employee/complaint/{id}(id=${complaint.id})}" class="btn btn-sm btn-outline-primary">View Details</a>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${complaints == null || complaints.empty}">
+                                        <td colspan="5" class="text-center">No complaints submitted yet</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

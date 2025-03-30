@@ -222,11 +222,11 @@
                                     <tbody>
                                         <!-- This would be populated with data from the backend -->
                                         <tr th:if="${overtimeRequests != null && !overtimeRequests.empty}" th:each="request : ${overtimeRequests}">
-                                            <td th:text="${request.employee.name}">Sarah Chen</td>
-                                            <td th:text="${#temporals.format(request.date, 'dd MMM yyyy')}">25 Mar 2025</td>
-                                            <td th:text="${request.hours}">2.5</td>
-                                            <td th:text="${request.reason}">Project deadline</td>
-                                            <td th:text="${#temporals.format(request.requestedDate, 'dd MMM yyyy')}">23 Mar 2025</td>
+                                            <td th:text="${request.employee.name}"></td>
+                                            <td th:text="${#temporals.format(request.date, 'dd MMM yyyy')}"></td>
+                                            <td th:text="${request.hours}"></td>
+                                            <td th:text="${request.reason}"></td>
+                                            <td th:text="${#temporals.format(request.requestedDate, 'dd MMM yyyy')}"></td>
                                             <td>
                                                 <div class="btn-group" role="group">
                                                     <a th:href="@{'/department/overtime/approve/' + ${request.id}}" class="btn btn-sm btn-success">
