@@ -3,7 +3,6 @@ package com.example.demo.service;
 import com.example.demo.model.Employee;
 import com.example.demo.model.SalarySlip;
 import com.example.demo.repository.EmployeeRepository;
-import com.example.demo.repository.SalarySlipRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +14,7 @@ import java.util.Optional;
 @Service
 public class SalaryServiceImpl implements SalaryService {
 
-    @Autowired
-    private SalarySlipRepository SalarySlipRepository;
-    
+
     @Autowired
     private EmployeeRepository employeeRepository;
 

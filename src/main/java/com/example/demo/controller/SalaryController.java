@@ -3,7 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.model.Employee;
 import com.example.demo.model.SalarySlip;
 import com.example.demo.service.EmployeeService;
-import com.example.demo.service.SalaryService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,8 +20,7 @@ public class SalaryController {
     @Autowired
     private EmployeeService employeeService;
     
-    @Autowired
-    private SalaryService salaryService;
+    
 
     /**
      * Display employee salary details page
