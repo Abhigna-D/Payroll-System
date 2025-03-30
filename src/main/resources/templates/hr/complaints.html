@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Complaints Management - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #f8f9fa;
+            padding: 0.75rem 1.5rem;
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: #0d6efd;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        main {
+            padding-top: 56px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+        }
+        .status-badge {
+            padding: 0.5rem 0.7rem;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-submitted { background-color: #e0f2fe; color: #0369a1; }
+        .status-under-review { background-color: #fef3c7; color: #92400e; }
+        .status-in-progress { background-color: #dbeafe; color: #1d4ed8; }
+        .status-resolved { background-color: #dcfce7; color: #15803d; }
+        .status-rejected { background-color: #fee2e2; color: #b91c1c; }
+        .complaint-card {
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-bottom: 1rem;
+        }
+        .complaint-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .card-header-custom {
+            background-color: rgba(0, 0, 0, 0.03);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 1rem;
+        }
+        .complaint-date {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Payroll System</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="dropdown text-end me-3">
+            <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${hrManager != null ? hrManager.name : 'HR Manager'}">HR Manager</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="/hr/profile">Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+            </ul>
+        </div>
+    </header>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/dashboard">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/employees">
+                                <i class="bi bi-people"></i> Employees
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/attendance">
+                                <i class="bi bi-calendar-check"></i> Attendance
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/hr/complaints">
+                                <i class="bi bi-exclamation-triangle"></i> Complaints
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/bonus-recommendations">
+                                <i class="bi bi-cash-coin"></i> Bonus Approval
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/reports">
+                                <i class="bi bi-bar-chart"></i> Reports
+                            </a>
+                        </li>
+                        
+                    </ul>
+                </div>
+            </nav>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Complaints Management</h1>
+                </div>
+                
+                <div th:if="${success}" class="alert alert-success" th:text="${success}">
+                </div>
+                
+                <div th:if="${error}" class="alert alert-danger" th:text="${error}">
+                </div>
+                
+                <!-- Pending Complaints Section -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-warning bg-opacity-10">
+                                <h5 class="mb-0 text-warning">
+                                    <i class="bi bi-exclamation-circle me-2"></i> Pending Complaints
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row" th:if="${pendingComplaints != null && !pendingComplaints.empty}">
+                                    <div class="col-md-6 col-lg-4" th:each="complaint : ${pendingComplaints}">
+                                        <div class="card complaint-card">
+                                            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0" th:text="${'#' + complaint.id + ' - ' + complaint.fullName}">
+                                                    #123 - John Doe
+                                                </h6>
+                                                <span th:class="${'status-badge status-' + complaint.status.toString().toLowerCase().replace('_', '-')}"
+                                                      th:text="${complaint.status}">
+                                                    SUBMITTED
+                                                </span>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="complaint-date mb-2">
+                                                    <i class="bi bi-calendar me-1"></i>
+                                                    <span th:text="${#temporals.format(complaint.submissionDate, 'dd MMM yyyy, HH:mm')}">
+                                                        01 Mar 2023, 09:15
+                                                    </span>
+                                                </p>
+                                                <p class="card-text text-truncate" th:text="${complaint.complaintText}">
+                                                    This is the complaint text that will be truncated if it gets too long...
+                                                </p>
+                                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                                    <span class="badge bg-secondary" th:text="${'ID: ' + complaint.employeeId}">
+                                                        ID: EMP001
+                                                    </span>
+                                                    <a th:href="@{'/hr/complaints/' + ${complaint.id}}" class="btn btn-sm btn-primary">
+                                                        Process <i class="bi bi-arrow-right ms-1"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-center py-4" th:if="${pendingComplaints == null || pendingComplaints.empty}">
+                                    <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                                    <p class="mt-3 mb-0">No pending complaints at the moment.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- All Complaints Section -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">All Complaints</h5>
+                                    <div class="input-group" style="max-width: 300px;">
+                                        <input type="text" id="complaintSearch" class="form-control form-control-sm" placeholder="Search complaints...">
+                                        <button class="btn btn-sm btn-outline-secondary" type="button">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Employee</th>
+                                                <th>Submitted On</th>
+                                                <th>Status</th>
+                                                <th>Resolution Date</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:if="${allComplaints != null && !allComplaints.empty}" th:each="complaint : ${allComplaints}">
+                                                <td th:text="${complaint.id}">1</td>
+                                                <td>
+                                                    <span th:text="${complaint.fullName}">John Doe</span><br>
+                                                    <small class="text-muted" th:text="${complaint.employeeId}">EMP001</small>
+                                                </td>
+                                                <td th:text="${#temporals.format(complaint.submissionDate, 'dd MMM yyyy')}">
+                                                    01 Mar 2023
+                                                </td>
+                                                <td>
+                                                    <span th:class="${'status-badge status-' + complaint.status.toString().toLowerCase().replace('_', '-')}"
+                                                          th:text="${complaint.status}">
+                                                        SUBMITTED
+                                                    </span>
+                                                </td>
+                                                <td th:text="${complaint.resolutionDate != null ? #temporals.format(complaint.resolutionDate, 'dd MMM yyyy') : '-'}">
+                                                    -
+                                                </td>
+                                                <td>
+                                                    <a th:href="@{'/hr/complaints/' + ${complaint.id}}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-eye"></i> View
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${allComplaints == null || allComplaints.empty}">
+                                                <td colspan="6" class="text-center">No complaints found</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simple search functionality
+        document.getElementById('complaintSearch').addEventListener('keyup', function() {
+            let searchText = this.value.toLowerCase();
+            let tableRows = document.querySelectorAll('tbody tr');
+            
+            tableRows.forEach(function(row) {
+                let rowText = row.textContent.toLowerCase();
+                if (rowText.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

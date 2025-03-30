@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ComplaintServiceImpl implements ComplaintService {
@@ -79,4 +81,23 @@ public class ComplaintServiceImpl implements ComplaintService {
     public List<Complaint> getComplaintsByEmployeeIdAndStatus(String employeeId, Complaint.ComplaintStatus status) {
         return complaintRepository.findByEmployeeIdAndStatus(employeeId, status);
     }
+    @Override
+    public List<Complaint> getAllComplaints() {
+        return complaintRepository.findAll();
+    }
+    @Override
+    public List<Complaint> getPendingComplaints() {
+        // Get all complaints that are not resolved or rejected
+        List<Complaint.ComplaintStatus> nonPendingStatuses = Arrays.asList(
+            Complaint.ComplaintStatus.RESOLVED, 
+            Complaint.ComplaintStatus.REJECTED
+        );
+        
+        return complaintRepository.findAll().stream()
+            .filter(complaint -> !nonPendingStatuses.contains(complaint.getStatus()))
+            .collect(Collectors.toList());
+    }
+    
+
+    
 }

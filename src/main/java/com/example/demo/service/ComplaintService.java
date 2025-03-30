@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ComplaintService {
+    
+    
 
     // Submit a new complaint
     Complaint submitComplaint(Complaint complaint);
@@ -26,4 +28,8 @@ public interface ComplaintService {
     
     // Get all complaints for an employee with a specific status
     List<Complaint> getComplaintsByEmployeeIdAndStatus(String employeeId, Complaint.ComplaintStatus status);
+    List<Complaint> getAllComplaints();
+    List<Complaint> getPendingComplaints();
+     
+
 }
