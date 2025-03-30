@@ -395,7 +395,7 @@ public String deleteUser(@PathVariable Long id, RedirectAttributes redirectAttri
 }
 
 
-// Update the URL mapping to match the standard pattern
+/*// Update the URL mapping to match the standard pattern
 @GetMapping("/attendance/employee/{employeeId}")
 public String viewEmployeeAttendance(
         @PathVariable String employeeId,
@@ -490,6 +490,147 @@ public String viewEmployeeAttendance(
         return "hr/employee-attendance";
     } catch (Exception e) {
         // Log the exception
+        e.printStackTrace();
+        redirectAttributes.addFlashAttribute("error", "Error viewing employee attendance: " + e.getMessage());
+        return "redirect:/hr/employees";
+    }
+}
+*/
+
+@GetMapping("/attendance/employee/{employeeId}")
+public String viewEmployeeAttendance(
+        @PathVariable String employeeId,
+        @RequestParam(name = "month", required = false) String monthStr,
+        Model model,
+        RedirectAttributes redirectAttributes) {
+
+    try {
+        // Get employee details
+        Optional<Employee> employeeOpt = employeeService.getEmployeeByEmployeeID(employeeId);
+
+        // If employee not found, redirect
+        if (employeeOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Employee not found with ID: " + employeeId);
+            return "redirect:/hr/employees";
+        }
+
+        Employee employee = employeeOpt.get();
+
+        // Set default month to current month if not specified
+        YearMonth selectedMonth = (monthStr == null || monthStr.isEmpty()) 
+                                  ? YearMonth.now() 
+                                  : YearMonth.parse(monthStr);
+
+        List<Attendance> attendanceRecords;
+        int daysPresent = 0, daysAbsent = 0, daysLeave = 0;
+        int daysWorkFromHome = 0, daysSickLeave = 0, daysHalfDay = 0;
+        double totalHoursWorked = 0;
+
+        // Check if the employee is part-time or full-time
+        if (employee.isPartTime()) {
+            // Fetch part-time attendance
+            List<PartTimeAttendance> partTimeRecords = partTimeAttendanceService.getEmployeeAttendanceByMonth(
+                    employee.getEmployeeID(),
+                    selectedMonth.atDay(1),
+                    selectedMonth.atEndOfMonth()
+            );
+
+            // Calculate statistics for part-time attendance
+            for (PartTimeAttendance attendance : partTimeRecords) {
+                if (attendance.getStatus() != null) {
+                    switch (attendance.getStatus()) {
+                        case PRESENT:
+                            daysPresent++;
+                            if (attendance.getTotalHours() != null) {
+                                totalHoursWorked += attendance.getTotalHours();
+                            }
+                            break;
+                        case ABSENT:
+                            daysAbsent++;
+                            break;
+                        case SICK_LEAVE:
+                            daysSickLeave++;
+                            daysLeave++;
+                            break;
+                        case WORK_FROM_HOME:
+                            daysWorkFromHome++;
+                            if (attendance.getTotalHours() != null) {
+                                totalHoursWorked += attendance.getTotalHours();
+                            }
+                            break;
+                        case HALF_DAY:
+                            daysHalfDay++;
+                            if (attendance.getTotalHours() != null) {
+                                totalHoursWorked += attendance.getTotalHours();
+                            }
+                            break;
+                    }
+                }
+            }
+
+            model.addAttribute("attendanceRecords", partTimeRecords); // Add part-time records
+
+        } else {
+            // Fetch full-time attendance
+            attendanceRecords = attendanceService.getEmployeeAttendanceByMonth(
+                    employee.getEmployeeID(),
+                    selectedMonth.atDay(1),
+                    selectedMonth.atEndOfMonth()
+            );
+
+            // Calculate statistics for full-time attendance
+            for (Attendance attendance : attendanceRecords) {
+                if (attendance.getStatus() != null) {
+                    switch (attendance.getStatus()) {
+                        case PRESENT:
+                            daysPresent++;
+                            break;
+                        case ABSENT:
+                            daysAbsent++;
+                            break;
+                        case SICK_LEAVE:
+                            daysSickLeave++;
+                            daysLeave++;
+                            break;
+                        case WORK_FROM_HOME:
+                            daysWorkFromHome++;
+                            break;
+                        case HALF_DAY:
+                            daysHalfDay++;
+                            break;
+                    }
+                }
+            }
+
+            model.addAttribute("attendanceRecords", attendanceRecords); // Add full-time records
+        }
+
+        // Format month for display
+        String formattedMonth = selectedMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
+
+        // Add attributes to model
+        model.addAttribute("employee", employee);
+        model.addAttribute("selectedMonth", selectedMonth);
+        model.addAttribute("formattedMonth", formattedMonth);
+        model.addAttribute("previousMonth", selectedMonth.minusMonths(1));
+        model.addAttribute("nextMonth", selectedMonth.plusMonths(1));
+        model.addAttribute("currentMonth", YearMonth.now());
+
+        // Add statistics
+        model.addAttribute("daysPresent", daysPresent);
+        model.addAttribute("daysAbsent", daysAbsent);
+        model.addAttribute("daysLeave", daysLeave);
+        model.addAttribute("daysWorkFromHome", daysWorkFromHome);
+        model.addAttribute("daysSickLeave", daysSickLeave);
+        model.addAttribute("daysHalfDay", daysHalfDay);
+        model.addAttribute("totalHoursWorked", totalHoursWorked);
+
+        // Enum for dropdown
+        model.addAttribute("attendanceStatuses", Attendance.AttendanceStatus.values());
+
+        return "hr/employee-attendance";
+
+    } catch (Exception e) {
         e.printStackTrace();
         redirectAttributes.addFlashAttribute("error", "Error viewing employee attendance: " + e.getMessage());
         return "redirect:/hr/employees";
