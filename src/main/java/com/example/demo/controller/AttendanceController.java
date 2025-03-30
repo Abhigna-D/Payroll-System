@@ -6,6 +6,7 @@ import com.example.demo.model.OvertimeRequest;
 import com.example.demo.service.AttendanceService;
 import com.example.demo.service.EmployeeService;
 import com.example.demo.service.OvertimeRequestService;
+import com.example.demo.service.PartTimeAttendanceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -30,6 +31,9 @@ public class AttendanceController {
     @Autowired
     private OvertimeRequestService overtimeRequestService;
 
+     @Autowired
+    private PartTimeAttendanceService partTimeAttendanceService;
+
     /**
      * Display employee attendance page
      */
@@ -51,6 +55,9 @@ public class AttendanceController {
                 return "redirect:/error";
             }
             
+            if (employee.isPartTime()) {
+                return "redirect:/employee/parttime-attendance" + (monthStr != null ? "?month=" + monthStr : "");
+            }
             // Set default month to current month if not specified
             YearMonth selectedMonth;
             if (monthStr == null || monthStr.isEmpty()) {

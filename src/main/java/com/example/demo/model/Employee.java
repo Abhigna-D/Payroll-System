@@ -94,4 +94,10 @@ public class Employee {
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    // Check if this employee is part-time
+public boolean isPartTime() {
+    return "PART_TIME".equalsIgnoreCase(this.employeeType) || 
+           "Part-time".equalsIgnoreCase(this.employeeType);
+}
 }
