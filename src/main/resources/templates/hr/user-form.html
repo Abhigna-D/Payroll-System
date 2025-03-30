@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create User Account - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        /* Copy your common styling from other templates */
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #f8f9fa;
+            padding: 0.75rem 1.5rem;
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: #0d6efd;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        main {
+            padding-top: 56px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Payroll System</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="dropdown text-end me-3">
+            <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${hrManager != null ? hrManager.name : 'HR Manager'}">HR Manager</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="/hr/profile">Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+            </ul>
+        </div>
+    </header>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/dashboard">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/employees">
+                                <i class="bi bi-people"></i> Employees
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/hr/users">
+                                <i class="bi bi-person-badge"></i> User Accounts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/complaints">
+                                <i class="bi bi-exclamation-triangle"></i> Complaints
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/bonus-recommendations">
+                                <i class="bi bi-cash-coin"></i> Bonus Approval
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/hr/reports">
+                                <i class="bi bi-bar-chart"></i> Reports
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Create User Account</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <a href="/hr/users" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Users
+                        </a>
+                    </div>
+                </div>
+                
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">User Account Details</h5>
+                        <small class="text-muted">Create a user account first, then you'll be directed to create an employee profile</small>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/hr/users/add}" method="post" th:object="${user}">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="username" th:field="*{username}" required 
+                                           placeholder="Enter login username">
+                                    <div class="form-text">Username must be unique and will be used for login</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="email" th:field="*{email}" required 
+                                           placeholder="Enter email address">
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" id="password" th:field="*{password}" required
+                                           placeholder="Enter secure password" minlength="6">
+                                    <div class="form-text">Password must be at least 6 characters long</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="roleType" class="form-label">Role <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="roleType" name="roleType" required>
+                                        <option value="EMPLOYEE">Employee</option>
+                                        <option value="HR">HR Manager</option>
+                                        <option value="MANAGER">Department Manager</option>
+                                        <option value="FINANCE">Finance Officer</option>
+                                    </select>
+                                    <div class="form-text">Select the appropriate role for this user</div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-block mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-person-plus"></i> Create User & Continue to Employee Profile
+                                </button>
+                                <a href="/hr/users" class="btn btn-outline-secondary ms-2">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
