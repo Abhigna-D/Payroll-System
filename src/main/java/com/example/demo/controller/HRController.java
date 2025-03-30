@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.model.Employee;
 import com.example.demo.model.User;
 import com.example.demo.service.AttendanceService;
+import com.example.demo.service.DepartmentService;
 import com.example.demo.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -38,6 +39,9 @@ public class HRController {
 
     @Autowired
     private AttendanceService attendanceService;
+
+    @Autowired
+    private DepartmentService departmentService;
     
     /**
      * Display list of all employees
@@ -109,17 +113,30 @@ public String showAddEmployeeForm(Model model) {
    /**
  * Handle add new employee form submission
  */
-@PostMapping("/employees/add")
-public String addEmployee(@ModelAttribute Employee employee, 
-                         @RequestParam(required = false) Long userId,
-                         @RequestParam(required = false) Long departmentId,
-                         RedirectAttributes redirectAttributes) {
+
+
+// Then modify the addEmployee method to remove the username and designation references:
+
+@PostMapping("/employees/add") 
+public String addEmployee(@ModelAttribute Employee employee,
+                          @RequestParam(required = false) Long userId,
+                          @RequestParam(required = false) Long departmentId,
+                          RedirectAttributes redirectAttributes) {
     try {
         // If user ID is provided but not set in employee
         if (userId != null && (employee.getUser() == null || employee.getUser().getId() == null)) {
             Optional<User> userOpt = userService.getUserById(userId);
             if (userOpt.isPresent()) {
-                employee.setUser(userOpt.get());
+                User user = userOpt.get();
+                employee.setUser(user);
+                
+                // Set email from user if not provided
+                if (employee.getWorkEmail() == null || employee.getWorkEmail().isEmpty()) {
+                    employee.setWorkEmail(user.getEmail());
+                }
+                
+                // Remove the username setter - it doesn't exist in Employee class
+                // employee.setUsername(user.getUsername());
             } else {
                 redirectAttributes.addFlashAttribute("error", "User not found with ID: " + userId);
                 return "redirect:/hr/employees/new";
@@ -132,6 +149,12 @@ public String addEmployee(@ModelAttribute Employee employee,
             Department dept = new Department();
             dept.setId(departmentId);
             employee.setDepartment(dept);
+            
+            // Set department name if available
+            Optional<Department> deptOpt = departmentService.getDepartmentById(departmentId);
+            if (deptOpt.isPresent()) {
+                employee.setDepartment(deptOpt.get());
+            }
         }
         
         // Generate an employee ID if not provided
@@ -140,6 +163,9 @@ public String addEmployee(@ModelAttribute Employee employee,
             long count = employeeService.getAllEmployees().size() + 1;
             employee.setEmployeeID("EMP" + String.format("%03d", count));
         }
+        
+        // Set default values for empty fields
+        setDefaultValuesIfEmpty(employee);
         
         // Save the employee
         Employee savedEmployee = employeeService.createEmployee(employee);
@@ -151,57 +177,60 @@ public String addEmployee(@ModelAttribute Employee employee,
         return "redirect:/hr/employees/new";
     }
 }
-    /**
-     * Show form to edit existing employee
-     */
-    @GetMapping("/employees/edit/{id}")
-    public String showEditEmployeeForm(@PathVariable String id, Model model, RedirectAttributes redirectAttributes) {
-        Optional<Employee> employeeOpt = employeeService.getEmployeeByEmployeeID(id);
-        
-        if (employeeOpt.isPresent()) {
-            model.addAttribute("employee", employeeOpt.get());
-            return "hr/employee-form";
-        } else {
-            redirectAttributes.addFlashAttribute("error", "Employee not found with ID: " + id);
-            return "redirect:/hr/employees";
-        }
-    }
 
-    @PostMapping("/employees/update") 
-public String updateEmployee(@ModelAttribute Employee employee, RedirectAttributes redirectAttributes) {
-    try {
-        System.out.println("Update request received for employee ID: " + employee.getEmployeeID());
-        
-        // Get the existing employee from the database
-        Optional<Employee> existingEmpOpt = employeeService.getEmployeeByEmployeeID(employee.getEmployeeID());
-        
-        if (existingEmpOpt.isPresent()) {
-            Employee existingEmp = existingEmpOpt.get();
-            
-            // Copy only the fields that should be updated
-            existingEmp.setFullName(employee.getFullName());
-            existingEmp.setJobTitle(employee.getJobTitle());
-            existingEmp.setWorkEmail(employee.getWorkEmail());
-            existingEmp.setWorkPhone(employee.getWorkPhone());
-            
-            // Now save the updated entity
-            Employee updatedEmployee = employeeService.updateEmployee(existingEmp);
-            
-            System.out.println("Employee updated successfully: " + updatedEmployee.getEmployeeID());
-            redirectAttributes.addFlashAttribute("success", "Employee updated successfully: " + updatedEmployee.getFullName());
-        } else {
-            System.out.println("Employee not found with ID: " + employee.getEmployeeID());
-            redirectAttributes.addFlashAttribute("error", "Employee not found with ID: " + employee.getEmployeeID());
-        }
-        
-        return "redirect:/hr/employees";
-    } catch (Exception e) {
-        System.err.println("Error updating employee: " + e.getMessage());
-        e.printStackTrace();
-        redirectAttributes.addFlashAttribute("error", "Error updating employee: " + e.getMessage());
-        return "redirect:/hr/employees/edit/" + employee.getEmployeeID();
+// And update the setDefaultValuesIfEmpty method to remove references to designation:
+
+private void setDefaultValuesIfEmpty(Employee employee) {
+    // Set joining date if not provided
+    if (employee.getJoiningDate() == null) {
+        employee.setJoiningDate(LocalDate.now());
     }
+    
+    // Set employee type if not provided
+    if (employee.getEmployeeType() == null || employee.getEmployeeType().isEmpty()) {
+        employee.setEmployeeType("Full-time");
+    }
+    
+    // Set job title placeholder if not provided
+    if (employee.getJobTitle() == null || employee.getJobTitle().isEmpty()) {
+        employee.setJobTitle("New Employee");
+    }
+    
+    // Set office location if not provided
+    if (employee.getOfficeLocation() == null || employee.getOfficeLocation().isEmpty()) {
+        employee.setOfficeLocation("Main Office");
+    }
+    
+    // Set work schedule if not provided
+    if (employee.getWorkSchedule() == null || employee.getWorkSchedule().isEmpty()) {
+        employee.setWorkSchedule("9am-5pm");
+    }
+    
+    // Remove these lines as designation doesn't exist in Employee class
+    // if (employee.getDesignation() == null || employee.getDesignation().isEmpty()) {
+    //     employee.setDesignation(employee.getJobTitle());
+    // }
+    
+    // If the full name is set but first/last name aren't, split the full name
+    if (employee.getFullName() != null && !employee.getFullName().isEmpty()) {
+        // If your Employee class has firstName/lastName fields, set them here
+        // This depends on your Employee class implementation
+    }
+    
+    // Initialize empty strings for text fields to avoid null values
+    if (employee.getAddress() == null) employee.setAddress("");
+    if (employee.getPersonalEmail() == null) employee.setPersonalEmail("");
+    if (employee.getPersonalPhone() == null) employee.setPersonalPhone("");
+    if (employee.getEmergencyContactName() == null) employee.setEmergencyContactName("");
+    if (employee.getEmergencyContactPhone() == null) employee.setEmergencyContactPhone("");
+    if (employee.getEmergencyContactRelationship() == null) employee.setEmergencyContactRelationship("");
+    if (employee.getNationality() == null) employee.setNationality("");
+    if (employee.getGender() == null) employee.setGender("");
+    if (employee.getReportingManager() == null) employee.setReportingManager("");
+    if (employee.getWorkPhone() == null) employee.setWorkPhone("");
 }
+
+    
     /**
      * Handle employee deletion
      */

@@ -217,20 +217,17 @@
                                             The resolution text will appear here...
                                         </p>
                                     </div>
-                                    <p class="text-muted">
-                                        <i class="bi bi-check-circle me-1"></i> 
-                                        Resolved on <span th:text="${#temporals.format(complaint.resolutionDate, 'dd MMM yyyy, HH:mm')}">15 Mar 2023, 14:30</span>
-                                    </p>
+                                    
                                 </div>
                                 
                                 <!-- Timeline -->
-                                <h6 class="border-bottom pb-2 mb-3 mt-4">Complaint Timeline</h6>
+                                <h6 class="border-bottom pb-2 mb-3 mt-4">Complaint </h6>
                                 <div class="timeline">
                                     <div class="timeline-item">
                                         <p class="timeline-date" th:text="${#temporals.format(complaint.submissionDate, 'dd MMM yyyy, HH:mm')}">
                                             01 Mar 2023, 09:15
                                         </p>
-                                        <p class="mb-0"><strong>Complaint Submitted</strong></p>
+                                        <p class="mb-0"><strong>Complaint Submission Date</strong></p>
                                     </div>
                                     
                                     <!-- Add more timeline items based on status history if available -->
