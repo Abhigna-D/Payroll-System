@@ -21,4 +21,5 @@ public interface PartTimeAttendanceRepository extends JpaRepository<PartTimeAtte
             
     // Find attendance record for a specific date and employee
     PartTimeAttendance findByEmployeeIdAndDate(String employeeId, LocalDate date);
+    
 }

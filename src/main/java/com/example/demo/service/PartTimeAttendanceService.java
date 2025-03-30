@@ -52,4 +52,13 @@ public interface PartTimeAttendanceService {
      * @return The updated part-time attendance record
      */
     PartTimeAttendance recordLogoutTime(String employeeID, LocalDate date, LocalTime logoutTime);
+
+    /**
+     * Find attendance record for a specific employee and date
+     * 
+     * @param employeeId The employee ID
+     * @param date The date
+     * @return The part-time attendance record, or null if not found
+     */
+    PartTimeAttendance findByEmployeeIdAndDate(String employeeId, LocalDate date);
 }

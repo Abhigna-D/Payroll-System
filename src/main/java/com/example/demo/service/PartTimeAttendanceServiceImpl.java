@@ -96,4 +96,9 @@ public class PartTimeAttendanceServiceImpl implements PartTimeAttendanceService 
         // Save and return the attendance record
         return partTimeAttendanceRepository.save(attendance);
     }
+
+    @Override
+    public PartTimeAttendance findByEmployeeIdAndDate(String employeeId, LocalDate date) {
+        return partTimeAttendanceRepository.findByEmployeeIdAndDate(employeeId, date);
+    }
 }

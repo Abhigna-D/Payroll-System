@@ -145,7 +145,7 @@ public class PartTimeAttendanceController {
     /**
      * Admin endpoint to view part-time employee attendance
      */
-    @GetMapping("/admin/parttime-attendance/{employeeId}")
+    @GetMapping("/hr/parttime-attendance/{employeeId}")
     public String viewEmployeePartTimeAttendance(
             @PathVariable("employeeId") String employeeId,
             @RequestParam(name = "month", required = false) String monthStr,
@@ -243,7 +243,7 @@ public class PartTimeAttendanceController {
             model.addAttribute("daysHalfDay", daysHalfDay);
             model.addAttribute("totalHoursWorked", totalHoursWorked);
             
-            return "admin/parttime-attendance";
+            return "hr/parttime-attendance";
         } catch (Exception e) {
             e.printStackTrace();
             return "redirect:/error";
