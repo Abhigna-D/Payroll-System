@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Employee;
 import com.example.demo.model.User;
+import com.example.demo.service.AttendanceService;
 import com.example.demo.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -9,11 +10,16 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.example.demo.model.Attendance;
+
 import com.example.demo.model.Department;
 import com.example.demo.model.ERole;
 import com.example.demo.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +35,9 @@ public class HRController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private AttendanceService attendanceService;
     
     /**
      * Display list of all employees
@@ -345,6 +354,220 @@ public String deleteUser(@PathVariable Long id, RedirectAttributes redirectAttri
     } catch (Exception e) {
         redirectAttributes.addFlashAttribute("error", "Error deleting user: " + e.getMessage());
         return "redirect:/hr/users";
+    }
+}
+
+
+// Update the URL mapping to match the standard pattern
+@GetMapping("/attendance/employee/{employeeId}")
+public String viewEmployeeAttendance(
+        @PathVariable String employeeId,
+        @RequestParam(name = "month", required = false) String monthStr,
+        Model model,
+        RedirectAttributes redirectAttributes) {
+    
+    try {
+        // Get employee details
+        Optional<Employee> employeeOpt = employeeService.getEmployeeByEmployeeID(employeeId);
+        
+        // If employee is not found, redirect to employees list
+        if (employeeOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Employee not found with ID: " + employeeId);
+            return "redirect:/hr/employees";
+        }
+        
+        Employee employee = employeeOpt.get();
+        
+        // Set default month to current month if not specified
+        YearMonth selectedMonth;
+        if (monthStr == null || monthStr.isEmpty()) {
+            selectedMonth = YearMonth.now();
+        } else {
+            // Parse the month string (format: yyyy-MM)
+            selectedMonth = YearMonth.parse(monthStr);
+        }
+        
+        // Get attendance records for the employee for the selected month
+        List<Attendance> attendanceRecords = attendanceService.getEmployeeAttendanceByMonth(
+                employee.getEmployeeID(), 
+                selectedMonth.atDay(1), 
+                selectedMonth.atEndOfMonth());
+        
+        // Calculate attendance statistics
+        int daysPresent = 0;
+        int daysAbsent = 0;
+        int daysLeave = 0;
+        int daysWorkFromHome = 0;
+        int daysSickLeave = 0;
+        int daysHalfDay = 0;
+        
+        for (Attendance attendance : attendanceRecords) {
+            if (attendance.getStatus() != null) {
+                // Use the correct enum type from Attendance class
+                switch (attendance.getStatus()) {
+                    case PRESENT:
+                        daysPresent++;
+                        break;
+                    case ABSENT:
+                        daysAbsent++;
+                        break;
+                    case SICK_LEAVE:
+                        daysSickLeave++;
+                        daysLeave++;
+                        break;
+                    case WORK_FROM_HOME:
+                        daysWorkFromHome++;
+                        break;
+                    case HALF_DAY:
+                        daysHalfDay++;
+                        break;
+                }
+            }
+        }
+        
+        // Format selected month for display
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM yyyy");
+        String formattedMonth = selectedMonth.format(formatter);
+        
+        // Add to model
+        model.addAttribute("employee", employee);
+        model.addAttribute("attendanceRecords", attendanceRecords);
+        model.addAttribute("selectedMonth", selectedMonth);
+        model.addAttribute("formattedMonth", formattedMonth);
+        model.addAttribute("previousMonth", selectedMonth.minusMonths(1));
+        model.addAttribute("nextMonth", selectedMonth.plusMonths(1));
+        model.addAttribute("currentMonth", YearMonth.now());
+        
+        // Add statistics
+        model.addAttribute("daysPresent", daysPresent);
+        model.addAttribute("daysAbsent", daysAbsent);
+        model.addAttribute("daysLeave", daysLeave);
+        model.addAttribute("daysWorkFromHome", daysWorkFromHome);
+        model.addAttribute("daysSickLeave", daysSickLeave);
+        model.addAttribute("daysHalfDay", daysHalfDay);
+        
+        // Add all possible attendance statuses to model for dropdown
+        // Use the enum from Attendance class
+        model.addAttribute("attendanceStatuses", Attendance.AttendanceStatus.values());
+        
+        return "hr/employee-attendance";
+    } catch (Exception e) {
+        // Log the exception
+        e.printStackTrace();
+        redirectAttributes.addFlashAttribute("error", "Error viewing employee attendance: " + e.getMessage());
+        return "redirect:/hr/employees";
+    }
+}
+
+/**
+ * Handle add/update attendance for an employee
+ */
+@PostMapping("/attendance/update")
+public String updateEmployeeAttendance(
+        @RequestParam String employeeId,
+        @RequestParam LocalDate date,
+        @RequestParam Attendance.AttendanceStatus status,  // Use the correct enum type
+        RedirectAttributes redirectAttributes) {
+    
+    try {
+        // Get employee
+        Optional<Employee> employeeOpt = employeeService.getEmployeeByEmployeeID(employeeId);
+        
+        if (employeeOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Employee not found with ID: " + employeeId);
+            return "redirect:/hr/employees";
+        }
+        
+        // Check if an attendance record already exists for this date
+        List<Attendance> existingRecords = attendanceService.getEmployeeAttendanceByMonth(
+                employeeId, date, date);
+        
+        Attendance attendance;
+        
+        if (!existingRecords.isEmpty()) {
+            // Update existing record
+            attendance = existingRecords.get(0);
+            attendance.setStatus(status);
+            
+            // Update days based on status
+            updateAttendanceDays(attendance);
+        } else {
+            // Create new attendance record
+            attendance = new Attendance();
+            attendance.setEmployeeId(employeeId);
+            attendance.setDate(date);
+            attendance.setMonth(date.withDayOfMonth(1)); // First day of the month
+            attendance.setStatus(status);
+            
+            // Set days based on status
+            attendance.setDaysPresent(status == Attendance.AttendanceStatus.PRESENT || 
+                                     status == Attendance.AttendanceStatus.WORK_FROM_HOME ? 1 : 0);
+            attendance.setDaysAbsent(status == Attendance.AttendanceStatus.ABSENT ? 1 : 0);
+            attendance.setDaysLeave(status == Attendance.AttendanceStatus.SICK_LEAVE || 
+                                  status == Attendance.AttendanceStatus.HALF_DAY ? 1 : 0);
+        }
+        
+        // Save attendance
+        attendanceService.saveAttendance(attendance);
+        
+        // Add to employee's attendance records if not already included
+        Employee employee = employeeOpt.get();
+        if (employee.getAttendanceRecords() == null) {
+            employee.setAttendanceRecords(new java.util.ArrayList<>());
+        }
+        
+        boolean recordExists = employee.getAttendanceRecords().stream()
+                .anyMatch(a -> a.getAttributeid() != null && 
+                             a.getAttributeid().equals(attendance.getAttributeid()));
+        
+        if (!recordExists) {
+            employee.getAttendanceRecords().add(attendance);
+            employeeService.updateEmployee(employee);
+        }
+        
+        redirectAttributes.addFlashAttribute("success", "Attendance updated successfully");
+        
+        // Include the month parameter to return to the same month view
+        YearMonth month = YearMonth.from(date);
+        return "redirect:/hr/attendance/employee/" + employeeId + "?month=" + month;
+    } catch (Exception e) {
+        e.printStackTrace();
+        redirectAttributes.addFlashAttribute("error", "Error updating attendance: " + e.getMessage());
+        return "redirect:/hr/employees";
+    }
+}
+
+/**
+ * Helper method to update attendance days based on status
+ */
+private void updateAttendanceDays(Attendance attendance) {
+    // Use the correct enum type
+    switch (attendance.getStatus()) {
+        case PRESENT:
+            attendance.setDaysPresent(1);
+            attendance.setDaysAbsent(0);
+            attendance.setDaysLeave(0);
+            break;
+        case ABSENT:
+            attendance.setDaysPresent(0);
+            attendance.setDaysAbsent(1);
+            attendance.setDaysLeave(0);
+            break;
+        case SICK_LEAVE:
+            attendance.setDaysPresent(0);
+            attendance.setDaysAbsent(0);
+            attendance.setDaysLeave(1);
+            break;
+        case HALF_DAY:
+            attendance.setDaysPresent(0);
+            attendance.setDaysAbsent(0);
+            attendance.setDaysLeave(1);
+            break;
+        case WORK_FROM_HOME:
+            attendance.setDaysPresent(1);
+            attendance.setDaysAbsent(0);
+            attendance.setDaysLeave(0);
+            break;
     }
 }
 }
