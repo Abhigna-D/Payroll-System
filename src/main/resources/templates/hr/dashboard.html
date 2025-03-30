@@ -119,11 +119,7 @@
                                 <i class="bi bi-people"></i> Employees
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/hr/attendance">
-                                <i class="bi bi-calendar-check"></i> Attendance
-                            </a>
-                        </li>
+                        
                         <li class="nav-item">
                             <a class="nav-link" href="/hr/complaints">
                                 <i class="bi bi-exclamation-triangle"></i> Complaints
@@ -162,18 +158,8 @@
 
                 
                 <!-- Action Cards -->
-                <div class="row g-4 mb-4">
-                    <div class="col-md-6 col-lg-3">
-                        <div class="card dashboard-card">
-                            <div class="card-body text-center">
-                                <i class="bi bi-person-plus card-icon text-primary"></i>
-                                <h5 class="card-title">Add New Employee</h5>
-                                <p class="card-text">Create new employee accounts in the system.</p>
-                                <a href="/hr/employees/new" class="btn btn-primary">Add Employee</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-lg-3">
+                <div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
+                    <div class="col">
                         <div class="card dashboard-card">
                             <div class="card-body text-center">
                                 <i class="bi bi-calendar-check card-icon text-success"></i>
@@ -183,7 +169,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-3">
+                    <div class="col">
                         <div class="card dashboard-card">
                             <div class="card-body text-center">
                                 <i class="bi bi-exclamation-triangle card-icon text-warning"></i>
@@ -193,7 +179,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-3">
+                    <div class="col">
                         <div class="card dashboard-card">
                             <div class="card-body text-center">
                                 <i class="bi bi-cash-coin card-icon text-info"></i>
@@ -205,53 +191,7 @@
                     </div>
                 </div>
                 
-                <!-- Recent Employee Activity -->
-                <div class="my-4">
-                    <h3>Recent Employees</h3>
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between mb-3">
-                                <span class="fs-5">Recently Added Employees</span>
-                                <a href="/hr/employees" class="btn btn-sm btn-outline-primary">View All</a>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Name</th>
-                                            <th>Position</th>
-                                            <th>Department</th>
-                                            <th>Join Date</th>
-                                            <th class="action-column">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- This would be populated with data from the backend -->
-                                        <tr th:if="${recentEmployees != null && !recentEmployees.empty}" th:each="emp : ${recentEmployees}">
-                                            <td th:text="${emp.employeeID}">EMP001</td>
-                                            <td th:text="${emp.FullName}">John Doe</td>
-                                            <td th:text="${emp.jobTitle}">Developer</td>
-                                            <td th:text="${emp.department != null ? emp.department.name : ''}">IT</td>
-                                            <td th:text="${#temporals.format(emp.joiningDate, 'dd MMM yyyy')}">15 Mar 2025</td>
-                                            <td>
-                                                <a th:href="@{'/hr/employees/view/' + ${emp.employeeID}}" class="btn btn-sm btn-outline-info">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                                <a th:href="@{'/hr/employees/edit/' + ${emp.employeeID}}" class="btn btn-sm btn-outline-primary">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                        <tr th:if="${recentEmployees == null || recentEmployees.empty}">
-                                            <td colspan="6" class="text-center">No recent employees found</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                
                 
                 <!-- Pending Approvals -->
                
