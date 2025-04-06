@@ -516,6 +516,12 @@ public String viewEmployeeAttendance(
 
         Employee employee = employeeOpt.get();
 
+        if (employee.isPartTime()) {
+            return "redirect:/hr/attendance/parttime/" + employeeId + 
+                  (monthStr != null ? "?month=" + monthStr : "");
+        }
+
+
         // Set default month to current month if not specified
         YearMonth selectedMonth = (monthStr == null || monthStr.isEmpty()) 
                                   ? YearMonth.now() 
