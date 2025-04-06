@@ -6,6 +6,7 @@ import com.example.demo.model.User;
 import com.example.demo.repository.RoleRepository;
 import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -92,5 +95,45 @@ public class AuthController {
 
         redirectAttributes.addFlashAttribute("success", "Registration successful! You can now login.");
         return "redirect:/login";
+    }
+    // Add these methods to your AuthController.java class
+
+    @GetMapping("/change-password")
+    public String showChangePasswordForm() {
+        return "change-password";
+    }
+    
+    @PostMapping("/change-password")
+    public String processChangePassword(@RequestParam("currentPassword") String currentPassword,
+                                     @RequestParam("newPassword") String newPassword,
+                                     @RequestParam("confirmPassword") String confirmPassword,
+                                     Model model, RedirectAttributes redirectAttributes) {
+        
+        // Get the current authenticated user
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        
+        // Validate password match
+        if (!newPassword.equals(confirmPassword)) {
+            model.addAttribute("error", "New passwords do not match!");
+            return "change-password";
+        }
+        
+        // Validate password strength (optional)
+        if (newPassword.length() < 6) {
+            model.addAttribute("error", "New password must be at least 6 characters long");
+            return "change-password";
+        }
+        
+        // Attempt to change the password
+        boolean result = userService.changePassword(currentUsername, currentPassword, newPassword, passwordEncoder);
+        
+        if (result) {
+            redirectAttributes.addFlashAttribute("success", "Password changed successfully!");
+            return "redirect:/dashboard";
+        } else {
+            model.addAttribute("error", "Current password is incorrect");
+            return "change-password";
+        }
     }
 }

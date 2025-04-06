@@ -10,6 +10,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class UserService implements UserDetailsService {
     
     @Autowired
     private RoleRepository roleRepository;
+     
 
     @Override
     @Transactional
@@ -165,5 +167,21 @@ public class UserService implements UserDetailsService {
     public void deleteUser(Long id) {
         System.out.println("Deleting user with ID: " + id);
         userRepository.deleteById(id);
+    }
+
+    @Transactional
+    public boolean changePassword(String username, String currentPassword, String newPassword, PasswordEncoder encoder) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+        
+        // Check if the current password matches
+        if (!encoder.matches(currentPassword, user.getPassword())) {
+            return false;
+        }
+        
+        // Update the password
+        user.setPassword(encoder.encode(newPassword));
+        userRepository.save(user);
+        return true;
     }
 }

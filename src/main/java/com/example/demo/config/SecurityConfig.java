@@ -46,6 +46,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                 .requestMatchers("/", "/register", "/process-register", "/login", "/process-login", "/access-denied").permitAll()
+                .requestMatchers("/change-password").authenticated() // Add this line
                 .requestMatchers("/employee/**").hasRole("EMPLOYEE")
                 .requestMatchers("/hr/**").hasRole("HR")
                 .requestMatchers("/finance/**").hasRole("FINANCE")
