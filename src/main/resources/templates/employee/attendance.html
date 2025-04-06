@@ -125,9 +125,26 @@
             </nav>
             
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Attendance</h1>
-                </div>
+                <!-- Add this right after the opening <h1> tag in your attendance.html file -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Attendance</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a th:href="@{/employee/attendance(month=${previousMonth})}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-chevron-left"></i> Previous Month
+            </a>
+            <a th:href="@{/employee/attendance(month=${currentMonth})}" class="btn btn-sm btn-outline-secondary">
+                Current Month
+            </a>
+            <a th:href="@{/employee/attendance(month=${nextMonth})}" class="btn btn-sm btn-outline-secondary">
+                Next Month <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Also add this to display the current month above the stats -->
+<h4 class="mb-3" th:text="${formattedMonth}">January 2025</h4>
                 
                 <!-- Attendance Stats -->
                 <div class="row mb-4">
