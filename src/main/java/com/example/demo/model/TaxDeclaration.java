@@ -48,7 +48,7 @@ public class TaxDeclaration {
     private Integer medicalInsurance = 0;
     
     // Professional Tax (Fixed - Monthly)
-    private final Integer professionalTax = 200;
+    private final Integer professionalTax = 2400;
     
     // Status fields
     private String status = "DRAFT"; // DRAFT, PENDING, APPROVED, REJECTED
@@ -277,6 +277,17 @@ public class TaxDeclaration {
     public void setApprovalDate(LocalDate approvalDate) {
         this.approvalDate = approvalDate;
     }
+
+    private String medicalInsurancePlan;
+
+// Add getter and setter methods
+public String getMedicalInsurancePlan() {
+    return medicalInsurancePlan;
+}
+
+public void setMedicalInsurancePlan(String medicalInsurancePlan) {
+    this.medicalInsurancePlan = medicalInsurancePlan;
+}
     
     // Calculate total deductions
     public Integer calculateTotalDeductions() {

@@ -331,40 +331,133 @@
                         </div>
                     </div>
                     
-                    <!-- Other Deductions Section -->
-                    <div class="form-section">
-                        <h3 class="form-section-title"><i class="bi bi-shield-plus me-2"></i>Other Deductions</h3>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="medicalInsurance" class="form-label">Medical Insurance Premium (₹)</label>
-                                <input type="number" class="form-control" id="medicalInsurance" name="medicalInsurance" th:value="${taxDeclaration?.medicalInsurance}">
-                                <small class="form-text text-muted">Enter the total premium paid for health insurance policies.</small>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="professionalTax" class="form-label">Professional Tax</label>
-                                <input type="text" class="form-control" value="₹2400 per year (automatically deducted)" readonly>
-                                <small class="form-text text-muted">Professional tax is automatically calculated and deducted from your salary.</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Form Actions -->
-                    <div class="form-section">
-                        <div class="d-flex justify-content-between">
-                            <button type="submit" class="btn btn-secondary" name="isDraft" value="true">
-                                <i class="bi bi-save"></i> Save as Draft
-                            </button>
-                            <button type="submit" class="btn btn-primary" id="submitBtn">
-                                <i class="bi bi-check2-circle"></i> Submit Declaration
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </main>
+<!-- Replace the problematic sections (from the Medical Insurance section down) with this corrected structure -->
+
+<!-- Medical Insurance Section -->
+<div class="form-section">
+    <h3 class="form-section-title"><i class="bi bi-shield-plus me-2"></i>Medical Insurance</h3>
+    
+    <div class="alert alert-info">
+        <h5><i class="bi bi-info-circle me-2"></i>Employer-Provided Insurance Plan</h5>
+        <p>All employees are enrolled in the <strong>Care Basic (Group Mediclaim)</strong> plan by default at no cost to you, providing coverage of ₹5,00,000 for hospitalization.</p>
+    </div>
+    
+    <div class="mb-4">
+        <h5>Optional Family Coverage & Top-Up Plans</h5>
+        <p>You can enhance your coverage by selecting additional insurance plans below:</p>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 5%">Select</th>
+                            <th style="width: 20%">Plan Name</th>
+                            <th style="width: 25%">Description</th>
+                            <th style="width: 15%">Coverage</th>
+                            <th style="width: 15%">Sum Insured</th>
+                            <th style="width: 20%">Annual Premium</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-secondary">
+                            <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                            <td><strong>Care Basic (Group Mediclaim)</strong></td>
+                            <td>Covers employee for hospitalization only</td>
+                            <td>Employee Only</td>
+                            <td>₹5,00,000</td>
+                            <td>₹0 (paid by employer)</td>
+                        </tr>
+                        <tr>
+                            <td class="text-center">
+                                <div class="form-check">
+                                    <input class="form-check-input insurance-plan" type="checkbox" id="CARE_SILVER" name="selectedInsurancePlans" value="CARE_SILVER" data-premium="5500"
+                                           th:checked="${taxDeclaration != null && taxDeclaration.medicalInsurancePlan == 'CARE_SILVER'}">
+                                </div>
+                            </td>
+                            <td><strong>Care Silver Family Floater</strong></td>
+                            <td>Covers employee, spouse & 2 kids</td>
+                            <td>Self + Spouse + 2 Kids</td>
+                            <td>₹7,00,000</td>
+                            <td>₹5,500</td>
+                        </tr>
+                        <tr>
+                            <td class="text-center">
+                                <div class="form-check">
+                                    <input class="form-check-input insurance-plan" type="checkbox" id="CARE_GOLD" name="selectedInsurancePlans" value="CARE_GOLD" data-premium="15000"
+                                           th:checked="${taxDeclaration != null && taxDeclaration.medicalInsurancePlan == 'CARE_GOLD'}">
+                                </div>
+                            </td>
+                            <td><strong>Care Gold Extended</strong></td>
+                            <td>Includes dependent parents</td>
+                            <td>Self + Spouse + Kids + Parents</td>
+                            <td>₹10,00,000</td>
+                            <td>₹15,000</td>
+                        </tr>
+                        <tr>
+                            <td class="text-center">
+                                <div class="form-check">
+                                    <input class="form-check-input insurance-plan" type="checkbox" id="CARE_TOPUP5L" name="selectedInsurancePlans" value="CARE_TOPUP5L" data-premium="1200"
+                                           th:checked="${taxDeclaration != null && taxDeclaration.medicalInsurancePlan == 'CARE_TOPUP5L'}">
+                                </div>
+                            </td>
+                            <td><strong>Care Shield Top-Up 5L</strong></td>
+                            <td>Extra ₹5L coverage only for employee</td>
+                            <td>Self (Top-up)</td>
+                            <td>₹5,00,000</td>
+                            <td>₹1,200</td>
+                        </tr>
+                        <tr>
+                            <td class="text-center">
+                                <div class="form-check">
+                                    <input class="form-check-input insurance-plan" type="checkbox" id="PARENT_COVER" name="selectedInsurancePlans" value="PARENT_COVER" data-premium="7000"
+                                           th:checked="${taxDeclaration != null && taxDeclaration.medicalInsurancePlan == 'PARENT_COVER'}">
+                                </div>
+                            </td>
+                            <td><strong>ParentCare Secure</strong> (Add-on)</td>
+                            <td>Additional cover only for parents</td>
+                            <td>Parents/In-laws</td>
+                            <td>₹3,00,000</td>
+                            <td>₹7,000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
     
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <label class="form-label">Total Annual Premium:</label>
+            <div class="input-group">
+                <span class="input-group-text">₹</span>
+                <input type="text" class="form-control" id="totalPremium" value="0" readonly>
+                <input type="hidden" id="medicalInsurance" name="medicalInsurance" value="0">
+                <input type="hidden" id="medicalInsurancePlan" name="medicalInsurancePlan" th:value="${taxDeclaration != null ? taxDeclaration.medicalInsurancePlan : ''}">
+            </div>
+            <small class="form-text text-muted">This amount will be considered for tax exemption under Section 80D.</small>
+        </div>
+        <div class="col-md-6">
+            <label for="professionalTax" class="form-label">Professional Tax</label>
+            <input type="text" class="form-control" value="₹2400 per year (automatically deducted)" readonly>
+            <small class="form-text text-muted">Professional tax is automatically calculated and deducted from your salary.</small>
+        </div>
+    </div>
+</div>
+
+<!-- Form Actions -->
+<div class="form-section">
+    <div class="d-flex justify-content-between">
+        <button type="submit" class="btn btn-secondary" name="isDraft" value="true">
+            <i class="bi bi-save"></i> Save as Draft
+        </button>
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+            <i class="bi bi-check2-circle"></i> Submit Declaration
+        </button>
+    </div>
+</div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -514,6 +607,47 @@
                 }
             });
         });
+        // Update total premium when checkbox selection changes
+    document.addEventListener('DOMContentLoaded', function() {
+        const insurancePlans = document.querySelectorAll('.insurance-plan');
+        const totalPremiumDisplay = document.getElementById('totalPremium');
+        const medicalInsuranceInput = document.getElementById('medicalInsurance');
+        const medicalInsurancePlanInput = document.getElementById('medicalInsurancePlan');
+        
+        // Function to update total premium
+        function updateTotalPremium() {
+            let total = 0;
+            let selectedPlan = '';
+            
+            // Only one plan can be selected at a time
+            insurancePlans.forEach(plan => {
+                if (plan.checked) {
+                    // Uncheck other plans
+                    insurancePlans.forEach(otherPlan => {
+                        if (otherPlan !== plan) {
+                            otherPlan.checked = false;
+                        }
+                    });
+                    
+                    total = parseInt(plan.dataset.premium);
+                    selectedPlan = plan.value;
+                }
+            });
+            
+            // Update display and hidden inputs
+            totalPremiumDisplay.value = total.toLocaleString();
+            medicalInsuranceInput.value = total;
+            medicalInsurancePlanInput.value = selectedPlan;
+        }
+        
+        // Add event listeners to each checkbox
+        insurancePlans.forEach(plan => {
+            plan.addEventListener('change', updateTotalPremium);
+        });
+        
+        // Initialize total on page load
+        updateTotalPremium();
+    });
     </script>
 </body>
 </html>

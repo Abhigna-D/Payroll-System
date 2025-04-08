@@ -93,7 +93,7 @@ public class TaxDeclarationController {
             @RequestParam(value = "previousTaxDeducted", required = false) Integer previousTaxDeducted,
             
             // Health Insurance
-            @RequestParam(value = "medicalInsurance", required = false) Integer medicalInsurance,
+            @RequestParam(value = "medicalInsurancePlan", required = false) String medicalInsurancePlan,
             
             @RequestParam(value = "isDraft", required = false) Boolean isDraft,
             RedirectAttributes redirectAttributes) {
@@ -149,7 +149,7 @@ public class TaxDeclarationController {
             taxDeclaration.setPreviousTaxDeducted(previousTaxDeducted != null ? previousTaxDeducted : 0);
             
             // Update health insurance
-            taxDeclaration.setMedicalInsurance(medicalInsurance != null ? medicalInsurance : 0);
+            taxDeclaration.setMedicalInsurancePlan(medicalInsurancePlan);
             
             // Set status based on draft flag
             if (isDraft != null && isDraft) {

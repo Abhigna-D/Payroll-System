@@ -216,7 +216,7 @@
                                         <h5><i class="bi bi-shield-plus me-2"></i>Other Details</h5>
                                         <hr>
                                         <p><strong>Medical Insurance Premium:</strong> <span th:text="${'₹' + #numbers.formatDecimal(declaration.medicalInsurance, 0, 'COMMA', 0, 'POINT')}">₹25,000</span></p>
-                                        <p><strong>Professional Tax:</strong> <span th:text="${'₹' + declaration.professionalTax + '/month'}">₹200/month</span></p>
+                                        <p><strong>Professional Tax:</strong> <span th:text="${'₹' + declaration.professionalTax + '/month'}">₹2400 per year</span></p>
                                         
                                         <div th:if="${declaration.hasPreviousEmployment}">
                                             <h6 class="mt-3">Previous Employment</h6>
