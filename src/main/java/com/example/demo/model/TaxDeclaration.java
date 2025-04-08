@@ -46,6 +46,7 @@ public class TaxDeclaration {
     
     // Health Insurance
     private Integer medicalInsurance = 0;
+    private String medicalInsurancePlan;
     
     // Professional Tax (Fixed - Monthly)
     private final Integer professionalTax = 2400;
@@ -227,6 +228,21 @@ public class TaxDeclaration {
     }
 
     public Integer getMedicalInsurance() {
+        // If a plan is selected, return its value
+        if (medicalInsurancePlan != null) {
+            switch (medicalInsurancePlan) {
+                case "CARE_SILVER":
+                    return 5500;
+                case "CARE_GOLD":
+                    return 8500;
+                case "CARE_PLATINUM":
+                    return 12000;
+                default:
+                    // Return the stored value if the plan is unknown
+                    return medicalInsurance;
+            }
+        }
+        // Return the stored value if no plan is selected
         return medicalInsurance;
     }
 
@@ -278,16 +294,13 @@ public class TaxDeclaration {
         this.approvalDate = approvalDate;
     }
 
-    private String medicalInsurancePlan;
+    public String getMedicalInsurancePlan() {
+        return medicalInsurancePlan;
+    }
 
-// Add getter and setter methods
-public String getMedicalInsurancePlan() {
-    return medicalInsurancePlan;
-}
-
-public void setMedicalInsurancePlan(String medicalInsurancePlan) {
-    this.medicalInsurancePlan = medicalInsurancePlan;
-}
+    public void setMedicalInsurancePlan(String medicalInsurancePlan) {
+        this.medicalInsurancePlan = medicalInsurancePlan;
+    }
     
     // Calculate total deductions
     public Integer calculateTotalDeductions() {
@@ -295,8 +308,9 @@ public void setMedicalInsurancePlan(String medicalInsurancePlan) {
                (medicalInsurance != null ? medicalInsurance : 0) + 
                (homeLoanInterest != null ? homeLoanInterest : 0);
     }
-     // Get monthly professional tax (for payroll calculations)
-     public double getMonthlyProfessionalTax() {
+    
+    // Get monthly professional tax (for payroll calculations)
+    public double getMonthlyProfessionalTax() {
         return professionalTax / 12.0;
     }
 }

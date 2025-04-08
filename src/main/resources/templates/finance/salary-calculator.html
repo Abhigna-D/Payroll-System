@@ -283,6 +283,7 @@
                                             <th>Name</th>
                                             <th>Basic Salary</th>
                                             <th>Allowances</th>
+                                            <th>Overtime Pay</th>
                                             <th>Bonuses</th>
                                             <th>Deductions</th>
                                             <th>Net Salary</th>
@@ -434,8 +435,10 @@
                         // Generate random salary components
                         const basicSalary = Math.floor(Math.random() * 50000) + 30000;
                         const allowances = Math.floor(Math.random() * 10000) + 5000;
+                        const overtimePay = Math.floor(Math.random() * 5000); // Added overtime pay
+                        const bonus = Math.floor(Math.random() * 3000); // Added bonus
                         const deductions = Math.floor(Math.random() * 8000) + 3000;
-                        const netSalary = basicSalary + allowances - deductions;
+                        const netSalary = basicSalary + allowances + overtimePay + bonus - deductions;
                         
                         // Create a new row for the results table
                         const newRow = document.createElement('tr');
@@ -444,6 +447,8 @@
                             <td>${empName}</td>
                             <td>₹${basicSalary.toLocaleString()}</td>
                             <td>₹${allowances.toLocaleString()}</td>
+                            <td>₹${overtimePay.toLocaleString()}</td>
+                            <td>₹${bonus.toLocaleString()}</td>
                             <td>₹${deductions.toLocaleString()}</td>
                             <td><strong>₹${netSalary.toLocaleString()}</strong></td>
                             <td>
@@ -476,123 +481,124 @@
                 ];
                 return months[parseInt(monthNum) - 1];
             }
-            // Helper function to show dummy results
-// Calculate button functionality
-calculateBtn.addEventListener('click', function() {
-    const month = document.getElementById('month').value;
-    const year = document.getElementById('year').value;
-    
-    if (!month || !year) {
-        alert('Please select both month and year before calculating');
-        return;
-    }
-    
-    // Get selected employees
-    const selectedEmployees = [];
-    employeeCheckboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            selectedEmployees.push(checkbox.value);
-        }
-    });
-    
-    if (selectedEmployees.length === 0) {
-        alert('Please select at least one employee');
-        return;
-    }
-    
-    // Show loading indicator
-    const calculateBtn = document.getElementById('calculateBtn');
-    const originalBtnText = calculateBtn.innerHTML;
-    calculateBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Calculating...';
-    calculateBtn.disabled = true;
-    
-    // Prepare data to send to the server
-    const data = {
-        month: month,
-        year: year,
-        selectedEmployees: selectedEmployees
-    };
-    
-    // Make AJAX call to the backend
-    fetch('/finance/salary-calculator/calculate', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content // Include CSRF token if using Spring Security
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        // Reset button
-        calculateBtn.innerHTML = originalBtnText;
-        calculateBtn.disabled = false;
-        
-        if (data.success) {
-            // Display results
-            displayCalculationResults(data, month, year);
-        } else {
-            // Handle error
-            alert('Error: ' + (data.error || 'Unknown error occurred'));
-        }
-    })
-    .catch(error => {
-        // Reset button
-        calculateBtn.innerHTML = originalBtnText;
-        calculateBtn.disabled = false;
-        
-        console.error('Error:', error);
-        alert('Error occurred while calculating salaries. Please try again.');
-    });
-});
+            
+            // Calculate button functionality - AJAX version
+            calculateBtn.addEventListener('click', function() {
+                const month = document.getElementById('month').value;
+                const year = document.getElementById('year').value;
+                
+                if (!month || !year) {
+                    alert('Please select both month and year before calculating');
+                    return;
+                }
+                
+                // Get selected employees
+                const selectedEmployees = [];
+                employeeCheckboxes.forEach(checkbox => {
+                    if (checkbox.checked) {
+                        selectedEmployees.push(checkbox.value);
+                    }
+                });
+                
+                if (selectedEmployees.length === 0) {
+                    alert('Please select at least one employee');
+                    return;
+                }
+                
+                // Show loading indicator
+                const calculateBtn = document.getElementById('calculateBtn');
+                const originalBtnText = calculateBtn.innerHTML;
+                calculateBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Calculating...';
+                calculateBtn.disabled = true;
+                
+                // Prepare data to send to the server
+                const data = {
+                    month: month,
+                    year: year,
+                    selectedEmployees: selectedEmployees
+                };
+                
+                // Make AJAX call to the backend
+                fetch('/finance/salary-calculator/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content // Include CSRF token if using Spring Security
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Reset button
+                    calculateBtn.innerHTML = originalBtnText;
+                    calculateBtn.disabled = false;
+                    
+                    if (data.success) {
+                        // Display results
+                        displayCalculationResults(data, month, year);
+                    } else {
+                        // Handle error
+                        alert('Error: ' + (data.error || 'Unknown error occurred'));
+                    }
+                })
+                .catch(error => {
+                    // Reset button
+                    calculateBtn.innerHTML = originalBtnText;
+                    calculateBtn.disabled = false;
+                    
+                    console.error('Error:', error);
+                    alert('Error occurred while calculating salaries. Please try again.');
+                });
+            });
 
-// Function to display calculation results from the server
-function displayCalculationResults(data, month, year) {
-    // Set the period in the results section
-    document.getElementById('resultPeriod').textContent = data.period || `${getMonthName(month)} ${year}`;
-    
-    // Clear previous results
-    const resultsTableBody = document.getElementById('resultsTableBody');
-    resultsTableBody.innerHTML = '';
-    
-    // Add data for each calculation
-    data.calculationResults.forEach(calculation => {
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `
-            <td>${calculation.employee.employeeID || ''}</td>
-            <td>${calculation.employee.FullName || ''}</td>
-            <td>₹${calculation.basicSalary.toLocaleString()}</td>
-            <td>₹${calculation.allowances.toLocaleString()}</td>
-            <td>₹${calculation.bonus.toLocaleString()}</td>
-            <td>₹${(calculation.incomeTax + calculation.providentFund + calculation.otherDeductions).toLocaleString()}</td>
-            <td><strong>₹${calculation.netSalary.toLocaleString()}</strong></td>
-            <td>
-                <div class="btn-group" role="group">
-                    <button class="btn btn-sm btn-outline-info" title="View Details" 
-                            onclick="viewCalculationDetails(${calculation.id})">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary" title="Edit Calculation"
-                            onclick="editCalculation(${calculation.id})">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                </div>
-            </td>
-        `;
-        resultsTableBody.appendChild(newRow);
-    });
-    
-    // Show the results section
-    document.getElementById('resultsSection').style.display = 'block';
-    
-    // Scroll to results
-    document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
-}
+            // Function to display calculation results from the server
+            function displayCalculationResults(data, month, year) {
+                // Set the period in the results section
+                document.getElementById('resultPeriod').textContent = data.period || `${getMonthName(month)} ${year}`;
+                
+                // Clear previous results
+                const resultsTableBody = document.getElementById('resultsTableBody');
+                resultsTableBody.innerHTML = '';
+                
+                // Add data for each calculation
+                data.calculationResults.forEach(calculation => {
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td>${calculation.employee.employeeID || ''}</td>
+                        <td>${calculation.employee.FullName || ''}</td>
+                        <td>₹${calculation.basicSalary.toLocaleString()}</td>
+                        <td>₹${calculation.allowances.toLocaleString()}</td>
+                        <td>₹${calculation.overtimePay.toLocaleString()}</td>
+                        <td>₹${calculation.bonus.toLocaleString()}</td>
+                        <td>₹${(calculation.incomeTax + calculation.providentFund + calculation.otherDeductions).toLocaleString()}</td>
+                        <td><strong>₹${calculation.netSalary.toLocaleString()}</strong></td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-info" title="View Details" 
+                                        onclick="viewCalculationDetails(${calculation.id})">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" title="Edit Calculation"
+                                        onclick="editCalculation(${calculation.id})">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    resultsTableBody.appendChild(newRow);
+                });
+                
+                // Show the results section
+                document.getElementById('resultsSection').style.display = 'block';
+                
+                // Scroll to results
+                document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+            }
         });
     </script>
 </body>

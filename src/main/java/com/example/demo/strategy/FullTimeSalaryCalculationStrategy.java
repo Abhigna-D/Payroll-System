@@ -2,19 +2,25 @@ package com.example.demo.strategy;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.example.demo.model.Attendance;
 import com.example.demo.model.BonusRecommendation;
 import com.example.demo.model.BonusRecommendationStatus;
 import com.example.demo.model.Employee;
+import com.example.demo.model.OvertimeRequest;
 import com.example.demo.model.SalaryCalculation;
 import com.example.demo.model.SalarySlip;
 import com.example.demo.model.TaxDeclaration;
+import com.example.demo.repository.AttendanceRepository;
 import com.example.demo.repository.BonusRecommendationRepository;
+import com.example.demo.repository.OvertimeRequestRepository;
 
 /**
  * Salary calculation strategy for full-time employees
@@ -24,6 +30,12 @@ public class FullTimeSalaryCalculationStrategy implements SalaryCalculationStrat
 
     @Autowired
     private BonusRecommendationRepository bonusRecommendationRepository;
+    
+    @Autowired
+    private AttendanceRepository attendanceRepository;
+    
+    // Standard number of working days in a month (average)
+    private static final int STANDARD_WORKING_DAYS = 22;
     
     @Override
     public SalaryCalculation calculateSalary(Employee employee, int month, int year) {
@@ -73,7 +85,7 @@ public class FullTimeSalaryCalculationStrategy implements SalaryCalculationStrat
         }
         calculation.setAllowances(totalAllowances);
         
-        // Calculate overtime pay
+        // Calculate overtime pay based on your attendance model
         double overtimePay = calculateOvertimePay(employee, month, year);
         calculation.setOvertimePay(overtimePay);
         
@@ -108,9 +120,9 @@ public class FullTimeSalaryCalculationStrategy implements SalaryCalculationStrat
         calculation.setOtherDeductions(otherDeductions);
         
         // Calculate net salary
-        // Net Salary = Basic Salary + Bonus + Allowances - Total Deductions
+        // Net Salary = Basic Salary + Bonus + Allowances + Overtime Pay - Total Deductions
         double totalDeductions = calculation.getProvidentFund() + calculation.getIncomeTax() + calculation.getOtherDeductions();
-        double netSalary = calculation.getBasicSalary() + calculation.getBonus() + calculation.getAllowances() - totalDeductions;
+        double netSalary = calculation.getBasicSalary() + calculation.getBonus() + calculation.getAllowances() + calculation.getOvertimePay() - totalDeductions;
         calculation.setNetSalary(netSalary);
         
         // Set audit fields
@@ -122,34 +134,109 @@ public class FullTimeSalaryCalculationStrategy implements SalaryCalculationStrat
     
     /**
      * Calculate overtime pay based on attendance records
+     * This method adapts to your specific Attendance model structure
      */
-    private double calculateOvertimePay(Employee employee, int month, int year) {
-        // In a real implementation, you would:
-        // 1. Get attendance records for the employee for the given month
-        // 2. Calculate overtime hours
-        // 3. Apply overtime rate to calculate pay
+    @Autowired
+private OvertimeRequestRepository overtimeRequestRepository;
+
+private double calculateOvertimePay(Employee employee, int month, int year) {
+    // Get the hourly rate based on job title
+    double hourlyRate = getHourlyRateByJobTitle(employee.getJobTitle());
+    
+    // Calculate overtime from attendance records (existing code)
+    double overtimeHoursFromAttendance = calculateOvertimeHoursFromAttendance(employee, month, year);
+    
+    // Calculate overtime from overtime requests
+    double overtimeHoursFromRequests = calculateOvertimeHoursFromRequests(employee, month, year);
+    
+    // Total overtime hours
+    double totalOvertimeHours = overtimeHoursFromAttendance + overtimeHoursFromRequests;
+    
+    // Calculate overtime pay based on hourly rate
+    return totalOvertimeHours * hourlyRate;
+}
+
+private double calculateOvertimeHoursFromAttendance(Employee employee, int month, int year) {
+    // Existing attendance-based calculation logic
+    LocalDate monthDate = LocalDate.of(year, month, 1);
+    
+    // Get attendance summary for the month
+    Attendance attendanceSummary = attendanceRepository.findAttendanceSummaryByEmployeeIdAndMonth(
+            employee.getEmployeeID(), monthDate);
+    
+    double overtimeHours = 0.0;
+    
+    if (attendanceSummary != null && attendanceSummary.getDaysPresent() != null) {
+        // Calculate overtime days (days present exceeding standard working days)
+        int overtimeDays = Math.max(0, attendanceSummary.getDaysPresent() - STANDARD_WORKING_DAYS);
         
-        // Calculate hourly rate (assuming 22 working days, 8 hours per day)
-        SalarySlip salaryDetails = employee.getSalaryDetails();
-        double hourlyRate = 0;
+        // Convert overtime days to hours (assuming 8 hours per day)
+        overtimeHours = overtimeDays * 8.0;
+    } else {
+        // Alternatively, we can calculate overtime days directly
+        Integer overtimeDays = attendanceRepository.calculateOvertimeDays(
+                employee.getEmployeeID(), monthDate, STANDARD_WORKING_DAYS);
         
-        if (salaryDetails != null) {
-            hourlyRate = salaryDetails.getBasicSalary() / (22 * 8);
+        if (overtimeDays != null && overtimeDays > 0) {
+            overtimeHours = overtimeDays * 8.0;
+        }
+    }
+    
+    return overtimeHours;
+}
+
+private double calculateOvertimeHoursFromRequests(Employee employee, int month, int year) {
+    // Create date range for the specified month
+    LocalDate startDate = LocalDate.of(year, month, 1);
+    LocalDate endDate = startDate.plusMonths(1).minusDays(1); // Last day of the month
+    
+    // Get all approved overtime requests for this employee in the specified month
+    List<OvertimeRequest> approvedRequests = overtimeRequestRepository.findByEmployeeId(employee.getEmployeeID())
+            .stream()
+            .filter(req -> req.getStatus() == OvertimeRequest.OvertimeRequestStatus.APPROVED)
+            .filter(req -> !req.getOvertimeDate().isBefore(startDate) && !req.getOvertimeDate().isAfter(endDate))
+            .collect(Collectors.toList());
+    
+    // Calculate total overtime hours from approved requests
+    double totalOvertimeHours = 0.0;
+    
+    for (OvertimeRequest request : approvedRequests) {
+        // Calculate hours between start and end time
+        LocalTime startTime = request.getStartTime();
+        LocalTime endTime = request.getEndTime();
+        
+        // If end time is before start time, assume it's past midnight
+        long minutes;
+        if (endTime.isBefore(startTime)) {
+            minutes = startTime.until(LocalTime.of(23, 59, 59), java.time.temporal.ChronoUnit.MINUTES) + 1
+                    + LocalTime.of(0, 0).until(endTime, java.time.temporal.ChronoUnit.MINUTES);
         } else {
-            hourlyRate = 300; // Default hourly rate
+            minutes = startTime.until(endTime, java.time.temporal.ChronoUnit.MINUTES);
         }
         
-        // Get the actual overtime hours from attendance records
-        YearMonth yearMonth = YearMonth.of(year, month);
-        LocalDate startDate = yearMonth.atDay(1);
-        LocalDate endDate = yearMonth.atEndOfMonth();
+        totalOvertimeHours += minutes / 60.0;
+    }
+    
+    return totalOvertimeHours;
+}
+    /**
+     * Get hourly rate based on job title as per specified rates
+     */
+    private double getHourlyRateByJobTitle(String jobTitle) {
+        if (jobTitle == null) return 398.0; // Default to Software Developer rate
         
-        // In a real implementation, get actual overtime hours from attendance records
-        // This is just a placeholder - you would replace with actual database query
-        double overtimeHours = 10; // Default to 10 hours if no attendance records
-        
-        // Calculate overtime pay (1.5x hourly rate)
-        return overtimeHours * hourlyRate * 1.5;
+        switch (jobTitle.toLowerCase()) {
+            case "software developer":
+                return 398.0;
+            case "software engineer":
+                return 511.0;
+            case "senior developer":
+                return 852.0;
+            case "tech lead":
+                return 1136.0;
+            default:
+                return 398.0; // Default rate
+        }
     }
     
     /**

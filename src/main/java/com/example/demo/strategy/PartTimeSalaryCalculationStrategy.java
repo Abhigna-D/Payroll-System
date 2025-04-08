@@ -6,15 +6,18 @@ import java.time.YearMonth;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort; // Changed import for Sort
 import org.springframework.stereotype.Component;
 
 import com.example.demo.model.BonusRecommendation;
 import com.example.demo.model.BonusRecommendationStatus;
 import com.example.demo.model.Employee;
+import com.example.demo.model.PartTimeAttendance;
 import com.example.demo.model.SalaryCalculation;
 import com.example.demo.model.SalarySlip;
 import com.example.demo.model.TaxDeclaration;
 import com.example.demo.repository.BonusRecommendationRepository;
+import com.example.demo.repository.PartTimeAttendanceRepository;
 
 /**
  * Salary calculation strategy for part-time employees
@@ -25,59 +28,49 @@ public class PartTimeSalaryCalculationStrategy implements SalaryCalculationStrat
     @Autowired
     private BonusRecommendationRepository bonusRecommendationRepository;
     
+    @Autowired
+    private PartTimeAttendanceRepository partTimeAttendanceRepository;
+
     @Override
     public SalaryCalculation calculateSalary(Employee employee, int month, int year) {
         // Create a new salary calculation object
         SalaryCalculation calculation = new SalaryCalculation(employee, month, year);
         
-        // Get the employee's salary details
-        SalarySlip salaryDetails = employee.getSalaryDetails();
+        // Get the hourly rate based on job title
+        double hourlyRate = getHourlyRateByJobTitle(employee.getJobTitle());
         
-        // Set basic salary based on designation/job title - halved for part-time
-        double basicSalary;
-        if (salaryDetails != null && salaryDetails.getBasicSalary() != null) {
-            basicSalary = salaryDetails.getBasicSalary() * 0.5; // 50% for part-time
-        } else {
-            // Assign basic pay based on job title if salary details are not available
-            String designation = employee.getJobTitle();
-            if (designation != null) {
-                switch (designation.toLowerCase()) {
-                    case "software developer":
-                        basicSalary = 70000.0 * 0.5;
-                        break;
-                    case "software engineer":
-                        basicSalary = 90000.0 * 0.5;
-                        break;
-                    case "senior developer":
-                        basicSalary = 150000.0 * 0.5;
-                        break;
-                    case "tech lead":
-                        basicSalary = 200000.0 * 0.5;
-                        break;
-                    default:
-                        basicSalary = 50000.0 * 0.5; // Default value
-                }
-            } else {
-                basicSalary = 50000.0 * 0.5; // Default value
+        // Create date range for the month
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.plusMonths(1).minusDays(1); // Last day of month
+        
+        // Get all attendance records for the month - fixed the Sort import
+        List<PartTimeAttendance> attendanceRecords = partTimeAttendanceRepository.findByEmployeeIdAndDateBetween(
+                employee.getEmployeeID(), startDate, endDate, 
+                Sort.by(Sort.Direction.ASC, "date"));
+        
+        // Calculate total hours worked
+        double totalHoursWorked = 0.0;
+        for (PartTimeAttendance attendance : attendanceRecords) {
+            if (attendance.getTotalHours() != null && 
+                (attendance.getStatus() == PartTimeAttendance.AttendanceStatus.PRESENT || 
+                 attendance.getStatus() == PartTimeAttendance.AttendanceStatus.WORK_FROM_HOME ||
+                 attendance.getStatus() == PartTimeAttendance.AttendanceStatus.HALF_DAY)) {
+                totalHoursWorked += attendance.getTotalHours();
             }
         }
+        
+        // Calculate basic salary based on hours worked
+        double basicSalary = totalHoursWorked * hourlyRate;
         calculation.setBasicSalary(basicSalary);
         
-        // Calculate allowances (also reduced for part-time)
-        double totalAllowances;
-        if (salaryDetails != null && salaryDetails.getTotalAllowances() != null) {
-            totalAllowances = salaryDetails.getTotalAllowances() * 0.5; // 50% for part-time
-        } else {
-            // Default allowances (using ~54% of basic salary as a reference)
-            totalAllowances = basicSalary * 0.54; // Already halved because basic salary is halved
-        }
-        calculation.setAllowances(totalAllowances);
+        // Set overtime pay to 0 since part-time employees are paid by the hour
+        calculation.setOvertimePay(0.0);
         
-        // Calculate overtime pay - part-time employees may have different overtime rates
-        double overtimePay = calculateOvertimePay(employee, month, year);
-        calculation.setOvertimePay(overtimePay);
+        // Set allowances to 0 or a fixed amount - part-time employees typically don't get allowances
+        // or they get reduced allowances
+        calculation.setAllowances(0.0);
         
-        // Calculate bonus - part-time employees may have prorated bonuses
+        // Calculate bonus
         double bonus = calculateBonus(employee, month, year);
         calculation.setBonus(bonus);
         
@@ -97,9 +90,18 @@ public class PartTimeSalaryCalculationStrategy implements SalaryCalculationStrat
         // a. Professional Tax (monthly) - may be reduced for part-time
         double professionalTaxMonthly = 200.0; // Keep the same regardless of part-time status
         otherDeductions += professionalTaxMonthly;
+
+        
         
         // b. Medical Insurance Premium (monthly) - typically the same for part-time employees
         TaxDeclaration taxDeclaration = employee.getTaxDeclaration();
+
+        System.out.println("Employee ID: " + employee.getEmployeeID());
+System.out.println("Tax Declaration: " + taxDeclaration);
+if (taxDeclaration != null) {
+    System.out.println("Medical Insurance: " + taxDeclaration.getMedicalInsurance());
+}
+
         if (taxDeclaration != null && taxDeclaration.getMedicalInsurance() != null) {
             double monthlyMedicalInsurance = taxDeclaration.getMedicalInsurance() / 12.0;
             otherDeductions += monthlyMedicalInsurance;
@@ -108,9 +110,9 @@ public class PartTimeSalaryCalculationStrategy implements SalaryCalculationStrat
         calculation.setOtherDeductions(otherDeductions);
         
         // Calculate net salary
-        // Net Salary = Basic Salary + Bonus + Allowances - Total Deductions
+        // Net Salary = Basic Salary + Bonus + Allowances + Overtime Pay - Total Deductions
         double totalDeductions = calculation.getProvidentFund() + calculation.getIncomeTax() + calculation.getOtherDeductions();
-        double netSalary = calculation.getBasicSalary() + calculation.getBonus() + calculation.getAllowances() - totalDeductions;
+        double netSalary = calculation.getBasicSalary() + calculation.getBonus() + calculation.getAllowances()  - totalDeductions;
         calculation.setNetSalary(netSalary);
         
         // Set audit fields
@@ -121,35 +123,23 @@ public class PartTimeSalaryCalculationStrategy implements SalaryCalculationStrat
     }
     
     /**
-     * Calculate overtime pay based on attendance records - adjusted for part-time
+     * Get hourly rate based on job title as per specified rates
      */
-    private double calculateOvertimePay(Employee employee, int month, int year) {
-        // For part-time employees, overtime might be calculated differently
-        // They might not be eligible for overtime until they work more than their part-time hours
+    private double getHourlyRateByJobTitle(String jobTitle) {
+        if (jobTitle == null) return 398.0; // Default to Software Developer rate
         
-        // Calculate hourly rate (assuming 11 working days or 88 hours per month for part-time)
-        SalarySlip salaryDetails = employee.getSalaryDetails();
-        double hourlyRate = 0;
-        
-        if (salaryDetails != null) {
-            // For part-time, the hourly rate might be the same as full-time
-            // but calculated based on reduced working hours
-            hourlyRate = (salaryDetails.getBasicSalary() * 0.5) / (11 * 8);
-        } else {
-            hourlyRate = 300; // Default hourly rate
+        switch (jobTitle.toLowerCase()) {
+            case "software developer":
+                return 398.0;
+            case "software engineer":
+                return 511.0;
+            case "senior developer":
+                return 852.0;
+            case "tech lead":
+                return 1136.0;
+            default:
+                return 398.0; // Default rate
         }
-        
-        // Get the actual overtime hours from attendance records
-        YearMonth yearMonth = YearMonth.of(year, month);
-        LocalDate startDate = yearMonth.atDay(1);
-        LocalDate endDate = yearMonth.atEndOfMonth();
-        
-        // In a real implementation, get actual overtime hours from attendance records
-        // Part-time employees might have fewer overtime hours
-        double overtimeHours = 5; // Default to 5 hours for part-time (half of full-time)
-        
-        // Calculate overtime pay (1.5x hourly rate)
-        return overtimeHours * hourlyRate * 1.5;
     }
     
     /**
