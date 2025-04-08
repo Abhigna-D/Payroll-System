@@ -295,4 +295,8 @@ public void setMedicalInsurancePlan(String medicalInsurancePlan) {
                (medicalInsurance != null ? medicalInsurance : 0) + 
                (homeLoanInterest != null ? homeLoanInterest : 0);
     }
+     // Get monthly professional tax (for payroll calculations)
+     public double getMonthlyProfessionalTax() {
+        return professionalTax / 12.0;
+    }
 }

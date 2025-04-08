@@ -213,10 +213,41 @@
                                     
                                     <!-- Other Details -->
                                     <div class="col-md-6 mb-4">
-                                        <h5><i class="bi bi-shield-plus me-2"></i>Other Details</h5>
+                                        <h5><i class="bi bi-shield-plus me-2"></i>Medical Insurance</h5>
                                         <hr>
-                                        <p><strong>Medical Insurance Premium:</strong> <span th:text="${'₹' + #numbers.formatDecimal(declaration.medicalInsurance, 0, 'COMMA', 0, 'POINT')}">₹25,000</span></p>
-                                        <p><strong>Professional Tax:</strong> <span th:text="${'₹' + declaration.professionalTax + '/month'}">₹2400 per year</span></p>
+                                        <!-- Default Plan -->
+                                        <p><strong>Default Plan:</strong> <span>Care Basic (Group Mediclaim)</span></p>
+                                        <p><strong>Default Coverage:</strong> <span>Employee Only (₹5,00,000)</span></p>
+                                        
+                                        <!-- Selected Plan (if any) -->
+                                        <div th:if="${declaration.medicalInsurancePlan != null && !declaration.medicalInsurancePlan.isEmpty()}">
+                                            <h6 class="mt-3">Additional Plan Selected</h6>
+                                            <p><strong>Plan Name:</strong> 
+                                                <span th:if="${declaration.medicalInsurancePlan == 'CARE_SILVER'}">Care Silver Family Floater</span>
+                                                <span th:if="${declaration.medicalInsurancePlan == 'CARE_GOLD'}">Care Gold Extended</span>
+                                                <span th:if="${declaration.medicalInsurancePlan == 'CARE_TOPUP5L'}">Care Shield Top-Up 5L</span>
+                                                <span th:if="${declaration.medicalInsurancePlan == 'PARENT_COVER'}">ParentCare Secure</span>
+                                            </p>
+                                            <p><strong>Coverage:</strong> 
+                                                <span th:if="${declaration.medicalInsurancePlan == 'CARE_SILVER'}">Self + Spouse + 2 Kids</span>
+                                                <span th:if="${declaration.medicalInsurancePlan == 'CARE_GOLD'}">Self + Spouse + Kids + Parents</span>
+                                                <span th:if="${declaration.medicalInsurancePlan == 'CARE_TOPUP5L'}">Self (Top-up)</span>
+                                                <span th:if="${declaration.medicalInsurancePlan == 'PARENT_COVER'}">Parents/In-laws</span>
+                                            </p>
+                                            <p><strong>Sum Insured:</strong> 
+                                                <span th:if="${declaration.medicalInsurancePlan == 'CARE_SILVER'}">₹7,00,000</span>
+                                                <span th:if="${declaration.medicalInsurancePlan == 'CARE_GOLD'}">₹10,00,000</span>
+                                                <span th:if="${declaration.medicalInsurancePlan == 'CARE_TOPUP5L'}">₹5,00,000 (additional)</span>
+                                                <span th:if="${declaration.medicalInsurancePlan == 'PARENT_COVER'}">₹3,00,000</span>
+                                            </p>
+                                            <p><strong>Premium:</strong> <span th:text="${'₹' + #numbers.formatDecimal(declaration.medicalInsurance, 0, 'COMMA', 0, 'POINT')}">₹5,500</span></p>
+                                        </div>
+                                        <div th:unless="${declaration.medicalInsurancePlan != null && !declaration.medicalInsurancePlan.isEmpty()}">
+                                            <p><em>No additional insurance plan selected</em></p>
+                                        </div>
+                                        
+                                        <h6 class="mt-3">Other Deductions</h6>
+                                        <p><strong>Professional Tax:</strong> <span>₹2400 per year (automatically deducted)</span></p>
                                         
                                         <div th:if="${declaration.hasPreviousEmployment}">
                                             <h6 class="mt-3">Previous Employment</h6>

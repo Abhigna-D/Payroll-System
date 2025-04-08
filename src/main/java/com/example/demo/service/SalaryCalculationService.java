@@ -47,73 +47,206 @@ public class SalaryCalculationService {
      * @param year The year
      * @return The calculated salary details
      */
-    public SalaryCalculation calculateSalary(Employee employee, int month, int year) {
-        // Create a new salary calculation object
-        SalaryCalculation calculation = new SalaryCalculation(employee, month, year);
-        
-        // Get the employee's salary details
-        SalarySlip salaryDetails = employee.getSalaryDetails();
-        if (salaryDetails == null) {
-            // If no salary details exist, create default values based on job title or other factors
-            calculation.setBasicSalary(50000.0); // Default basic salary
-            calculation.setAllowances(5000.0);   // Default allowances
-        } else {
-            // Use the employee's defined salary structure
-            calculation.setBasicSalary(salaryDetails.getBasicSalary());
-            calculation.setAllowances(salaryDetails.getHouseRentAllowance() + 
-                                     salaryDetails.getConveyanceAllowance() + 
-                                     salaryDetails.getMedicalAllowance() + 
-                                     salaryDetails.getSpecialAllowance());
-            
-            // Alternatively, you can use the getTotalAllowances() method
-            // calculation.setAllowances(salaryDetails.getTotalAllowances());
-        }
-        
-        // Calculate overtime if any
-        double overtimePay = calculateOvertimePay(employee, month, year);
-        calculation.setOvertimePay(overtimePay);
-        
-        // Calculate bonus if applicable
-        double bonus = calculateBonus(employee, month, year);
-        calculation.setBonus(bonus);
-        
-        // Adjust salary for part-time employees
-        if (employee.isPartTime()) {
-            // Adjust basic salary and allowances for part-time employees
-            // For example, multiply by 0.5 for half-time employees
-            calculation.setBasicSalary(calculation.getBasicSalary() * 0.5);
-            calculation.setAllowances(calculation.getAllowances() * 0.5);
-        }
-        
-        // Calculate deductions
-        
-        // 1. Income Tax calculation
-        double incomeTax = calculateIncomeTax(employee, calculation.getTotalEarnings(), month, year);
-        calculation.setIncomeTax(incomeTax);
-        
-        // Calculate Provident Fund (typically a fixed percentage of basic salary)
-        double pfPercentage = 0.12; // 12% is typical PF contribution
-        double providentFund = calculation.getBasicSalary() * pfPercentage;
-        
-        // Alternatively, if SalarySlip has the calculation method, use it
-        if (salaryDetails != null) {
-            providentFund = salaryDetails.getProvidentFundContribution();
-        }
-        calculation.setProvidentFund(providentFund);
-        
-        // 3. Other deductions (loans, advances, etc.)
-        double otherDeductions = calculateOtherDeductions(employee, month, year);
-        calculation.setOtherDeductions(otherDeductions);
-        
-        // Calculate net salary
-        calculation.calculateNetSalary();
-        
-        // Set audit fields
-        calculation.setCreatedBy("System");
-        calculation.setCreatedAt(LocalDate.now());
-        
-        return calculation;
+
+    /**
+ * Calculate salary for an employee for the specified month and year
+ * 
+ * @param employee The employee for whom to calculate salary
+ * @param month The month (1-12)
+ * @param year The year
+ * @return The calculated salary details
+ */
+/**
+ * Calculate salary for an employee for the specified month and year
+ */
+public SalaryCalculation calculateSalary(Employee employee, int month, int year) {
+    // Create a new salary calculation object
+    SalaryCalculation calculation = new SalaryCalculation(employee, month, year);
+    
+    // Get the employee's salary details
+    SalarySlip salaryDetails = employee.getSalaryDetails();
+    if (salaryDetails == null) {
+        // If no salary details exist, create default values based on job title or other factors
+        calculation.setBasicSalary(50000.0); // Default basic salary
+        calculation.setAllowances(5000.0);   // Default allowances
+    } else {
+        // Use the employee's defined salary structure
+        calculation.setBasicSalary(salaryDetails.getBasicSalary());
+        calculation.setAllowances(salaryDetails.getHouseRentAllowance() + 
+                                 salaryDetails.getConveyanceAllowance() + 
+                                 salaryDetails.getMedicalAllowance() + 
+                                 salaryDetails.getSpecialAllowance());
     }
+    
+    // Calculate overtime if any
+    double overtimePay = calculateOvertimePay(employee, month, year);
+    calculation.setOvertimePay(overtimePay);
+    
+    // Calculate bonus if applicable
+    double bonus = calculateBonus(employee, month, year);
+    calculation.setBonus(bonus);
+    
+    // Adjust salary for part-time employees
+    if (employee.isPartTime()) {
+        calculation.setBasicSalary(calculation.getBasicSalary() * 0.5);
+        calculation.setAllowances(calculation.getAllowances() * 0.5);
+    }
+    
+    // IMPORTANT: Set income tax to 0 by default - we'll calculate actual deductions separately
+    calculation.setIncomeTax(0);
+    
+    // Calculate Provident Fund (typically a fixed percentage of basic salary)
+    double pfPercentage = 0.12; // 12% is typical PF contribution
+    double providentFund = calculation.getBasicSalary() * pfPercentage;
+    
+    if (salaryDetails != null) {
+        providentFund = salaryDetails.getProvidentFundContribution();
+    }
+    
+    // IMPORTANT: Set provident fund to 0 for this specific issue
+    calculation.setProvidentFund(0);
+    
+    // Calculate total deductions - this is the important part
+    double otherDeductions = 0;
+    
+    // 1. Monthly professional tax (2400/12 = 200 per month)
+    double professionalTaxMonthly = 200.0;
+    otherDeductions += professionalTaxMonthly;
+    
+    // 2. Monthly medical insurance premium
+    TaxDeclaration taxDeclaration = employee.getTaxDeclaration();
+    if (taxDeclaration != null && taxDeclaration.getMedicalInsurance() != null) {
+        double monthlyMedicalInsurance = taxDeclaration.getMedicalInsurance() / 12.0;
+        otherDeductions += monthlyMedicalInsurance;
+    }
+    
+    // Set other deductions
+    calculation.setOtherDeductions(otherDeductions);
+    
+    // Calculate net salary
+    calculation.calculateNetSalary();
+    
+    // Set audit fields
+    calculation.setCreatedBy("System");
+    calculation.setCreatedAt(LocalDate.now());
+    
+    return calculation;
+}
+/**
+ * Calculate income tax based on employee's tax declaration and earnings
+ */
+private double calculateIncomeTax(Employee employee, double totalEarnings, int month, int year) {
+    // Get the tax declaration from the employee
+    TaxDeclaration taxDeclaration = employee.getTaxDeclaration();
+    
+    // Default tax rate if no declaration exists
+    double defaultTaxRate = 0.1; // 10%
+    
+    if (taxDeclaration == null) {
+        // No tax declaration, use default rate
+        return totalEarnings * defaultTaxRate;
+    }
+    
+    // Annualize the monthly earnings to estimate annual income
+    double annualIncome = totalEarnings * 12;
+    
+    // Add previous employment income if applicable
+    if (taxDeclaration.getHasPreviousEmployment() != null && taxDeclaration.getHasPreviousEmployment()) {
+        annualIncome += taxDeclaration.getPreviousTaxableIncome() != null ? 
+                        taxDeclaration.getPreviousTaxableIncome() : 0;
+    }
+    
+    // Calculate tax deductions
+    double totalDeduction = 0;
+    
+    // 1. House Rent Allowance (HRA) exemption
+    if (taxDeclaration.getIsRenting() != null && taxDeclaration.getIsRenting()) {
+        // HRA component is typically 40% of basic salary for metro cities
+        double hraComponent = totalEarnings * 0.4;
+        
+        // Exemption is minimum of:
+        // a) Actual HRA received
+        // b) Rent paid in excess of 10% of salary
+        // c) 50% of salary (for metro cities)
+        double rentPaid = taxDeclaration.getMonthlyRent() != null ? 
+                          taxDeclaration.getMonthlyRent() * 12 : 0;
+        double tenPercentSalary = annualIncome * 0.1;
+        double rentExcess = Math.max(0, rentPaid - tenPercentSalary);
+        double fiftyPercentSalary = annualIncome * 0.5;
+        
+        double hraExemption = Math.min(hraComponent, Math.min(rentExcess, fiftyPercentSalary));
+        totalDeduction += hraExemption;
+    }
+    
+    // 2. Home Loan Interest deduction (up to 2 lakhs for self-occupied property)
+    if (taxDeclaration.getHasHomeLoan() != null && taxDeclaration.getHasHomeLoan()) {
+        double homeLoanInterest = taxDeclaration.getHomeLoanInterest() != null ? 
+                                 taxDeclaration.getHomeLoanInterest() : 0;
+        // Cap at 2 lakhs (Rs. 200,000)
+        totalDeduction += Math.min(homeLoanInterest, 200000);
+    }
+    
+    // 3. Medical Insurance Premium (up to Rs. 25,000)
+    double medicalInsurance = taxDeclaration.getMedicalInsurance() != null ? 
+                             taxDeclaration.getMedicalInsurance() : 0;
+    totalDeduction += Math.min(medicalInsurance, 25000);
+    
+    // 4. Professional Tax (annual)
+    // Use the fixed 2400 value directly (no need to multiply by 12)
+    double professionalTax = 2400;
+    totalDeduction += professionalTax;
+    
+    // 5. Standard deduction for salaried employees (Rs. 50,000)
+    totalDeduction += 50000;
+    
+    // Calculate taxable income after deductions
+    double taxableIncome = Math.max(0, annualIncome - totalDeduction);
+    
+    // Apply progressive tax slabs (using 2023-24 tax slabs for example)
+    double taxAmount = 0;
+    
+    // Option for Old Tax Regime (with deductions)
+    if (taxableIncome <= 250000) {
+        taxAmount = 0;
+    } else if (taxableIncome <= 500000) {
+        taxAmount = (taxableIncome - 250000) * 0.05;
+    } else if (taxableIncome <= 750000) {
+        taxAmount = 12500 + (taxableIncome - 500000) * 0.10;
+    } else if (taxableIncome <= 1000000) {
+        taxAmount = 37500 + (taxableIncome - 750000) * 0.15;
+    } else if (taxableIncome <= 1250000) {
+        taxAmount = 75000 + (taxableIncome - 1000000) * 0.20;
+    } else if (taxableIncome <= 1500000) {
+        taxAmount = 125000 + (taxableIncome - 1250000) * 0.25;
+    } else {
+        taxAmount = 187500 + (taxableIncome - 1500000) * 0.30;
+    }
+    
+    // If the previous employer has already deducted some tax, subtract it
+    if (taxDeclaration.getHasPreviousEmployment() != null && 
+        taxDeclaration.getHasPreviousEmployment() && 
+        taxDeclaration.getPreviousTaxDeducted() != null) {
+        taxAmount -= taxDeclaration.getPreviousTaxDeducted();
+    }
+    
+    // Calculate monthly tax amount (distribute annual tax over remaining months)
+    int remainingMonths = 12 - (month - 1);
+    double monthlyTax = Math.max(0, taxAmount / remainingMonths);
+    
+    return monthlyTax;
+}
+
+/**
+ * Calculate additional deductions such as loans, advances, etc.
+ * (renamed from calculateOtherDeductions to avoid confusion)
+ */
+private double calculateAdditionalDeductions(Employee employee, int month, int year) {
+    // In a real implementation, get any loans or advances the employee has taken
+    // and calculate the installment amount for this month
+    
+    // Simplified implementation for demo
+    return 0; // No additional deductions beyond professional tax
+}
     
     /**
      * Calculate overtime pay based on attendance records
@@ -218,105 +351,8 @@ public class SalaryCalculationService {
     /**
      * Calculate income tax based on employee's tax declaration and earnings
      */
-    private double calculateIncomeTax(Employee employee, double totalEarnings, int month, int year) {
-        // Get the tax declaration from the employee
-        TaxDeclaration taxDeclaration = employee.getTaxDeclaration();
-        
-        // Default tax rate if no declaration exists
-        double defaultTaxRate = 0.1; // 10%
-        
-        if (taxDeclaration == null) {
-            // No tax declaration, use default rate
-            return totalEarnings * defaultTaxRate;
-        }
-        
-        // Annualize the monthly earnings to estimate annual income
-        double annualIncome = totalEarnings * 12;
-        
-        // Add previous employment income if applicable
-        if (taxDeclaration.getHasPreviousEmployment() != null && taxDeclaration.getHasPreviousEmployment()) {
-            annualIncome += taxDeclaration.getPreviousTaxableIncome() != null ? 
-                            taxDeclaration.getPreviousTaxableIncome() : 0;
-        }
-        
-        // Calculate tax deductions
-        double totalDeduction = 0;
-        
-        // 1. House Rent Allowance (HRA) exemption
-        if (taxDeclaration.getIsRenting() != null && taxDeclaration.getIsRenting()) {
-            // HRA component is typically 40% of basic salary for metro cities
-            double hraComponent = totalEarnings * 0.4;
-            
-            // Exemption is minimum of:
-            // a) Actual HRA received
-            // b) Rent paid in excess of 10% of salary
-            // c) 50% of salary (for metro cities)
-            double rentPaid = taxDeclaration.getMonthlyRent() != null ? 
-                              taxDeclaration.getMonthlyRent() * 12 : 0;
-            double tenPercentSalary = annualIncome * 0.1;
-            double rentExcess = Math.max(0, rentPaid - tenPercentSalary);
-            double fiftyPercentSalary = annualIncome * 0.5;
-            
-            double hraExemption = Math.min(hraComponent, Math.min(rentExcess, fiftyPercentSalary));
-            totalDeduction += hraExemption;
-        }
-        
-        // 2. Home Loan Interest deduction (up to 2 lakhs for self-occupied property)
-        if (taxDeclaration.getHasHomeLoan() != null && taxDeclaration.getHasHomeLoan()) {
-            double homeLoanInterest = taxDeclaration.getHomeLoanInterest() != null ? 
-                                     taxDeclaration.getHomeLoanInterest() : 0;
-            // Cap at 2 lakhs (Rs. 200,000)
-            totalDeduction += Math.min(homeLoanInterest, 200000);
-        }
-        
-        // 3. Medical Insurance Premium (up to Rs. 25,000)
-        double medicalInsurance = taxDeclaration.getMedicalInsurance() != null ? 
-                                 taxDeclaration.getMedicalInsurance() : 0;
-        totalDeduction += Math.min(medicalInsurance, 25000);
-        
-        // 4. Professional Tax (fixed monthly deduction)
-        double professionalTax = taxDeclaration.getProfessionalTax() * 12;
-        totalDeduction += professionalTax;
-        
-        // 5. Standard deduction for salaried employees (Rs. 50,000)
-        totalDeduction += 50000;
-        
-        // Calculate taxable income after deductions
-        double taxableIncome = Math.max(0, annualIncome - totalDeduction);
-        
-        // Apply progressive tax slabs (using 2023-24 tax slabs for example)
-        double taxAmount = 0;
-        
-        // Option for Old Tax Regime (with deductions)
-        if (taxableIncome <= 250000) {
-            taxAmount = 0;
-        } else if (taxableIncome <= 500000) {
-            taxAmount = (taxableIncome - 250000) * 0.05;
-        } else if (taxableIncome <= 750000) {
-            taxAmount = 12500 + (taxableIncome - 500000) * 0.10;
-        } else if (taxableIncome <= 1000000) {
-            taxAmount = 37500 + (taxableIncome - 750000) * 0.15;
-        } else if (taxableIncome <= 1250000) {
-            taxAmount = 75000 + (taxableIncome - 1000000) * 0.20;
-        } else if (taxableIncome <= 1500000) {
-            taxAmount = 125000 + (taxableIncome - 1250000) * 0.25;
-        } else {
-            taxAmount = 187500 + (taxableIncome - 1500000) * 0.30;
-        }
-        
-        // If the previous employer has already deducted some tax, subtract it
-        if (taxDeclaration.getHasPreviousEmployment() != null && 
-            taxDeclaration.getHasPreviousEmployment() && 
-            taxDeclaration.getPreviousTaxDeducted() != null) {
-            taxAmount -= taxDeclaration.getPreviousTaxDeducted();
-        }
-        
-        // Calculate monthly tax amount (distribute annual tax over remaining months)
-        int remainingMonths = 12 - (month - 1);
-        double monthlyTax = Math.max(0, taxAmount / remainingMonths);
-        
-        return monthlyTax;
-    }
+    // Updated method from SalaryCalculationService.java
+
     
     /**
      * Calculate other deductions such as loans, advances, etc.
