@@ -26,7 +26,6 @@ public interface EmployeeService {
     // Changed from Tax to TaxDeclaration
     TaxDeclaration submitTaxDetails(String employeeID, TaxDeclaration taxDetails);
     
-    boolean requestSalaryCorrection(String employeeID, SalarySlip correctedSalary);
     
     boolean submitTimesheet(String employeeID, String details);
 

@@ -6,7 +6,6 @@ import com.example.demo.model.SalarySlip;
 import com.example.demo.model.TaxDeclaration;
 import com.example.demo.repository.AttendanceRepository;
 import com.example.demo.repository.EmployeeRepository;
-import com.example.demo.repository.SalarySlipRepository;
 import com.example.demo.repository.TaxDeclarationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,9 +20,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private EmployeeRepository employeeRepository;
-    
-    @Autowired
-    private SalarySlipRepository salarySlipRepository;
+
     
     @Autowired
     private TaxDeclarationRepository taxDeclarationRepository;
@@ -83,26 +80,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         }).orElse(null);
     }
 
-    @Override
-    @Transactional
-    public boolean requestSalaryCorrection(String employeeID, SalarySlip correctedSalary) {
-        return employeeRepository.findByEmployeeID(employeeID).map(employee -> {
-            SalarySlip currentSalary = employee.getSalaryDetails();
-            if (currentSalary != null) {
-                currentSalary.setBasicSalary(correctedSalary.getBasicSalary());
-                currentSalary.setAllowances(correctedSalary.getAllowances());
-                currentSalary.setDeductions(correctedSalary.getDeductions());
-                currentSalary.setNetSalary(correctedSalary.getNetSalary());
-                salarySlipRepository.save(currentSalary);
-            } else {
-                correctedSalary.setEmployee(employee);
-                salarySlipRepository.save(correctedSalary);
-                employee.setSalaryDetails(correctedSalary);
-                employeeRepository.save(employee);
-            }
-            return true;
-        }).orElse(false);
-    }
+    
 
     @Override
     @Transactional
