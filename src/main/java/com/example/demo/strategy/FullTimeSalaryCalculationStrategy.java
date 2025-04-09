@@ -47,9 +47,37 @@ public class FullTimeSalaryCalculationStrategy implements SalaryCalculationStrat
     // Fixed HRA amount as per requirements
     private static final double FIXED_HRA_AMOUNT = 20000.0;
     
+    // Standard deduction for salaried individuals (as per Budget 2025)
+    private static final double STANDARD_DEDUCTION = 75000.0;
+    
     // Metro cities for HRA exemption
     private static final List<String> METRO_CITIES = List.of(
             "mumbai", "delhi", "kolkata", "chennai", "bangalore", "bengaluru", "hyderabad");
+    
+    // New Tax Slabs for FY 2025-26 (as per Budget 2025)
+    private static final double[] TAX_SLAB_LIMITS = {
+            400000.0,   // 0% tax up to Rs 4 lakh
+            800000.0,   // 5% tax from Rs 4 lakh to Rs 8 lakh
+            1200000.0,  // 10% tax from Rs 8 lakh to Rs 12 lakh
+            1600000.0,  // 15% tax from Rs 12 lakh to Rs 16 lakh
+            2000000.0,  // 20% tax from Rs 16 lakh to Rs 20 lakh
+            2400000.0   // 25% tax from Rs 20 lakh to Rs 24 lakh
+                        // 30% tax above Rs 24 lakh
+    };
+    
+    private static final double[] TAX_SLAB_RATES = {
+            0.0,    // 0% tax up to Rs 4 lakh
+            0.05,   // 5% tax from Rs 4 lakh to Rs 8 lakh
+            0.10,   // 10% tax from Rs 8 lakh to Rs 12 lakh
+            0.15,   // 15% tax from Rs 12 lakh to Rs 16 lakh
+            0.20,   // 20% tax from Rs 16 lakh to Rs 20 lakh
+            0.25,   // 25% tax from Rs 20 lakh to Rs 24 lakh
+            0.30    // 30% tax above Rs 24 lakh
+    };
+    
+    // Tax rebate under section 87A (as per Budget 2025)
+    private static final double MAX_REBATE_AMOUNT = 60000.0;
+    private static final double REBATE_INCOME_LIMIT = 1200000.0;
     
     @Override
     public SalaryCalculation calculateSalary(Employee employee, int month, int year) {
@@ -79,25 +107,22 @@ public class FullTimeSalaryCalculationStrategy implements SalaryCalculationStrat
             }
             
             // Calculate other allowances for THIS employee
-            // In the calculateSalary method, modify how allowances are calculated:
+            double totalAllowances = calculateAllowances(employee, salaryDetails, basicSalary);
 
-// Calculate other allowances for THIS employee (excluding HRA)
-double totalAllowances = calculateAllowances(employee, salaryDetails, basicSalary);
+            // Add HRA only if employee is renting
+            TaxDeclaration taxDeclaration = employee.getTaxDeclaration();
+            if (taxDeclaration != null && taxDeclaration.getIsRenting() != null && taxDeclaration.getIsRenting()) {
+                // Add fixed HRA to total allowances only if the employee is renting
+                totalAllowances += FIXED_HRA_AMOUNT;
+                
+                System.out.println("Added HRA allowance of ₹" + FIXED_HRA_AMOUNT + " for " + 
+                                   employee.getFullName() + " (ID: " + employee.getEmployeeID() + ")");
+            } else {
+                System.out.println("No HRA allowance added for " + employee.getFullName() + 
+                                  " (ID: " + employee.getEmployeeID() + ") - not renting");
+            }
 
-// Add HRA only if employee is renting
-TaxDeclaration taxDeclaration = employee.getTaxDeclaration();
-if (taxDeclaration != null && taxDeclaration.getIsRenting() != null && taxDeclaration.getIsRenting()) {
-    // Add fixed HRA to total allowances only if the employee is renting
-    totalAllowances += FIXED_HRA_AMOUNT;
-    
-    System.out.println("Added HRA allowance of ₹" + FIXED_HRA_AMOUNT + " for " + 
-                       employee.getFullName() + " (ID: " + employee.getEmployeeID() + ")");
-} else {
-    System.out.println("No HRA allowance added for " + employee.getFullName() + 
-                      " (ID: " + employee.getEmployeeID() + ") - not renting");
-}
-
-calculation.setAllowances(totalAllowances);
+            calculation.setAllowances(totalAllowances);
             
             // Calculate overtime pay based on THIS employee's attendance records
             double overtimePay = calculateOvertimePay(employee, month, year);
@@ -117,11 +142,35 @@ calculation.setAllowances(totalAllowances);
             double providentFund = calculation.getBasicSalary() * pfPercentage;
             calculation.setProvidentFund(providentFund);
             
-            // 2. Calculate income tax based on taxable HRA
-            // For this implementation, we're just including taxable HRA as part of the income tax calculation
-            // In a full implementation, we would calculate actual income tax based on tax slabs
-            double incomeTax = 0; // Placeholder for actual income tax calculation
-            calculation.setIncomeTax(incomeTax);
+            // 2. Calculate income tax based on the new tax regime (Budget 2025)
+            // Calculate annual gross salary - only annualize basic salary and allowances
+            double annualBasicAndAllowances = (calculation.getBasicSalary() + calculation.getAllowances()) * 12;
+            
+            // Add current month's bonus and overtime - don't multiply these by 12
+            double annualGross = annualBasicAndAllowances + calculation.getBonus() + calculation.getOvertimePay();
+            
+            // Calculate taxable income after standard deduction
+            double taxableIncome = annualGross - STANDARD_DEDUCTION;
+            taxableIncome = Math.max(0, taxableIncome);
+            
+            // Calculate annual income tax
+            double annualIncomeTax = calculateIncomeTax(taxableIncome);
+            
+            // Calculate monthly income tax (divide annual tax by 12)
+            double monthlyIncomeTax = annualIncomeTax / 12;
+            calculation.setIncomeTax(monthlyIncomeTax);
+            
+            // Debug log for tax calculation
+            System.out.println("Income Tax Calculation for " + employee.getFullName() + " (ID: " + employee.getEmployeeID() + ")");
+            System.out.println("  Monthly Basic + Allowances: ₹" + (calculation.getBasicSalary() + calculation.getAllowances()));
+            System.out.println("  Annual Basic + Allowances: ₹" + annualBasicAndAllowances);
+            System.out.println("  Current Month Bonus: ₹" + calculation.getBonus());
+            System.out.println("  Current Month Overtime: ₹" + calculation.getOvertimePay());
+            System.out.println("  Annual Gross: ₹" + annualGross);
+            System.out.println("  Standard Deduction: ₹" + STANDARD_DEDUCTION);
+            System.out.println("  Taxable Income: ₹" + taxableIncome);
+            System.out.println("  Annual Income Tax: ₹" + annualIncomeTax);
+            System.out.println("  Monthly Income Tax: ₹" + monthlyIncomeTax);
             
             // 3. Other deductions (Professional Tax + Medical Insurance + Attendance Deduction) for THIS employee
             double otherDeductions = 0;
@@ -174,106 +223,150 @@ calculation.setAllowances(totalAllowances);
     }
     
     /**
+     * Calculate income tax based on the new tax regime (Budget 2025)
+     * 
+     * @param taxableIncome Annual taxable income after standard deduction
+     * @return Annual income tax amount after rebate
+     */
+    private double calculateIncomeTax(double taxableIncome) {
+        // Special case: No tax for income up to Rs 12,75,000 (Rs 12 lakhs + standard deduction)
+        if (taxableIncome <= REBATE_INCOME_LIMIT) {
+            return 0.0;
+        }
+        
+        double tax = 0.0;
+        double remainingIncome = taxableIncome;
+        
+        // Calculate tax slab by slab
+        for (int i = 0; i < TAX_SLAB_LIMITS.length; i++) {
+            double slabLimit = TAX_SLAB_LIMITS[i];
+            double prevLimit = (i == 0) ? 0 : TAX_SLAB_LIMITS[i - 1];
+            double slabWidth = slabLimit - prevLimit;
+            
+            if (remainingIncome <= 0) {
+                break;
+            }
+            
+            double taxableInThisSlab = Math.min(remainingIncome, slabWidth);
+            tax += taxableInThisSlab * TAX_SLAB_RATES[i];
+            remainingIncome -= taxableInThisSlab;
+        }
+        
+        // If there's still remaining income, tax it at the highest rate
+        if (remainingIncome > 0) {
+            tax += remainingIncome * TAX_SLAB_RATES[TAX_SLAB_RATES.length - 1];
+        }
+        
+        // Calculate rebate u/s 87A
+        double rebate = 0.0;
+        if (taxableIncome <= REBATE_INCOME_LIMIT) {
+            rebate = Math.min(tax, MAX_REBATE_AMOUNT);
+        }
+        
+        // Final tax after rebate
+        tax -= rebate;
+        
+        // Add 4% health and education cess
+        tax += tax * 0.04;
+        
+        return Math.round(tax);
+    }
+    
+    /**
      * Calculate HRA exemption based on Income Tax rules
      * Returns an array where:
      * - index 0 = HRA exemption amount
      * - index 1 = Taxable HRA amount
      */
-    /**
- * Calculate HRA exemption based on Income Tax rules
- * Returns an array where:
- * - index 0 = HRA exemption amount
- * - index 1 = Taxable HRA amount
- */
-private double[] calculateHraExemption(Employee employee, double basicSalary) {
-    double[] result = new double[2];
-    
-    // 1. Actual HRA received (fixed at ₹20,000 as per requirements)
-    double actualHra = FIXED_HRA_AMOUNT;
-    
-    // Get tax declaration to check if employee is renting
-    TaxDeclaration taxDeclaration = employee.getTaxDeclaration();
-    
-    // If employee is not renting or no tax declaration, entire HRA is taxable
-    if (taxDeclaration == null || taxDeclaration.getIsRenting() == null || !taxDeclaration.getIsRenting()) {
-        result[0] = 0.0; // No exemption
-        result[1] = actualHra; // All HRA is taxable
+    private double[] calculateHraExemption(Employee employee, double basicSalary) {
+        double[] result = new double[2];
+        
+        // 1. Actual HRA received (fixed at ₹20,000 as per requirements)
+        double actualHra = FIXED_HRA_AMOUNT;
+        
+        // Get tax declaration to check if employee is renting
+        TaxDeclaration taxDeclaration = employee.getTaxDeclaration();
+        
+        // If employee is not renting or no tax declaration, entire HRA is taxable
+        if (taxDeclaration == null || taxDeclaration.getIsRenting() == null || !taxDeclaration.getIsRenting()) {
+            result[0] = 0.0; // No exemption
+            result[1] = actualHra; // All HRA is taxable
+            
+            // Debug logging
+            System.out.println("HRA Calculation for " + employee.getFullName() + " (ID: " + employee.getEmployeeID() + ")");
+            System.out.println("  Not eligible for HRA exemption (not renting)");
+            System.out.println("  HRA Exemption: ₹0.00");
+            System.out.println("  Taxable HRA: ₹" + actualHra);
+            
+            return result;
+        }
+        
+        // 2. Rent paid minus 10% of Basic Salary
+        Integer monthlyRent = taxDeclaration.getMonthlyRent();
+        if (monthlyRent == null) {
+            monthlyRent = 0;
+        }
+        
+        double rentMinusBasic = monthlyRent - (0.1 * basicSalary);
+        rentMinusBasic = Math.max(0, rentMinusBasic); // Ensure it's not negative
+        
+        // 3. Check if employee lives in a metro city
+        // Get employee's residential city from address
+        String residentialCity = getEmployeeResidentialCity(employee);
+        
+        double salaryPercent;
+        if (isMetroCity(residentialCity)) {
+            // 50% of Basic for metro cities
+            salaryPercent = 0.5 * basicSalary;
+        } else {
+            // 40% of Basic for non-metro cities
+            salaryPercent = 0.4 * basicSalary;
+        }
+        
+        // Calculate minimum of the three values
+        double hraExemption = Math.min(Math.min(actualHra, rentMinusBasic), salaryPercent);
+        
+        // Calculate taxable portion
+        double taxableHra = actualHra - hraExemption;
+        
+        result[0] = hraExemption;
+        result[1] = taxableHra;
         
         // Debug logging
         System.out.println("HRA Calculation for " + employee.getFullName() + " (ID: " + employee.getEmployeeID() + ")");
-        System.out.println("  Not eligible for HRA exemption (not renting)");
-        System.out.println("  HRA Exemption: ₹0.00");
-        System.out.println("  Taxable HRA: ₹" + actualHra);
+        System.out.println("  Basic Salary: ₹" + basicSalary);
+        System.out.println("  Actual HRA: ₹" + actualHra);
+        System.out.println("  Monthly Rent: ₹" + monthlyRent);
+        System.out.println("  Rent - 10% Basic: ₹" + rentMinusBasic);
+        System.out.println("  City: " + residentialCity + " (Metro: " + isMetroCity(residentialCity) + ")");
+        System.out.println("  " + (isMetroCity(residentialCity) ? "50%" : "40%") + " of Basic: ₹" + salaryPercent);
+        System.out.println("  HRA Exemption (min of the three): ₹" + hraExemption);
+        System.out.println("  Taxable HRA: ₹" + taxableHra);
         
         return result;
     }
     
-    // 2. Rent paid minus 10% of Basic Salary
-    Integer monthlyRent = taxDeclaration.getMonthlyRent();
-    if (monthlyRent == null) {
-        monthlyRent = 0;
-    }
-    
-    double rentMinusBasic = monthlyRent - (0.1 * basicSalary);
-    rentMinusBasic = Math.max(0, rentMinusBasic); // Ensure it's not negative
-    
-    // 3. Check if employee lives in a metro city
-    // Get employee's residential city from address
-    String residentialCity = getEmployeeResidentialCity(employee);
-    
-    double salaryPercent;
-    if (isMetroCity(residentialCity)) {
-        // 50% of Basic for metro cities
-        salaryPercent = 0.5 * basicSalary;
-    } else {
-        // 40% of Basic for non-metro cities
-        salaryPercent = 0.4 * basicSalary;
-    }
-    
-    // Calculate minimum of the three values
-    double hraExemption = Math.min(Math.min(actualHra, rentMinusBasic), salaryPercent);
-    
-    // Calculate taxable portion
-    double taxableHra = actualHra - hraExemption;
-    
-    result[0] = hraExemption;
-    result[1] = taxableHra;
-    
-    // Debug logging
-    System.out.println("HRA Calculation for " + employee.getFullName() + " (ID: " + employee.getEmployeeID() + ")");
-    System.out.println("  Basic Salary: ₹" + basicSalary);
-    System.out.println("  Actual HRA: ₹" + actualHra);
-    System.out.println("  Monthly Rent: ₹" + monthlyRent);
-    System.out.println("  Rent - 10% Basic: ₹" + rentMinusBasic);
-    System.out.println("  City: " + residentialCity + " (Metro: " + isMetroCity(residentialCity) + ")");
-    System.out.println("  " + (isMetroCity(residentialCity) ? "50%" : "40%") + " of Basic: ₹" + salaryPercent);
-    System.out.println("  HRA Exemption (min of the three): ₹" + hraExemption);
-    System.out.println("  Taxable HRA: ₹" + taxableHra);
-    
-    return result;
-}
-    
-/**
- * Get employee's residential city from address
- * If not available, default to non-metro
- */
-private String getEmployeeResidentialCity(Employee employee) {
-    // Try to get city from tax declaration rental address
-    TaxDeclaration taxDeclaration = employee.getTaxDeclaration();
-    if (taxDeclaration != null && taxDeclaration.getRentalAddress() != null) {
-        String rentalAddress = taxDeclaration.getRentalAddress().toLowerCase();
-        
-        // Simple check for city names in the address
-        for (String city : METRO_CITIES) {
-            if (rentalAddress.contains(city)) {
-                return city;
+    /**
+     * Get employee's residential city from address
+     * If not available, default to non-metro
+     */
+    private String getEmployeeResidentialCity(Employee employee) {
+        // Try to get city from tax declaration rental address
+        TaxDeclaration taxDeclaration = employee.getTaxDeclaration();
+        if (taxDeclaration != null && taxDeclaration.getRentalAddress() != null) {
+            String rentalAddress = taxDeclaration.getRentalAddress().toLowerCase();
+            
+            // Simple check for city names in the address
+            for (String city : METRO_CITIES) {
+                if (rentalAddress.contains(city)) {
+                    return city;
+                }
             }
         }
+        
+        // Default to non-metro city if we can't determine
+        return "unknown";
     }
-    
-    // Default to non-metro city if we can't determine
-    return "unknown";
-}
     
     /**
      * Check if a city is a metropolitan city for HRA purposes
@@ -299,7 +392,7 @@ private String getEmployeeResidentialCity(Employee employee) {
         if (designation != null) {
             switch (designation.toLowerCase()) {
                 case "software developer":
-                    return 50000.0;
+                    return 200000.0;
                 case "software engineer":
                     return 70000.0;
                 case "senior developer":
@@ -597,5 +690,7 @@ private String getEmployeeResidentialCity(Employee employee) {
             // Return 0 instead of failing the entire calculation
             return 0.0;
         }
+    
     }
+
 }
