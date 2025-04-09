@@ -2,8 +2,11 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Complaint;
 import com.example.demo.model.Employee;
+import com.example.demo.model.SalaryCalculation;
 import com.example.demo.service.ComplaintService;
 import com.example.demo.service.EmployeeService;
+import com.example.demo.service.SalaryCalculationService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +24,7 @@ public class EmployeeViewController {
     private EmployeeService employeeService;
     @Autowired
     private ComplaintService complaintService;
+    @Autowired private SalaryCalculationService salaryCalculationService;
 
     /**
      * Display employee profile page
@@ -148,5 +152,55 @@ public class EmployeeViewController {
             return "redirect:/error";
         }
     }
-   
+
+    /**
+ * Display employee salary page
+ */
+/**
+ * Display employee salary page
+ */
+@GetMapping("/employee/salary")
+public String viewSalary(
+        @RequestParam(value = "month", required = false) Integer month,
+        @RequestParam(value = "year", required = false) Integer year,
+        Model model) {
+    try {
+        // Get logged in user
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        
+        // Get employee details
+        Employee employee = employeeService.findByUsername(username);
+        
+        // If employee is null, redirect to error page
+        if (employee == null) {
+            return "redirect:/error";
+        }
+        
+        // Set default month and year if not provided
+        if (month == null) {
+            month = java.time.LocalDate.now().getMonthValue();
+        }
+        if (year == null) {
+            year = java.time.LocalDate.now().getYear();
+        }
+        
+        // Add employee to model
+        model.addAttribute("employee", employee);
+        model.addAttribute("selectedMonth", month);
+        model.addAttribute("selectedYear", year);
+        
+        // Find salary calculation for this employee for the specified month/year
+        // Use the autowired instance instead of trying to access it statically
+        SalaryCalculation salaryCalc = salaryCalculationService.findByEmployeeAndMonthAndYear(employee, month, year);
+        
+        // Add salary data to model
+        model.addAttribute("salarySlip", salaryCalc);
+        
+        return "employee/salary";
+    } catch (Exception e) {
+        e.printStackTrace();
+        return "redirect:/error";
+    }
+}
 }

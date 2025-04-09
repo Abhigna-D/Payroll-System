@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payslip View - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #f8f9fa;
+            padding: 0.75rem 1.5rem;
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: #0d6efd;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        main {
+            padding-top: 56px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+        }
+        .payslip-container {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .payslip-header {
+            border-bottom: 2px solid #0d6efd;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+        .payslip-footer {
+            border-top: 1px solid #dee2e6;
+            margin-top: 30px;
+            padding-top: 20px;
+            font-size: 0.9rem;
+        }
+        .company-logo {
+            max-height: 60px;
+        }
+        .table-payslip th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        .summary-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .signature-area {
+            margin-top: 50px;
+            border-top: 1px dashed #dee2e6;
+            padding-top: 15px;
+        }
+        @media print {
+            body {
+                background-color: #fff;
+            }
+            .sidebar, .navbar, .no-print {
+                display: none !important;
+            }
+            main {
+                padding-top: 0;
+            }
+            .payslip-container {
+                box-shadow: none;
+                padding: 0;
+            }
+            .container-fluid {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow no-print">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Payroll System</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="dropdown text-end me-3">
+            <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${financeOfficer != null ? financeOfficer.name : 'Finance Officer'}">Finance Officer</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+            </ul>
+        </div>
+    </header>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse no-print">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/dashboard">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/employees">
+                                <i class="bi bi-people"></i> Employee Details
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/finance/payslips">
+                                <i class="bi bi-receipt"></i> Payslips
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/salary-disbursement">
+                                <i class="bi bi-cash-stack"></i> Salary Disbursement
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/salary-calculator">
+                                <i class="bi bi-calculator"></i> Salary Calculator
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom no-print">
+                    <h1 class="h2"><i class="bi bi-receipt me-2 text-primary"></i>Employee Payslip</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+                                <i class="bi bi-printer me-1"></i> Print
+                            </button>
+                            <a th:href="@{/finance/payslips}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-arrow-left me-1"></i> Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="payslip-container">
+                    <!-- Payslip Header -->
+                    <div class="payslip-header">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h2 class="company-name">TechCorp Solutions</h2>
+                                <p class="company-address">
+                                    123 Corporate Park, Tech Avenue<br>
+                                    Bengaluru, Karnataka 560001<br>
+                                    India
+                                </p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <img src="/assets/images/logo.png" alt="Company Logo" class="company-logo">
+                                <h3 class="mt-2">PAYSLIP</h3>
+                                <p th:text="${'For ' + month + ' ' + year}">For April 2025</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payslip Details -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Employee Details</h5>
+                            <table class="table table-bordered table-sm table-payslip">
+                                <tbody>
+                                    <tr>
+                                        <th style="width: 40%">Employee ID</th>
+                                        <td th:text="${employee.employeeID}">EMP001</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Name</th>
+                                        <td th:text="${employee.fullName}">John Doe</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Designation</th>
+                                        <td th:text="${employee.jobTitle}">Software Engineer</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Department</th>
+                                        <td th:text="${employee.department != null ? employee.department.name : 'Not Assigned'}">IT</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Joining Date</th>
+                                        <td th:text="${#temporals.format(employee.joiningDate, 'dd MMM yyyy')}">01 Jan 2023</td>
+                                    </tr>
+                                    <tr>
+                                        <th>PAN Number</th>
+                                        <td th:text="${payslipData.employee.panNumber}">ABCDE1234F</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Payment Details</h5>
+                            <table class="table table-bordered table-sm table-payslip">
+                                <tbody>
+                                    <tr>
+                                        <th style="width: 40%">Payslip Number</th>
+                                        <td th:text="${payslipData.payslipNumber}">PSL-EMP001-2025-04</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Pay Period</th>
+                                        <td th:text="${payslipData.payPeriod}">April 2025</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Pay Date</th>
+                                        <td th:text="${payslipData.payDate}">30 Apr 2025</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Payment Mode</th>
+                                        <td th:text="${payslipData.employee.paymentMode}">Bank Transfer</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Bank Account</th>
+                                        <td th:text="${payslipData.employee.bankAccount}">XXXX-XXXX-1234</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Employment Type</th>
+                                        <td th:text="${payslipData.employee.employeeType}">Full-Time</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Earnings and Deductions -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Earnings</h5>
+                            <table class="table table-bordered table-sm table-payslip">
+                                <thead>
+                                    <tr>
+                                        <th>Description</th>
+                                        <th class="text-end">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Basic Salary</td>
+                                        <td class="text-end" th:text="${payslipData.earnings.basicSalary}">₹50,000.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>House Rent Allowance</td>
+                                        <td class="text-end" th:text="${payslipData.earnings.houseRentAllowance}">₹20,000.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Conveyance Allowance</td>
+                                        <td class="text-end" th:text="${payslipData.earnings.conveyanceAllowance}">₹1,600.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Medical Allowance</td>
+                                        <td class="text-end" th:text="${payslipData.earnings.medicalAllowance}">₹1,250.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Other Allowances</td>
+                                        <td class="text-end" th:text="${payslipData.earnings.otherAllowances}">₹5,000.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Overtime Pay</td>
+                                        <td class="text-end" th:text="${payslipData.earnings.overtimePay}">₹0.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Bonus</td>
+                                        <td class="text-end" th:text="${payslipData.earnings.bonus}">₹0.00</td>
+                                    </tr>
+                                    <tr class="table-success">
+                                        <th>Total Earnings</th>
+                                        <th class="text-end" th:text="${payslipData.earnings.totalEarnings}">₹77,850.00</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Deductions</h5>
+                            <table class="table table-bordered table-sm table-payslip">
+                                <thead>
+                                    <tr>
+                                        <th>Description</th>
+                                        <th class="text-end">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Income Tax</td>
+                                        <td class="text-end" th:text="${payslipData.deductions.incomeTax}">₹5,000.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Provident Fund</td>
+                                        <td class="text-end" th:text="${payslipData.deductions.providentFund}">₹6,000.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Professional Tax</td>
+                                        <td class="text-end" th:text="${payslipData.deductions.professionalTax}">₹200.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Other Deductions</td>
+                                        <td class="text-end" th:text="${payslipData.deductions.otherDeductions}">₹0.00</td>
+                                    </tr>
+                                    <tr class="table-danger">
+                                        <th>Total Deductions</th>
+                                        <th class="text-end" th:text="${payslipData.deductions.totalDeductions}">₹11,200.00</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Summary -->
+                    <div class="summary-box">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5>Net Pay (in words):</h5>
+                                <p th:text="${payslipData.summary.netSalaryInWords}" class="fst-italic">Sixty Six Thousand Six Hundred and Fifty Rupees Only</p>
+                            </div>
+                            <div class="col-md-4">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <th>Gross Salary:</th>
+                                        <td class="text-end" th:text="${payslipData.summary.grossSalary}">₹77,850.00</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Total Deductions:</th>
+                                        <td class="text-end" th:text="${payslipData.summary.totalDeductions}">₹11,200.00</td>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <th>Net Salary:</th>
+                                        <th class="text-end" th:text="${payslipData.summary.netSalary}">₹66,650.00</th>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Signature Area -->
+                    <div class="signature-area">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-5">Employee Signature</p>
+                                <p>_______________________</p>
+                                <p th:text="${employee.fullName}">John Doe</p>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <p class="mb-5">For TechCorp Solutions</p>
+                                <p>_______________________</p>
+                                <p>Authorized Signatory</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payslip Footer -->
+                    <div class="payslip-footer text-center">
+                        <p>This is a computer-generated document and does not require a signature.</p>
+                        <p>For any queries regarding this payslip, please contact: payroll@techcorp.com</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

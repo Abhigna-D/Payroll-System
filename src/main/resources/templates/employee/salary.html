@@ -137,7 +137,7 @@
         </button>
         <div class="dropdown text-end me-3">
             <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-person-circle me-1"></i> <span th:text="${employee != null ? employee.FullName : 'Employee'}">Employee</span>
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${employee != null ? employee.fullName : 'Employee'}">Employee</span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
                 <li><a class="dropdown-item" href="/employee/profile">Profile</a></li>
@@ -188,45 +188,48 @@
                         <button onclick="window.print()" class="btn btn-sm btn-outline-secondary me-2">
                             <i class="bi bi-printer"></i> Print
                         </button>
-                        <div class="btn-group me-2">
-                            <a href="#" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-download"></i> Download PDF
-                            </a>
-                        </div>
+                        
                     </div>
                 </div>
                 
                 <!-- Month/Year Selector -->
                 <div class="row mb-4 no-print">
                     <div class="col-md-4">
-                        <div class="input-group">
-                            <label class="input-group-text" for="salaryMonth">Select Month:</label>
-                            <select class="form-select" id="salaryMonth" name="month">
-                                <option value="1" th:selected="${selectedMonth == 1}">January</option>
-                                <option value="2" th:selected="${selectedMonth == 2}">February</option>
-                                <option value="3" th:selected="${selectedMonth == 3}">March</option>
-                                <option value="4" th:selected="${selectedMonth == 4}">April</option>
-                                <option value="5" th:selected="${selectedMonth == 5}">May</option>
-                                <option value="6" th:selected="${selectedMonth == 6}">June</option>
-                                <option value="7" th:selected="${selectedMonth == 7}">July</option>
-                                <option value="8" th:selected="${selectedMonth == 8}">August</option>
-                                <option value="9" th:selected="${selectedMonth == 9}">September</option>
-                                <option value="10" th:selected="${selectedMonth == 10}">October</option>
-                                <option value="11" th:selected="${selectedMonth == 11}">November</option>
-                                <option value="12" th:selected="${selectedMonth == 12}">December</option>
-                            </select>
-                            <select class="form-select" id="salaryYear" name="year">
-                                <option value="2025" th:selected="${selectedYear == 2025}">2025</option>
-                                <option value="2024" th:selected="${selectedYear == 2024}">2024</option>
-                                <option value="2023" th:selected="${selectedYear == 2023}">2023</option>
-                            </select>
-                            <button class="btn btn-outline-primary" type="button">View</button>
-                        </div>
+                        <form th:action="@{/employee/salary}" method="get">
+                            <div class="input-group">
+                                <label class="input-group-text" for="salaryMonth">Select Month:</label>
+                                <select class="form-select" id="salaryMonth" name="month">
+                                    <option value="1" th:selected="${selectedMonth == 1}">January</option>
+                                    <option value="2" th:selected="${selectedMonth == 2}">February</option>
+                                    <option value="3" th:selected="${selectedMonth == 3}">March</option>
+                                    <option value="4" th:selected="${selectedMonth == 4}">April</option>
+                                    <option value="5" th:selected="${selectedMonth == 5}">May</option>
+                                    <option value="6" th:selected="${selectedMonth == 6}">June</option>
+                                    <option value="7" th:selected="${selectedMonth == 7}">July</option>
+                                    <option value="8" th:selected="${selectedMonth == 8}">August</option>
+                                    <option value="9" th:selected="${selectedMonth == 9}">September</option>
+                                    <option value="10" th:selected="${selectedMonth == 10}">October</option>
+                                    <option value="11" th:selected="${selectedMonth == 11}">November</option>
+                                    <option value="12" th:selected="${selectedMonth == 12}">December</option>
+                                </select>
+                                <select class="form-select" id="salaryYear" name="year">
+                                    <option value="2025" th:selected="${selectedYear == 2025}">2025</option>
+                                    <option value="2024" th:selected="${selectedYear == 2024}">2024</option>
+                                    <option value="2023" th:selected="${selectedYear == 2023}">2023</option>
+                                </select>
+                                <button class="btn btn-outline-primary" type="submit">View</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
                 
+                <!-- Display a message if no salary data is available -->
+                <div class="alert alert-info" th:if="${salarySlip == null}">
+                    <i class="bi bi-info-circle-fill me-2"></i> No salary information available for the selected month and year.
+                </div>
+                
                 <!-- Salary Stats -->
-                <div class="row mb-4">
+                <div class="row mb-4" th:if="${salarySlip != null}">
                     <div class="col-md-3">
                         <div class="stat-card bg-success bg-opacity-10">
                             <p class="stat-value" th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.netSalary, 0, 'COMMA', 0, 'POINT') : '₹0'}">₹50,000</p>
@@ -247,14 +250,14 @@
                     </div>
                     <div class="col-md-3">
                         <div class="stat-card bg-danger bg-opacity-10">
-                            <p class="stat-value" th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.deductions, 0, 'COMMA', 0, 'POINT') : '₹0'}">₹5,000</p>
+                            <p class="stat-value" th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.getTotalDeductions(), 0, 'COMMA', 0, 'POINT') : '₹0'}">₹5,000</p>
                             <p class="stat-label">Deductions</p>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Salary Structure Details -->
-                <div class="row">
+                <div class="row" th:if="${salarySlip != null}">
                     <div class="col-md-6">
                         <div class="card salary-card">
                             <div class="card-header">
@@ -267,15 +270,23 @@
                                 </div>
                                 <div class="salary-component">
                                     <span>House Rent Allowance (HRA)</span>
-                                    <span th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.basicSalary * 0.4, 0, 'COMMA', 0, 'POINT') : '₹0'}">₹14,000</span>
+                                    <span th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.hraExemption > 0 ? salarySlip.hraExemption : (salarySlip.basicSalary * 0.4), 0, 'COMMA', 0, 'POINT') : '₹0'}">₹14,000</span>
                                 </div>
                                 <div class="salary-component">
                                     <span>Special Allowance</span>
-                                    <span th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.allowances - (salarySlip.basicSalary * 0.4), 0, 'COMMA', 0, 'POINT') : '₹0'}">₹6,000</span>
+                                    <span th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.allowances - (salarySlip.hraExemption > 0 ? salarySlip.hraExemption : (salarySlip.basicSalary * 0.4)), 0, 'COMMA', 0, 'POINT') : '₹0'}">₹6,000</span>
+                                </div>
+                                <div class="salary-component" th:if="${salarySlip != null && salarySlip.overtimePay > 0}">
+                                    <span>Overtime Pay</span>
+                                    <span th:text="${'₹' + #numbers.formatDecimal(salarySlip.overtimePay, 0, 'COMMA', 0, 'POINT')}">₹0</span>
+                                </div>
+                                <div class="salary-component" th:if="${salarySlip != null && salarySlip.bonus > 0}">
+                                    <span>Bonus</span>
+                                    <span th:text="${'₹' + #numbers.formatDecimal(salarySlip.bonus, 0, 'COMMA', 0, 'POINT')}">₹0</span>
                                 </div>
                                 <div class="salary-component total">
                                     <span>Total Earnings</span>
-                                    <span th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.basicSalary + salarySlip.allowances, 0, 'COMMA', 0, 'POINT') : '₹0'}">₹55,000</span>
+                                    <span th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.getTotalEarnings(), 0, 'COMMA', 0, 'POINT') : '₹0'}">₹55,000</span>
                                 </div>
                             </div>
                         </div>
@@ -288,19 +299,23 @@
                             <div class="card-body p-0">
                                 <div class="salary-component">
                                     <span>Provident Fund (PF)</span>
-                                    <span th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.basicSalary * 0.12, 0, 'COMMA', 0, 'POINT') : '₹0'}">₹4,200</span>
+                                    <span th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.providentFund, 0, 'COMMA', 0, 'POINT') : '₹0'}">₹4,200</span>
                                 </div>
                                 <div class="salary-component">
                                     <span>Income Tax (TDS)</span>
-                                    <span th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.deductions - (salarySlip.basicSalary * 0.12), 0, 'COMMA', 0, 'POINT') : '₹0'}">₹800</span>
+                                    <span th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.incomeTax, 0, 'COMMA', 0, 'POINT') : '₹0'}">₹800</span>
                                 </div>
                                 <div class="salary-component">
                                     <span>Professional Tax</span>
                                     <span>₹200</span>
                                 </div>
+                                <div class="salary-component" th:if="${salarySlip != null && salarySlip.otherDeductions > 0}">
+                                    <span>Other Deductions</span>
+                                    <span th:text="${'₹' + #numbers.formatDecimal(salarySlip.otherDeductions, 0, 'COMMA', 0, 'POINT')}">₹0</span>
+                                </div>
                                 <div class="salary-component total">
                                     <span>Total Deductions</span>
-                                    <span th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.deductions, 0, 'COMMA', 0, 'POINT') : '₹0'}">₹5,000</span>
+                                    <span th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.getTotalDeductions(), 0, 'COMMA', 0, 'POINT') : '₹0'}">₹5,000</span>
                                 </div>
                             </div>
                         </div>
@@ -308,7 +323,7 @@
                 </div>
                 
                 <!-- Net Salary -->
-                <div class="row mt-4">
+                <div class="row mt-4" th:if="${salarySlip != null}">
                     <div class="col-md-12">
                         <div class="card salary-card">
                             <div class="card-body p-0">
@@ -321,33 +336,10 @@
                     </div>
                 </div>
                 
-                <!-- Payment Information -->
-                <div class="row mt-4 mb-4">
-                    <div class="col-md-12">
-                        <div class="card salary-card">
-                            <div class="card-header">
-                                Payment Information
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <p><strong>Payment Date:</strong> 30 Mar 2025</p>
-                                        <p><strong>Payment Mode:</strong> Bank Transfer</p>
-                                        <p><strong>Employee ID:</strong> <span th:text="${employee != null ? employee.employeeID : ''}">EMP002</span></p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p><strong>Bank Name:</strong> HDFC Bank</p>
-                                        <p><strong>Account Number:</strong> XXXX XXXX 1234</p>
-                                        <p><strong>IFSC Code:</strong> HDFC0001234</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+               
                 
                 <!-- Salary History (Simplified) -->
-                <div class="row mt-4 no-print">
+                <div class="row mt-4 no-print" th:if="${salarySlip != null}">
                     <div class="col-md-12">
                         <h3>Salary History</h3>
                         <div class="card salary-card">
@@ -366,30 +358,20 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            <!-- In a real application, you would populate this from your salary history data -->
                                             <tr>
-                                                <td>March</td>
-                                                <td>2025</td>
-                                                <td>₹35,000</td>
-                                                <td>₹20,000</td>
-                                                <td>₹5,000</td>
-                                                <td>₹50,000</td>
+                                                <td th:text="${T(java.time.Month).of(selectedMonth).getDisplayName(T(java.time.format.TextStyle).FULL, T(java.util.Locale).ENGLISH)}">March</td>
+                                                <td th:text="${selectedYear}">2025</td>
+                                                <td th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.basicSalary, 0, 'COMMA', 0, 'POINT') : '₹0'}">₹35,000</td>
+                                                <td th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.allowances, 0, 'COMMA', 0, 'POINT') : '₹0'}">₹20,000</td>
+                                                <td th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.getTotalDeductions(), 0, 'COMMA', 0, 'POINT') : '₹0'}">₹5,000</td>
+                                                <td th:text="${salarySlip != null ? '₹' + #numbers.formatDecimal(salarySlip.netSalary, 0, 'COMMA', 0, 'POINT') : '₹0'}">₹50,000</td>
                                                 <td>
-                                                    <a href="#" class="btn btn-sm btn-outline-primary">View</a>
-                                                    <a href="#" class="btn btn-sm btn-outline-secondary">Download</a>
+                                                    <a th:href="@{/employee/salary(month=${selectedMonth}, year=${selectedYear})}" class="btn btn-sm btn-outline-primary">View</a>
+                                                   
                                                 </td>
                                             </tr>
-                                            <tr>
-                                                <td>February</td>
-                                                <td>2025</td>
-                                                <td>₹35,000</td>
-                                                <td>₹20,000</td>
-                                                <td>₹5,000</td>
-                                                <td>₹50,000</td>
-                                                <td>
-                                                    <a href="#" class="btn btn-sm btn-outline-primary">View</a>
-                                                    <a href="#" class="btn btn-sm btn-outline-secondary">Download</a>
-                                                </td>
-                                            </tr>
+                                            <!-- Additional rows would be dynamically generated based on salary history -->
                                         </tbody>
                                     </table>
                                 </div>
@@ -402,5 +384,15 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // JavaScript to handle form submission on month/year change
+        document.getElementById('salaryMonth').addEventListener('change', function() {
+            document.querySelector('form').submit();
+        });
+        
+        document.getElementById('salaryYear').addEventListener('change', function() {
+            document.querySelector('form').submit();
+        });
+    </script>
 </body>
 </html>

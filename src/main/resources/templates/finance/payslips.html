@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payslips - Payroll System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #f8f9fa;
+            padding: 0.75rem 1.5rem;
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: #0d6efd;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        main {
+            padding-top: 56px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+        }
+        .filter-card {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .table-finance th, .table-finance td {
+            vertical-align: middle;
+        }
+        .action-column {
+            width: 150px;
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Payroll System</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="dropdown text-end me-3">
+            <a href="#" class="d-block link-light text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i> <span th:text="${financeOfficer != null ? financeOfficer.name : 'Finance Officer'}">Finance Officer</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end text-small" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+            </ul>
+        </div>
+    </header>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/dashboard">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/employees">
+                                <i class="bi bi-people"></i> Employee Details
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/finance/payslips">
+                                <i class="bi bi-receipt"></i> Payslips
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/salary-disbursement">
+                                <i class="bi bi-cash-stack"></i> Salary Disbursement
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/finance/salary-calculator">
+                                <i class="bi bi-calculator"></i> Salary Calculator
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2"><i class="bi bi-receipt me-2 text-primary"></i>Payslips</h1>
+                </div>
+                
+                <div id="alertSection">
+                    <!-- Alerts will be added here -->
+                </div>
+                
+                <!-- Filter Section -->
+                <div class="filter-card mb-4">
+                    <form action="#" id="filterForm">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label for="month" class="form-label">Month</label>
+                                <select class="form-select" id="month" name="month" required th:value="${currentMonth}">
+                                    <option value="" selected disabled>Select Month</option>
+                                    <option value="1">January</option>
+                                    <option value="2">February</option>
+                                    <option value="3">March</option>
+                                    <option value="4">April</option>
+                                    <option value="5">May</option>
+                                    <option value="6">June</option>
+                                    <option value="7">July</option>
+                                    <option value="8">August</option>
+                                    <option value="9">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="year" class="form-label">Year</label>
+                                <select class="form-select" id="year" name="year" required th:value="${currentYear}">
+                                    <option value="" selected disabled>Select Year</option>
+                                    <option value="2023">2023</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2025">2025</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="department" class="form-label">Department (Optional)</label>
+                                <select class="form-select" id="department" name="departmentId">
+                                    <option value="">All Departments</option>
+                                    <option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name}">IT</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" id="filterButton" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-funnel me-1"></i> Filter Employees
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Employee Table -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="fs-5">Employees</span>
+                            <div>
+                                <button id="selectAllBtn" class="btn btn-sm btn-outline-secondary me-2">
+                                    <i class="bi bi-check-all me-1"></i> Select All
+                                </button>
+                                <button id="deselectAllBtn" class="btn btn-sm btn-outline-secondary me-2">
+                                    <i class="bi bi-x-lg me-1"></i> Deselect All
+                                </button>
+                                <button id="generateBulkBtn" class="btn btn-sm btn-success" disabled>
+                                    <i class="bi bi-file-earmark-text me-1"></i> Generate Selected Payslips
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive" id="employeeTable">
+                            <table class="table table-hover table-finance">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px;">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="selectAll">
+                                            </div>
+                                        </th>
+                                        <th>Employee ID</th>
+                                        <th>Name</th>
+                                        <th>Department</th>
+                                        <th>Job Title</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="emp : ${employeesWithStatus}" th:id="'emp-' + ${emp.employee.employeeID}">
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input employee-select" type="checkbox" 
+                                                       th:value="${emp.employee.employeeID}" 
+                                                       >
+                                            </div>
+                                        </td>
+                                        <td th:text="${emp.employee.employeeID}">EMP001</td>
+                                        <td th:text="${emp.employee.fullName}">John Doe</td>
+                                        <td th:text="${emp.employee.department != null ? emp.employee.department.name : 'Not Assigned'}">IT</td>
+                                        <td th:text="${emp.employee.jobTitle}">Software Engineer</td>
+                                       
+                                        <td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a th:href="@{'/finance/payslips/view/' + ${emp.employee.employeeID} + '/' + ${selectedMonth} + '/' + ${selectedYear}}" 
+                                                       class="btn btn-sm btn-outline-primary" title="View Payslip">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <button th:onclick="'generatePayslip(\'' + ${emp.employee.employeeID} + '\', ' + ${selectedMonth} + ', ' + ${selectedYear} + ')'" 
+                                                            class="btn btn-sm btn-outline-success" title="Generate Payslip">
+                                                        <i class="bi bi-file-earmark-text"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${employeesWithStatus == null || employeesWithStatus.empty}">
+                                        <td colspan="7" class="text-center">No employees found</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default month and year values
+            const currentMonth = new Date().getMonth() + 1; // JavaScript months are 0-indexed
+            const currentYear = new Date().getFullYear();
+            
+            document.getElementById('month').value = currentMonth;
+            document.getElementById('year').value = currentYear;
+            
+            // Select All checkbox functionality
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const employeeCheckboxes = document.querySelectorAll('.employee-select:not([disabled])');
+            const generateBulkBtn = document.getElementById('generateBulkBtn');
+            
+            // Select All button
+            document.getElementById('selectAllBtn').addEventListener('click', function() {
+                selectAllCheckbox.checked = true;
+                employeeCheckboxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+                updateGenerateButton();
+            });
+            
+            // Deselect All button
+            document.getElementById('deselectAllBtn').addEventListener('click', function() {
+                selectAllCheckbox.checked = false;
+                employeeCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                updateGenerateButton();
+            });
+            
+            // Select All checkbox
+            selectAllCheckbox?.addEventListener('change', function() {
+                const isChecked = selectAllCheckbox.checked;
+                employeeCheckboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+                updateGenerateButton();
+            });
+            
+            // Individual checkboxes
+            employeeCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateSelectAllCheckbox();
+                    updateGenerateButton();
+                });
+            });
+            
+            // Update select all checkbox state
+            function updateSelectAllCheckbox() {
+                const allChecked = Array.from(employeeCheckboxes).every(checkbox => checkbox.checked);
+                const someChecked = Array.from(employeeCheckboxes).some(checkbox => checkbox.checked);
+                
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.checked = allChecked;
+                    selectAllCheckbox.indeterminate = someChecked && !allChecked;
+                }
+            }
+            
+            // Enable/disable generate button
+            function updateGenerateButton() {
+                const anyChecked = Array.from(employeeCheckboxes).some(checkbox => checkbox.checked);
+                generateBulkBtn.disabled = !anyChecked;
+            }
+            
+            // Filter button functionality
+            document.getElementById('filterButton').addEventListener('click', function() {
+                filterEmployees();
+            });
+            
+            // Generate bulk payslips button
+            document.getElementById('generateBulkBtn').addEventListener('click', function() {
+                generateMultiplePayslips();
+            });
+            
+            // Filter employees function
+            function filterEmployees() {
+                const month = document.getElementById('month').value;
+                const year = document.getElementById('year').value;
+                const department = document.getElementById('department').value;
+                
+                if (!month || !year) {
+                    showAlert('warning', 'Please select both month and year to filter employees');
+                    return;
+                }
+                
+                // Show loading
+                const filterButton = document.getElementById('filterButton');
+                const originalBtnText = filterButton.innerHTML;
+                filterButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Filtering...';
+                filterButton.disabled = true;
+                
+                // Make AJAX call to filter employees
+                fetch(`/finance/payslips/filter?month=${month}&year=${year}&departmentId=${department}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        // Reset button
+                        filterButton.innerHTML = originalBtnText;
+                        filterButton.disabled = false;
+                        
+                        // Update the employee table with the filtered results
+                        document.getElementById('employeeTable').innerHTML = html;
+                        
+                        // Reinitialize checkboxes
+                        initializeCheckboxes();
+                    })
+                    .catch(error => {
+                        // Reset button
+                        filterButton.innerHTML = originalBtnText;
+                        filterButton.disabled = false;
+                        
+                        console.error('Error:', error);
+                        showAlert('danger', 'Error filtering employees. Please try again.');
+                    });
+            }
+            
+            // Initialize checkboxes after filtering
+            function initializeCheckboxes() {
+                const selectAllCheckbox = document.getElementById('selectAll');
+                const employeeCheckboxes = document.querySelectorAll('.employee-select:not([disabled])');
+                
+                // Select All checkbox
+                selectAllCheckbox?.addEventListener('change', function() {
+                    const isChecked = selectAllCheckbox.checked;
+                    employeeCheckboxes.forEach(checkbox => {
+                        checkbox.checked = isChecked;
+                    });
+                    updateGenerateButton();
+                });
+                
+                // Individual checkboxes
+                employeeCheckboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        updateSelectAllCheckbox();
+                        updateGenerateButton();
+                    });
+                });
+                
+                updateGenerateButton();
+            }
+            
+            // Generate single payslip
+            window.generatePayslip = function(employeeId, month, year) {
+                // Show loading using button's icon
+                const button = event.currentTarget;
+                const originalHtml = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+                button.disabled = true;
+                
+                // Make AJAX call to generate payslip
+                fetch(`/finance/payslips/generate/${employeeId}/${month}/${year}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Reset button
+                        button.innerHTML = originalHtml;
+                        button.disabled = false;
+                        
+                        if (data.success) {
+                            showAlert('success', `Payslip for employee ${employeeId} generated successfully`);
+                            
+                            // Redirect to view payslip
+                            if (data.viewUrl) {
+                                window.location.href = data.viewUrl;
+                            }
+                        } else {
+                            showAlert('danger', data.error || 'Failed to generate payslip');
+                        }
+                    })
+                    .catch(error => {
+                        // Reset button
+                        button.innerHTML = originalHtml;
+                        button.disabled = false;
+                        
+                        console.error('Error:', error);
+                        showAlert('danger', 'Error generating payslip. Please try again.');
+                    });
+            };
+            
+            // Generate multiple payslips
+            function generateMultiplePayslips() {
+                const month = document.getElementById('month').value;
+                const year = document.getElementById('year').value;
+                
+                if (!month || !year) {
+                    showAlert('warning', 'Please select both month and year');
+                    return;
+                }
+                
+                // Get selected employees
+                const selectedEmployees = [];
+                document.querySelectorAll('.employee-select:checked').forEach(checkbox => {
+                    selectedEmployees.push(checkbox.value);
+                });
+                
+                if (selectedEmployees.length === 0) {
+                    showAlert('warning', 'Please select at least one employee');
+                    return;
+                }
+                
+                // Show loading
+                const bulkButton = document.getElementById('generateBulkBtn');
+                const originalBtnText = bulkButton.innerHTML;
+                bulkButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Generating...';
+                bulkButton.disabled = true;
+                
+                // Prepare data to send to the server
+                const data = {
+                    month: month,
+                    year: year,
+                    employeeIds: selectedEmployees
+                };
+                
+                // Make AJAX call to generate multiple payslips
+                fetch('/finance/payslips/generate-multiple', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Reset button
+                    bulkButton.innerHTML = originalBtnText;
+                    bulkButton.disabled = false;
+                    
+                    if (data.success) {
+                        let message = `Successfully generated ${data.successCount} payslip(s)`;
+                        
+                        if (data.failureCount > 0) {
+                            message += `, failed to generate ${data.failureCount} payslip(s)`;
+                        }
+                        
+                        showAlert('success', message);
+                        
+                        // If there were failures, show details
+                        if (data.failureCount > 0 && data.failureList) {
+                            const failureMessage = 'Failed for: ' + data.failureList.join(', ');
+                            showAlert('warning', failureMessage);
+                        }
+                        
+                        // Refresh the employee list to update statuses
+                        filterEmployees();
+                    } else {
+                        showAlert('danger', data.error || 'Failed to generate payslips');
+                    }
+                })
+                .catch(error => {
+                    // Reset button
+                    bulkButton.innerHTML = originalBtnText;
+                    bulkButton.disabled = false;
+                    
+                    console.error('Error:', error);
+                    showAlert('danger', 'Error generating payslips. Please try again.');
+                });
+            }
+            
+            // Helper function to show alerts
+            function showAlert(type, message) {
+                const alertSection = document.getElementById('alertSection');
+                const alertId = 'alert-' + Date.now();
+                
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type} alert-dismissible fade show`;
+                alert.id = alertId;
+                alert.innerHTML = `
+                    <i class="bi ${type === 'success' ? 'bi-check-circle' : type === 'warning' ? 'bi-exclamation-triangle' : 'bi-x-circle'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                alertSection.appendChild(alert);
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(() => {
+                    const alertToRemove = document.getElementById(alertId);
+                    if (alertToRemove) {
+                        alertToRemove.remove();
+                    }
+                }, 5000);
+            }
+            
+            // Initialize the page
+            filterEmployees();
+        });
+    </script>
+</body>
+</html>
