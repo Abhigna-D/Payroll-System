@@ -63,65 +63,72 @@ public class PayslipController {
         
         return "finance/payslips";
     }
+    @GetMapping("/api/filter")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> filterEmployeesApi(
+        @RequestParam("month") int month,
+        @RequestParam("year") int year,
+        @RequestParam(value = "departmentId", required = false) String departmentIdStr) {
     
-    @GetMapping("/filter")
-public String filterEmployees(
-    @RequestParam("month") int month,
-    @RequestParam("year") int year,
-    @RequestParam(value = "departmentId", required = false) String departmentIdStr,
-    Model model) {
-
-    try {
-        Long departmentId = null;
-        if (departmentIdStr != null && !departmentIdStr.isEmpty() && !"null".equals(departmentIdStr)) {
-            try {
-                departmentId = Long.parseLong(departmentIdStr);
-            } catch (NumberFormatException e) {
-                System.err.println("Invalid department ID format: " + departmentIdStr);
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            Long departmentId = null;
+            if (departmentIdStr != null && !departmentIdStr.isEmpty() && !"null".equals(departmentIdStr)) {
+                try {
+                    departmentId = Long.parseLong(departmentIdStr);
+                } catch (NumberFormatException e) {
+                    System.err.println("Invalid department ID format: " + departmentIdStr);
+                }
             }
-        }
-    
-        List<Employee> filteredEmployees;
-        if (departmentId != null && departmentId > 0) {
-            filteredEmployees = employeeRepository.findByDepartmentId(departmentId);
-        } else {
-            filteredEmployees = employeeRepository.findAll();
-        }
-    
-        // Create data for all employees, don't check for approval status
-        List<Map<String, Object>> employeesWithStatus = new ArrayList<>();
         
-        for (Employee employee : filteredEmployees) {
-            Map<String, Object> empData = new HashMap<>();
-            empData.put("employee", employee);
+            List<Employee> filteredEmployees;
+            if (departmentId != null && departmentId > 0) {
+                filteredEmployees = employeeRepository.findByDepartmentId(departmentId);
+            } else {
+                filteredEmployees = employeeRepository.findAll();
+            }
+        
+            // Process employees and add to response
+            List<Map<String, Object>> employeesList = new ArrayList<>();
             
-            // Get the salary calculation regardless of status
-            SalaryCalculation salaryCalc = salaryCalculationService.findByEmployeeAndMonthAndYear(employee, month, year);
+            for (Employee employee : filteredEmployees) {
+                Map<String, Object> empData = new HashMap<>();
+                empData.put("id", employee.getEmployeeID());
+                empData.put("name", employee.getFullName());
+                empData.put("department", employee.getDepartment() != null ? employee.getDepartment().getName() : "Not Assigned");
+                empData.put("jobTitle", employee.getJobTitle());
+                
+                // Get the salary calculation regardless of status
+                SalaryCalculation salaryCalc = salaryCalculationService.findByEmployeeAndMonthAndYear(employee, month, year);
+                
+                if (salaryCalc != null) {
+                    empData.put("calcId", salaryCalc.getId());
+                    empData.put("status", salaryCalc.getStatus());
+                    empData.put("basicSalary", salaryCalc.getBasicSalary());
+                    empData.put("netSalary", salaryCalc.getNetSalary());
+                } else {
+                    empData.put("status", "NO_CALCULATION");
+                }
+                
+                employeesList.add(empData);
+            }
             
-            // Always set to true to allow generating payslips without approval check
-            empData.put("hasApprovedCalculation", true);
-            empData.put("salaryCalculation", salaryCalc);
+            // Add data to response
+            response.put("employees", employeesList);
+            response.put("selectedMonth", month);
+            response.put("selectedYear", year);
+            response.put("monthName", Month.of(month).getDisplayName(TextStyle.FULL, Locale.ENGLISH));
+            response.put("success", true);
             
-            employeesWithStatus.add(empData);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("error", "Error filtering employees: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
         }
-        
-        List<Department> departments = departmentRepository.findAll();
-        
-        model.addAttribute("employeesWithStatus", employeesWithStatus);
-        model.addAttribute("departments", departments);
-        model.addAttribute("selectedMonth", month);
-        model.addAttribute("selectedYear", year);
-        model.addAttribute("selectedDepartmentId", departmentId);
-        model.addAttribute("monthName", Month.of(month).getDisplayName(TextStyle.FULL, Locale.ENGLISH));
-        
-        return "finance/payslips :: #employeeTable";
-    } catch (Exception e) {
-        e.printStackTrace();
-        model.addAttribute("error", "Error filtering employees: " + e.getMessage());
-        model.addAttribute("employeesWithStatus", new ArrayList<>());
-        return "finance/payslips :: #employeeTable";
     }
-}
 @GetMapping("/view/{employeeId}/{month}/{year}")
 public String viewPayslip(
         @PathVariable("employeeId") String employeeId,

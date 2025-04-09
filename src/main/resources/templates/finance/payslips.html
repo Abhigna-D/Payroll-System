@@ -126,29 +126,29 @@
                         <div class="row g-3 align-items-end">
                             <div class="col-md-3">
                                 <label for="month" class="form-label">Month</label>
-                                <select class="form-select" id="month" name="month" required th:value="${currentMonth}">
-                                    <option value="" selected disabled>Select Month</option>
-                                    <option value="1">January</option>
-                                    <option value="2">February</option>
-                                    <option value="3">March</option>
-                                    <option value="4">April</option>
-                                    <option value="5">May</option>
-                                    <option value="6">June</option>
-                                    <option value="7">July</option>
-                                    <option value="8">August</option>
-                                    <option value="9">September</option>
-                                    <option value="10">October</option>
-                                    <option value="11">November</option>
-                                    <option value="12">December</option>
+                                <select class="form-select" id="month" name="month" required>
+                                    <option value="" disabled>Select Month</option>
+                                    <option value="1" th:selected="${currentMonth == 1}">January</option>
+                                    <option value="2" th:selected="${currentMonth == 2}">February</option>
+                                    <option value="3" th:selected="${currentMonth == 3}">March</option>
+                                    <option value="4" th:selected="${currentMonth == 4}">April</option>
+                                    <option value="5" th:selected="${currentMonth == 5}">May</option>
+                                    <option value="6" th:selected="${currentMonth == 6}">June</option>
+                                    <option value="7" th:selected="${currentMonth == 7}">July</option>
+                                    <option value="8" th:selected="${currentMonth == 8}">August</option>
+                                    <option value="9" th:selected="${currentMonth == 9}">September</option>
+                                    <option value="10" th:selected="${currentMonth == 10}">October</option>
+                                    <option value="11" th:selected="${currentMonth == 11}">November</option>
+                                    <option value="12" th:selected="${currentMonth == 12}">December</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label for="year" class="form-label">Year</label>
-                                <select class="form-select" id="year" name="year" required th:value="${currentYear}">
-                                    <option value="" selected disabled>Select Year</option>
-                                    <option value="2023">2023</option>
-                                    <option value="2024">2024</option>
-                                    <option value="2025">2025</option>
+                                <select class="form-select" id="year" name="year" required>
+                                    <option value="" disabled>Select Year</option>
+                                    <option value="2023" th:selected="${currentYear == 2023}">2023</option>
+                                    <option value="2024" th:selected="${currentYear == 2024}">2024</option>
+                                    <option value="2025" th:selected="${currentYear == 2025}">2025</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -203,36 +203,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr th:each="emp : ${employeesWithStatus}" th:id="'emp-' + ${emp.employee.employeeID}">
-                                        <td>
-                                            <div class="form-check">
-                                                <input class="form-check-input employee-select" type="checkbox" 
-                                                       th:value="${emp.employee.employeeID}" 
-                                                       >
-                                            </div>
-                                        </td>
-                                        <td th:text="${emp.employee.employeeID}">EMP001</td>
-                                        <td th:text="${emp.employee.fullName}">John Doe</td>
-                                        <td th:text="${emp.employee.department != null ? emp.employee.department.name : 'Not Assigned'}">IT</td>
-                                        <td th:text="${emp.employee.jobTitle}">Software Engineer</td>
-                                       
-                                        <td>
-                                            <td>
-                                                <div class="btn-group" role="group">
-                                                    <a th:href="@{'/finance/payslips/view/' + ${emp.employee.employeeID} + '/' + ${selectedMonth} + '/' + ${selectedYear}}" 
-                                                       class="btn btn-sm btn-outline-primary" title="View Payslip">
-                                                        <i class="bi bi-eye"></i>
-                                                    </a>
-                                                    <button th:onclick="'generatePayslip(\'' + ${emp.employee.employeeID} + '\', ' + ${selectedMonth} + ', ' + ${selectedYear} + ')'" 
-                                                            class="btn btn-sm btn-outline-success" title="Generate Payslip">
-                                                        <i class="bi bi-file-earmark-text"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </td>
-                                    </tr>
-                                    <tr th:if="${employeesWithStatus == null || employeesWithStatus.empty}">
-                                        <td colspan="7" class="text-center">No employees found</td>
+                                    <tr>
+                                        <td colspan="7" class="text-center">No employees found. Please filter to see employees.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -246,69 +218,36 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Set default month and year values
-            const currentMonth = new Date().getMonth() + 1; // JavaScript months are 0-indexed
-            const currentYear = new Date().getFullYear();
+            // Set default month and year values if they are not already set
+            if (!document.getElementById('month').value) {
+                const currentMonth = new Date().getMonth() + 1; // JavaScript months are 0-indexed
+                document.getElementById('month').value = currentMonth;
+            }
             
-            document.getElementById('month').value = currentMonth;
-            document.getElementById('year').value = currentYear;
-            
-            // Select All checkbox functionality
-            const selectAllCheckbox = document.getElementById('selectAll');
-            const employeeCheckboxes = document.querySelectorAll('.employee-select:not([disabled])');
-            const generateBulkBtn = document.getElementById('generateBulkBtn');
+            if (!document.getElementById('year').value) {
+                const currentYear = new Date().getFullYear();
+                document.getElementById('year').value = currentYear;
+            }
             
             // Select All button
             document.getElementById('selectAllBtn').addEventListener('click', function() {
-                selectAllCheckbox.checked = true;
+                const employeeCheckboxes = document.querySelectorAll('.employee-select:not([disabled])');
                 employeeCheckboxes.forEach(checkbox => {
                     checkbox.checked = true;
                 });
+                updateSelectAllCheckbox();
                 updateGenerateButton();
             });
             
             // Deselect All button
             document.getElementById('deselectAllBtn').addEventListener('click', function() {
-                selectAllCheckbox.checked = false;
+                const employeeCheckboxes = document.querySelectorAll('.employee-select:not([disabled])');
                 employeeCheckboxes.forEach(checkbox => {
                     checkbox.checked = false;
                 });
+                updateSelectAllCheckbox();
                 updateGenerateButton();
             });
-            
-            // Select All checkbox
-            selectAllCheckbox?.addEventListener('change', function() {
-                const isChecked = selectAllCheckbox.checked;
-                employeeCheckboxes.forEach(checkbox => {
-                    checkbox.checked = isChecked;
-                });
-                updateGenerateButton();
-            });
-            
-            // Individual checkboxes
-            employeeCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    updateSelectAllCheckbox();
-                    updateGenerateButton();
-                });
-            });
-            
-            // Update select all checkbox state
-            function updateSelectAllCheckbox() {
-                const allChecked = Array.from(employeeCheckboxes).every(checkbox => checkbox.checked);
-                const someChecked = Array.from(employeeCheckboxes).some(checkbox => checkbox.checked);
-                
-                if (selectAllCheckbox) {
-                    selectAllCheckbox.checked = allChecked;
-                    selectAllCheckbox.indeterminate = someChecked && !allChecked;
-                }
-            }
-            
-            // Enable/disable generate button
-            function updateGenerateButton() {
-                const anyChecked = Array.from(employeeCheckboxes).some(checkbox => checkbox.checked);
-                generateBulkBtn.disabled = !anyChecked;
-            }
             
             // Filter button functionality
             document.getElementById('filterButton').addEventListener('click', function() {
@@ -338,32 +277,93 @@
                 filterButton.disabled = true;
                 
                 // Make AJAX call to filter employees
-                fetch(`/finance/payslips/filter?month=${month}&year=${year}&departmentId=${department}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.text();
-                    })
-                    .then(html => {
-                        // Reset button
-                        filterButton.innerHTML = originalBtnText;
-                        filterButton.disabled = false;
-                        
-                        // Update the employee table with the filtered results
-                        document.getElementById('employeeTable').innerHTML = html;
-                        
-                        // Reinitialize checkboxes
-                        initializeCheckboxes();
-                    })
-                    .catch(error => {
-                        // Reset button
-                        filterButton.innerHTML = originalBtnText;
-                        filterButton.disabled = false;
-                        
-                        console.error('Error:', error);
-                        showAlert('danger', 'Error filtering employees. Please try again.');
-                    });
+                fetch(`/finance/payslips/api/filter?month=${month}&year=${year}&departmentId=${department}`, {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Network response was not ok: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Reset button
+                    filterButton.innerHTML = originalBtnText;
+                    filterButton.disabled = false;
+                    
+                    if (!data.success) {
+                        showAlert('danger', data.error || 'Error filtering employees');
+                        return;
+                    }
+                    
+                    // Update the table
+                    updateEmployeeTable(data);
+                    
+                    // Reinitialize checkboxes
+                    initializeCheckboxes();
+                })
+                .catch(error => {
+                    // Reset button
+                    filterButton.innerHTML = originalBtnText;
+                    filterButton.disabled = false;
+                    
+                    console.error('Error:', error);
+                    showAlert('danger', 'Error filtering employees: ' + error.message);
+                });
+            }
+            
+            // Function to update the employee table with the filtered data
+            function updateEmployeeTable(data) {
+                const tbody = document.querySelector('#employeeTable tbody');
+                tbody.innerHTML = '';
+                
+                if (!data.employees || data.employees.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="7" class="text-center">No employees found</td>';
+                    tbody.appendChild(row);
+                    return;
+                }
+                
+                data.employees.forEach(emp => {
+                    const row = document.createElement('tr');
+                    row.id = 'emp-' + emp.id;
+                    
+                    // Status class based on calculation status
+                    const statusClass = emp.status === 'APPROVED' || emp.status === 'PAYSLIP_GENERATED' ? 
+                                      'badge bg-success' : 
+                                      emp.status === 'NO_CALCULATION' ? 'badge bg-secondary' : 'badge bg-warning';
+                    
+                    row.innerHTML = `
+                        <td>
+                            <div class="form-check">
+                                <input class="form-check-input employee-select" type="checkbox" value="${emp.id}">
+                            </div>
+                        </td>
+                        <td>${emp.id}</td>
+                        <td>${emp.name}</td>
+                        <td>${emp.department}</td>
+                        <td>${emp.jobTitle}</td>
+                        <td>
+                            <span class="${statusClass}">${emp.status}</span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="/finance/payslips/view/${emp.id}/${data.selectedMonth}/${data.selectedYear}" 
+                                   class="btn btn-sm btn-outline-primary" title="View Payslip">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <button onclick="generatePayslip('${emp.id}', ${data.selectedMonth}, ${data.selectedYear})" 
+                                        class="btn btn-sm btn-outline-success" title="Generate Payslip">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
             }
             
             // Initialize checkboxes after filtering
@@ -371,39 +371,77 @@
                 const selectAllCheckbox = document.getElementById('selectAll');
                 const employeeCheckboxes = document.querySelectorAll('.employee-select:not([disabled])');
                 
-                // Select All checkbox
-                selectAllCheckbox?.addEventListener('change', function() {
-                    const isChecked = selectAllCheckbox.checked;
-                    employeeCheckboxes.forEach(checkbox => {
-                        checkbox.checked = isChecked;
+                // Clear event listeners before adding new ones to avoid duplicates
+                if (selectAllCheckbox) {
+                    const newSelectAll = selectAllCheckbox.cloneNode(true);
+                    selectAllCheckbox.parentNode.replaceChild(newSelectAll, selectAllCheckbox);
+                    
+                    // Select All checkbox
+                    newSelectAll.addEventListener('change', function() {
+                        const isChecked = newSelectAll.checked;
+                        employeeCheckboxes.forEach(checkbox => {
+                            checkbox.checked = isChecked;
+                        });
+                        updateGenerateButton();
                     });
-                    updateGenerateButton();
-                });
+                }
                 
                 // Individual checkboxes
                 employeeCheckboxes.forEach(checkbox => {
-                    checkbox.addEventListener('change', function() {
+                    // Clone and replace to remove old event listeners
+                    const newCheckbox = checkbox.cloneNode(true);
+                    checkbox.parentNode.replaceChild(newCheckbox, checkbox);
+                    
+                    newCheckbox.addEventListener('change', function() {
                         updateSelectAllCheckbox();
                         updateGenerateButton();
                     });
                 });
                 
+                updateSelectAllCheckbox();
                 updateGenerateButton();
+            }
+            
+            // Update select all checkbox state
+            function updateSelectAllCheckbox() {
+                const selectAllCheckbox = document.getElementById('selectAll');
+                const employeeCheckboxes = document.querySelectorAll('.employee-select:not([disabled])');
+                
+                if (employeeCheckboxes.length === 0) return;
+                
+                const allChecked = Array.from(employeeCheckboxes).every(checkbox => checkbox.checked);
+                const someChecked = Array.from(employeeCheckboxes).some(checkbox => checkbox.checked);
+                
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.checked = allChecked;
+                    selectAllCheckbox.indeterminate = someChecked && !allChecked;
+                }
+            }
+            
+            // Enable/disable generate button
+            function updateGenerateButton() {
+                const generateBulkBtn = document.getElementById('generateBulkBtn');
+                const employeeCheckboxes = document.querySelectorAll('.employee-select:not([disabled])');
+                
+                const anyChecked = Array.from(employeeCheckboxes).some(checkbox => checkbox.checked);
+                generateBulkBtn.disabled = !anyChecked;
             }
             
             // Generate single payslip
             window.generatePayslip = function(employeeId, month, year) {
-                // Show loading using button's icon
+                // Get the button that was clicked
                 const button = event.currentTarget;
                 const originalHtml = button.innerHTML;
                 button.innerHTML = '<i class="bi bi-hourglass-split"></i>';
                 button.disabled = true;
                 
+                console.log(`Generating payslip for: ${employeeId} (Month: ${month}, Year: ${year})`);
+                
                 // Make AJAX call to generate payslip
                 fetch(`/finance/payslips/generate/${employeeId}/${month}/${year}`)
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error('Network response was not ok');
+                            throw new Error(`Network response was not ok: ${response.status}`);
                         }
                         return response.json();
                     })
@@ -429,7 +467,7 @@
                         button.disabled = false;
                         
                         console.error('Error:', error);
-                        showAlert('danger', 'Error generating payslip. Please try again.');
+                        showAlert('danger', 'Error generating payslip: ' + error.message);
                     });
             };
             
