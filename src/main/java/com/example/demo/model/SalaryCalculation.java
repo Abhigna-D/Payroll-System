@@ -73,6 +73,15 @@ public class SalaryCalculation {
     @Column(name = "last_modified_at")
     private LocalDate lastModifiedAt;
 
+    @Column(name = "gross_salary")
+private double grossSalary;
+
+@Column(name = "hra_exemption")
+private double hraExemption;
+
+@Column(name = "taxable_hra")
+private double taxableHra;
+
     // Constructor with essential fields
     public SalaryCalculation(Employee employee, int month, int year) {
         this.employee = employee;

@@ -31,8 +31,7 @@ public class AttendanceController {
     @Autowired
     private OvertimeRequestService overtimeRequestService;
 
-     @Autowired
-    private PartTimeAttendanceService partTimeAttendanceService;
+
 
     /**
      * Display employee attendance page
