@@ -130,13 +130,13 @@ if (taxDeclaration != null) {
         
         switch (jobTitle.toLowerCase()) {
             case "software developer":
-                return 398.0;
+                return 300.0;
             case "software engineer":
-                return 511.0;
+                return 500.0;
             case "senior developer":
-                return 852.0;
+                return 850.0;
             case "tech lead":
-                return 1136.0;
+                return 1130.0;
             default:
                 return 398.0; // Default rate
         }
