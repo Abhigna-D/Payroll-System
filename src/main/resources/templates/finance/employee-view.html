@@ -125,11 +125,7 @@
                             </a>
                         </li>
                         
-                        <li class="nav-item">
-                            <a class="nav-link" href="/finance/salary-disbursement">
-                                <i class="bi bi-cash-stack"></i> Salary Disbursement
-                            </a>
-                        </li>
+                        
                         
                         
                         </li>
@@ -140,12 +136,9 @@
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Employee Profile</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <a href="/finance/employees" class="btn btn-sm btn-outline-secondary me-2">
-                            <i class="bi bi-arrow-left"></i> Back to Employee List
-                        </a>
-                        
-                    </div>
+                    <a href="/finance/employees" class="btn btn-sm btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-left"></i> Back to Employee List
+                    </a>
                 </div>
                 
                 <div th:if="${success}" class="alert alert-success" th:text="${success}">
@@ -190,11 +183,7 @@
                                 </button>
                             </li>
                             
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="salary-tab" data-bs-toggle="tab" data-bs-target="#salary" type="button" role="tab" aria-controls="salary" aria-selected="false">
-                                    <i class="bi bi-cash-stack me-1"></i> Salary Information
-                                </button>
-                            </li>
+                           
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="tax-tab" data-bs-toggle="tab" data-bs-target="#tax" type="button" role="tab" aria-controls="tax" aria-selected="false">
                                     <i class="bi bi-percent me-1"></i> Tax Details
@@ -287,70 +276,7 @@
                             </div>
                             
                             
-                            <!-- Salary Information Tab -->
-                            <div class="tab-pane fade" id="salary" role="tabpanel" aria-labelledby="salary-tab">
-                                <div class="row g-4">
-                                    <div class="col-md-6">
-                                        <div class="card h-100">
-                                            <div class="card-body">
-                                                <h5 class="card-title"><i class="bi bi-cash-stack me-2"></i>Salary Breakdown</h5>
-                                                <hr>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Basic Salary</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.salaryDetails != null ? '₹' + #numbers.formatDecimal(employee.salaryDetails.basicSalary, 0, 'COMMA', 0, 'POINT') : 'Not Available'}">₹60,000</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Allowances</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.salaryDetails != null ? '₹' + #numbers.formatDecimal(employee.salaryDetails.allowances, 0, 'COMMA', 0, 'POINT') : 'Not Available'}">₹15,000</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Deductions</div>
-                                                    <div class="col-md-7 info-value" th:text="${employee.salaryDetails != null ? '₹' + #numbers.formatDecimal(employee.salaryDetails.deductions, 0, 'COMMA', 0, 'POINT') : 'Not Available'}">₹5,000</div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-5 info-label">Net Salary</div>
-                                                    <div class="col-md-7 info-value fw-bold" th:text="${employee.salaryDetails != null ? '₹' + #numbers.formatDecimal(employee.salaryDetails.netSalary, 0, 'COMMA', 0, 'POINT') : 'Not Available'}">₹70,000</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card h-100">
-                                            <div class="card-body">
-                                                <h5 class="card-title"><i class="bi bi-receipt me-2"></i>Recent Payslips</h5>
-                                                <hr>
-                                                <div class="list-group">
-                                                    <a href="#" class="list-group-item list-group-item-action">
-                                                        <div class="d-flex w-100 justify-content-between">
-                                                            <h6 class="mb-1">March 2025</h6>
-                                                            <small>Processed on 28 Mar</small>
-                                                        </div>
-                                                        <p class="mb-1">Net Amount: ₹70,000</p>
-                                                    </a>
-                                                    <a href="#" class="list-group-item list-group-item-action">
-                                                        <div class="d-flex w-100 justify-content-between">
-                                                            <h6 class="mb-1">February 2025</h6>
-                                                            <small>Processed on 28 Feb</small>
-                                                        </div>
-                                                        <p class="mb-1">Net Amount: ₹70,000</p>
-                                                    </a>
-                                                    <a href="#" class="list-group-item list-group-item-action">
-                                                        <div class="d-flex w-100 justify-content-between">
-                                                            <h6 class="mb-1">January 2025</h6>
-                                                            <small>Processed on 30 Jan</small>
-                                                        </div>
-                                                        <p class="mb-1">Net Amount: ₹70,000</p>
-                                                    </a>
-                                                </div>
-                                                <div class="text-center mt-3">
-                                                    <a href="#" class="btn btn-sm btn-outline-primary">View All Payslips</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
+                     
                             <!-- Tax Details Tab -->
 <div class="tab-pane fade" id="tax" role="tabpanel" aria-labelledby="tax-tab">
     <div class="row g-4">
