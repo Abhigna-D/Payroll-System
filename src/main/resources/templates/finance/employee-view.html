@@ -444,37 +444,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-briefcase me-2"></i>Previous Employment Details</h5>
-                    <hr>
-                    <div class="row mb-3">
-                        <div class="col-md-5 info-label">Previous Employment</div>
-                        <div class="col-md-7 info-value" th:text="${employee.taxDeclaration != null && employee.taxDeclaration.hasPreviousEmployment ? 'Yes' : 'No'}">No</div>
-                    </div>
-                    <div th:if="${employee.taxDeclaration != null && employee.taxDeclaration.hasPreviousEmployment}">
-                        <div class="row mb-3">
-                            <div class="col-md-5 info-label">Previous Employer</div>
-                            <div class="col-md-7 info-value" th:text="${employee.taxDeclaration.previousEmployerName}">ABC Corp</div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-5 info-label">Previous Taxable Income</div>
-                            <div class="col-md-7 info-value" th:text="${'₹' + #numbers.formatDecimal(employee.taxDeclaration.previousTaxableIncome, 0, 'COMMA', 0, 'POINT')}">₹450,000</div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-5 info-label">Previous TDS Deducted</div>
-                            <div class="col-md-7 info-value" th:text="${'₹' + #numbers.formatDecimal(employee.taxDeclaration.previousTaxDeducted, 0, 'COMMA', 0, 'POINT')}">₹45,000</div>
-                        </div>
-                    </div>
-                    <div class="row mb-3" th:unless="${employee.taxDeclaration != null && employee.taxDeclaration.hasPreviousEmployment}">
-                        <div class="col-12">
-                            <p class="text-muted">No previous employment details declared for this financial year.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        
+               
         <div class="col-md-6">
             <div class="card h-100">
                 <div class="card-body">

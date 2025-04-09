@@ -172,12 +172,7 @@
                             <p class="stat-label">WFH</p>
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <div class="stat-card bg-secondary bg-opacity-10">
-                            <p class="stat-value" th:text="${daysHalfDay != null ? daysHalfDay : '0'}">0</p>
-                            <p class="stat-label">Half Day</p>
-                        </div>
-                    </div>
+                    
                 </div>
                 
                 <!-- Attendance Table -->
@@ -209,7 +204,7 @@
                                             <span th:if="${record.status != null && record.status.name() == 'ABSENT'}" class="badge bg-danger">Absent</span>
                                             <span th:if="${record.status != null && record.status.name() == 'SICK_LEAVE'}" class="badge bg-warning">Sick Leave</span>
                                             <span th:if="${record.status != null && record.status.name() == 'WORK_FROM_HOME'}" class="badge bg-primary">Work From Home</span>
-                                            <span th:if="${record.status != null && record.status.name() == 'HALF_DAY'}" class="badge bg-secondary">Half Day</span>
+                                            
                                             <span th:if="${record.status == null}">--</span>
                                         </td>
                                     </tr>

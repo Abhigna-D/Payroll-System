@@ -291,37 +291,7 @@
                         </div>
                     </div>
                     
-                    <!-- Previous Employment Section -->
-                    <div class="form-section">
-                        <h3 class="form-section-title"><i class="bi bi-building me-2"></i>Previous Employment (This Financial Year)</h3>
-                        
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="hasPreviousEmployment" name="hasPreviousEmployment" th:checked="${taxDeclaration != null && taxDeclaration.hasPreviousEmployment == true}">
-                            <label class="form-check-label" for="hasPreviousEmployment">
-                                I was employed elsewhere during this financial year
-                            </label>
-                        </div>
-                        
-                        <div id="previousEmploymentSection" th:style="${taxDeclaration != null && taxDeclaration.hasPreviousEmployment == true ? 'display: block;' : 'display: none;'}">
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <label for="previousEmployerName" class="form-label">Previous Employer <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="previousEmployerName" name="previousEmployerName" th:value="${taxDeclaration?.previousEmployerName}">
-                                    <div class="invalid-feedback">Please enter your previous employer's name.</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="previousTaxableIncome" class="form-label">Taxable Income (₹) <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="previousTaxableIncome" name="previousTaxableIncome" th:value="${taxDeclaration?.previousTaxableIncome}">
-                                    <div class="invalid-feedback">Please enter your previous taxable income.</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="previousTaxDeducted" class="form-label">Tax Deducted (TDS) (₹) <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="previousTaxDeducted" name="previousTaxDeducted" th:value="${taxDeclaration?.previousTaxDeducted}">
-                                    <div class="invalid-feedback">Please enter the tax deducted at source.</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                   
                     
 <!-- Replace the problematic sections (from the Medical Insurance section down) with this corrected structure -->
 

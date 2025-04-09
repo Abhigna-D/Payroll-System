@@ -142,11 +142,7 @@ public class TaxDeclarationController {
             taxDeclaration.setHomeLoanBankName(homeLoanBankName);
             taxDeclaration.setHomeLoanInterest(homeLoanInterest != null ? homeLoanInterest : 0);
             
-            // Update previous employment details
-            taxDeclaration.setHasPreviousEmployment(hasPreviousEmployment != null ? hasPreviousEmployment : false);
-            taxDeclaration.setPreviousEmployerName(previousEmployerName);
-            taxDeclaration.setPreviousTaxableIncome(previousTaxableIncome != null ? previousTaxableIncome : 0);
-            taxDeclaration.setPreviousTaxDeducted(previousTaxDeducted != null ? previousTaxDeducted : 0);
+            
             
             // Update health insurance
             taxDeclaration.setMedicalInsurancePlan(medicalInsurancePlan);
@@ -426,10 +422,7 @@ public String updateTaxDeclaration(
         taxDeclaration.setHomeLoanInterest(homeLoanInterest != null ? homeLoanInterest : 0);
         
         // Update previous employment details
-        taxDeclaration.setHasPreviousEmployment(hasPreviousEmployment != null ? hasPreviousEmployment : false);
-        taxDeclaration.setPreviousEmployerName(previousEmployerName);
-        taxDeclaration.setPreviousTaxableIncome(previousTaxableIncome != null ? previousTaxableIncome : 0);
-        taxDeclaration.setPreviousTaxDeducted(previousTaxDeducted != null ? previousTaxDeducted : 0);
+        
         
         // Update health insurance
         taxDeclaration.setMedicalInsurance(medicalInsurance != null ? medicalInsurance : 0);

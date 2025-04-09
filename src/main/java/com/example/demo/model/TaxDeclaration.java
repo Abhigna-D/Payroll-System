@@ -37,13 +37,7 @@ public class TaxDeclaration {
     private String homeLoanAccountNumber;
     private String homeLoanBankName;
     private Integer homeLoanInterest = 0;
-    
-    // Previous Employment Details
-    private Boolean hasPreviousEmployment = false;
-    private String previousEmployerName;
-    private Integer previousTaxableIncome = 0;
-    private Integer previousTaxDeducted = 0;
-    
+   
     // Health Insurance
     private Integer medicalInsurance = 0;
     private String medicalInsurancePlan;
@@ -198,38 +192,7 @@ public class TaxDeclaration {
         this.homeLoanInterest = homeLoanInterest;
     }
 
-    public Boolean getHasPreviousEmployment() {
-        return hasPreviousEmployment;
-    }
-
-    public void setHasPreviousEmployment(Boolean hasPreviousEmployment) {
-        this.hasPreviousEmployment = hasPreviousEmployment;
-    }
-
-    public String getPreviousEmployerName() {
-        return previousEmployerName;
-    }
-
-    public void setPreviousEmployerName(String previousEmployerName) {
-        this.previousEmployerName = previousEmployerName;
-    }
-
-    public Integer getPreviousTaxableIncome() {
-        return previousTaxableIncome;
-    }
-
-    public void setPreviousTaxableIncome(Integer previousTaxableIncome) {
-        this.previousTaxableIncome = previousTaxableIncome;
-    }
-
-    public Integer getPreviousTaxDeducted() {
-        return previousTaxDeducted;
-    }
-
-    public void setPreviousTaxDeducted(Integer previousTaxDeducted) {
-        this.previousTaxDeducted = previousTaxDeducted;
-    }
-
+    
     
 
     public Integer getMedicalInsurance() {

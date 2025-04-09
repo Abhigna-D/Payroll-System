@@ -245,12 +245,7 @@
                                         <h6 class="mt-3">Other Deductions</h6>
                                         <p><strong>Professional Tax:</strong> <span>₹2400 per year (automatically deducted)</span></p>
                                         
-                                        <div th:if="${declaration.hasPreviousEmployment}">
-                                            <h6 class="mt-3">Previous Employment</h6>
-                                            <p><strong>Previous Employer:</strong> <span th:text="${declaration.previousEmployerName != null ? declaration.previousEmployerName : 'Not Provided'}">ABC Technologies</span></p>
-                                            <p><strong>Previous Taxable Income:</strong> <span th:text="${'₹' + #numbers.formatDecimal(declaration.previousTaxableIncome, 0, 'COMMA', 0, 'POINT')}">₹450,000</span></p>
-                                            <p><strong>Previous TDS:</strong> <span th:text="${'₹' + #numbers.formatDecimal(declaration.previousTaxDeducted, 0, 'COMMA', 0, 'POINT')}">₹45,000</span></p>
-                                        </div>
+                                        
                                     </div>
                                 </div>
                             </div>
