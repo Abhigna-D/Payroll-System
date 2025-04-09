@@ -56,8 +56,8 @@ private static final double NEW_REGIME_STANDARD_DEDUCTION = 75000.0;
             "mumbai", "delhi", "kolkata", "chennai", "bangalore", "bengaluru", "hyderabad");
     
     // New Tax Slabs for FY 2025-26 (as per Budget 2025)
-    private static final double[] TAX_SLAB_LIMITS = {
-            400000.0,   // 0% tax up to Rs 4 lakh
+   // private static final double[] TAX_SLAB_LIMITS = {
+     /*       400000.0,   // 0% tax up to Rs 4 lakh
             800000.0,   // 5% tax from Rs 4 lakh to Rs 8 lakh
             1200000.0,  // 10% tax from Rs 8 lakh to Rs 12 lakh
             1600000.0,  // 15% tax from Rs 12 lakh to Rs 16 lakh
@@ -75,7 +75,7 @@ private static final double NEW_REGIME_STANDARD_DEDUCTION = 75000.0;
             0.25,   // 25% tax from Rs 20 lakh to Rs 24 lakh
             0.30    // 30% tax above Rs 24 lakh
     };
-    
+    */
     // Tax rebate under section 87A (as per Budget 2025)
     private static final double MAX_REBATE_AMOUNT = 60000.0;
     private static final double REBATE_INCOME_LIMIT = 1200000.0;
