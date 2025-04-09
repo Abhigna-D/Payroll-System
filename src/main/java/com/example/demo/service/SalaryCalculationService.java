@@ -98,28 +98,62 @@ public class SalaryCalculationService {
         return salaryCalculationRepository.findByStatus(status);
     }
     
+    
     /**
-     * Save a list of salary calculations (approve them)
-     */
-    @Transactional
-    public boolean saveSalaryCalculations(List<Long> calculationIds) {
-        try {
-            // For each calculation ID, fetch the calculation and update its status
-            for (Long id : calculationIds) {
+ * Save a list of salary calculations (approve them)
+ */
+/**
+ * Save a list of salary calculations (approve them)
+ */
+@Transactional
+public boolean saveSalaryCalculations(List<Long> calculationIds) {
+    try {
+        // Log the received calculation IDs
+        System.out.println("Saving salary calculations with IDs: " + calculationIds);
+        
+        if (calculationIds == null || calculationIds.isEmpty()) {
+            System.out.println("No calculation IDs provided");
+            return false;
+        }
+        
+        // For each calculation ID, fetch the calculation and update its status
+        for (Long id : calculationIds) {
+            // Skip null IDs
+            if (id == null) {
+                System.out.println("Skipping null calculation ID");
+                continue;
+            }
+            
+            try {
+                System.out.println("Processing calculation ID: " + id);
                 Optional<SalaryCalculation> calcOpt = salaryCalculationRepository.findById(id);
+                
                 if (calcOpt.isPresent()) {
                     SalaryCalculation calc = calcOpt.get();
+                    System.out.println("Found calculation: " + calc.getId() + " for employee " + 
+                                     (calc.getEmployee() != null ? calc.getEmployee().getEmployeeID() : "unknown"));
+                    
                     calc.setStatus("APPROVED");
                     calc.setLastModifiedAt(LocalDate.now());
                     calc.setLastModifiedBy("Finance Officer"); // In a real app, get from authenticated user
                     salaryCalculationRepository.save(calc);
+                    System.out.println("Calculation saved successfully");
+                } else {
+                    System.out.println("Calculation not found with ID: " + id);
                 }
+            } catch (Exception ex) {
+                // Log the exception but continue processing other IDs
+                System.err.println("Error processing calculation ID " + id + ": " + ex.getMessage());
+                ex.printStackTrace();
+                // Don't rethrow - continue with other IDs
             }
-            return true;
-        } catch (Exception e) {
-            // Log the exception
-            e.printStackTrace();
-            return false;
         }
+        return true;
+    } catch (Exception e) {
+        // Log the exception
+        System.err.println("Error saving salary calculations: " + e.getMessage());
+        e.printStackTrace();
+        return false;
     }
+}
 }

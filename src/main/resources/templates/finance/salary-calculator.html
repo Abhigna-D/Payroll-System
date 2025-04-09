@@ -293,14 +293,8 @@
                             </div>
                             
                             <div class="d-flex justify-content-end gap-2 mt-3">
-                                <button class="btn btn-outline-success">
+                                <button class="btn btn-outline-success" onclick="confirmAndSaveSalaries()">
                                     <i class="bi bi-check-circle me-1"></i> Confirm & Save
-                                </button>
-                                <button class="btn btn-outline-secondary">
-                                    <i class="bi bi-file-earmark-excel me-1"></i> Export to Excel
-                                </button>
-                                <button class="btn btn-outline-primary">
-                                    <i class="bi bi-receipt me-1"></i> Generate Payslips
                                 </button>
                             </div>
                         </div>
@@ -312,290 +306,654 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Select All checkbox functionality
-            const selectAllCheckbox = document.getElementById('selectAll');
-            const employeeCheckboxes = document.querySelectorAll('.employee-select');
-            const calculateBtn = document.getElementById('calculateBtn');
-            
-            // Select All button
-            document.getElementById('selectAllBtn').addEventListener('click', function() {
-                selectAllCheckbox.checked = true;
-                employeeCheckboxes.forEach(checkbox => {
-                    checkbox.checked = true;
-                });
-                updateCalculateButton();
-            });
-            
-            // Deselect All button
-            document.getElementById('deselectAllBtn').addEventListener('click', function() {
-                selectAllCheckbox.checked = false;
-                employeeCheckboxes.forEach(checkbox => {
-                    checkbox.checked = false;
-                });
-                updateCalculateButton();
-            });
-            
-            // Select All checkbox
-            selectAllCheckbox.addEventListener('change', function() {
-                const isChecked = selectAllCheckbox.checked;
-                employeeCheckboxes.forEach(checkbox => {
-                    checkbox.checked = isChecked;
-                });
-                updateCalculateButton();
-            });
-            
-            // Individual checkboxes
-            employeeCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    updateSelectAllCheckbox();
-                    updateCalculateButton();
-                });
-            });
-            
-            // Update select all checkbox state
-            function updateSelectAllCheckbox() {
-                const allChecked = Array.from(employeeCheckboxes).every(checkbox => checkbox.checked);
-                const someChecked = Array.from(employeeCheckboxes).some(checkbox => checkbox.checked);
-                
-                selectAllCheckbox.checked = allChecked;
-                selectAllCheckbox.indeterminate = someChecked && !allChecked;
-            }
-            
-            // Enable/disable calculate button
-            function updateCalculateButton() {
-                const anyChecked = Array.from(employeeCheckboxes).some(checkbox => checkbox.checked);
-                calculateBtn.disabled = !anyChecked;
-            }
-            
-            // Filter button functionality
-            document.getElementById('filterButton').addEventListener('click', function() {
-                // In a real app, this would trigger an AJAX call to refresh the employee list
-                // Here we'll just simulate it with an alert
-                const month = document.getElementById('month').value;
-                const year = document.getElementById('year').value;
-                const department = document.getElementById('department').value;
-                
-                if (!month || !year) {
-                    alert('Please select both month and year to filter employees');
-                    return;
-                }
-                
-                alert(`Filtered for ${getMonthName(month)} ${year}${department ? ' and selected department' : ''}`);
-                // In real implementation, this would refresh the table with filtered employees
-            });
-            
-            // Calculate button functionality
-            calculateBtn.addEventListener('click', function() {
-                const month = document.getElementById('month').value;
-                const year = document.getElementById('year').value;
-                
-                if (!month || !year) {
-                    alert('Please select both month and year before calculating');
-                    return;
-                }
-                
-                // Get selected employees
-                const selectedEmployees = [];
-                employeeCheckboxes.forEach(checkbox => {
-                    if (checkbox.checked) {
-                        selectedEmployees.push(checkbox.value);
-                    }
-                });
-                
-                if (selectedEmployees.length === 0) {
-                    alert('Please select at least one employee');
-                    return;
-                }
-                
-                // In a real app, this would trigger an AJAX call to calculate salaries
-                // Here we'll simulate it by showing the results section with dummy data
-                showDummyResults(month, year, selectedEmployees);
-            });
-            
-            // Helper function to show dummy results
-            function showDummyResults(month, year, employeeIds) {
-                // Set the period in the results section
-                document.getElementById('resultPeriod').textContent = `${getMonthName(month)} ${year}`;
-                
-                // Clear previous results
-                const resultsTableBody = document.getElementById('resultsTableBody');
-                resultsTableBody.innerHTML = '';
-                
-                // Add dummy data for each selected employee
-                employeeIds.forEach(empId => {
-                    const empRow = document.querySelector(`#emp-${empId}`);
-                    if (empRow) {
-                        const empName = empRow.cells[2].textContent;
-                        
-                        // Generate random salary components
-                        const basicSalary = Math.floor(Math.random() * 50000) + 30000;
-                        const allowances = Math.floor(Math.random() * 10000) + 5000;
-                        const overtimePay = Math.floor(Math.random() * 5000); // Added overtime pay
-                        const bonus = Math.floor(Math.random() * 3000); // Added bonus
-                        const deductions = Math.floor(Math.random() * 8000) + 3000;
-                        const netSalary = basicSalary + allowances + overtimePay + bonus - deductions;
-                        
-                        // Create a new row for the results table
-                        const newRow = document.createElement('tr');
-                        newRow.innerHTML = `
-                            <td>${empId}</td>
-                            <td>${empName}</td>
-                            <td>₹${basicSalary.toLocaleString()}</td>
-                            <td>₹${allowances.toLocaleString()}</td>
-                            <td>₹${overtimePay.toLocaleString()}</td>
-                            <td>₹${bonus.toLocaleString()}</td>
-                            <td>₹${deductions.toLocaleString()}</td>
-                            <td><strong>₹${netSalary.toLocaleString()}</strong></td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <button class="btn btn-sm btn-outline-info" title="View Details">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary" title="Edit Calculation">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        `;
-                        resultsTableBody.appendChild(newRow);
-                    }
-                });
-                
-                // Show the results section
-                document.getElementById('resultsSection').style.display = 'block';
-                
-                // Scroll to results
-                document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
-            }
-            
-            // Helper function to get month name
-            function getMonthName(monthNum) {
-                const months = [
-                    'January', 'February', 'March', 'April', 'May', 'June',
-                    'July', 'August', 'September', 'October', 'November', 'December'
-                ];
-                return months[parseInt(monthNum) - 1];
-            }
-            
-            // Calculate button functionality - AJAX version
-            calculateBtn.addEventListener('click', function() {
-                const month = document.getElementById('month').value;
-                const year = document.getElementById('year').value;
-                
-                if (!month || !year) {
-                    alert('Please select both month and year before calculating');
-                    return;
-                }
-                
-                // Get selected employees
-                const selectedEmployees = [];
-                employeeCheckboxes.forEach(checkbox => {
-                    if (checkbox.checked) {
-                        selectedEmployees.push(checkbox.value);
-                    }
-                });
-                
-                if (selectedEmployees.length === 0) {
-                    alert('Please select at least one employee');
-                    return;
-                }
-                
-                // Show loading indicator
-                const calculateBtn = document.getElementById('calculateBtn');
-                const originalBtnText = calculateBtn.innerHTML;
-                calculateBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Calculating...';
-                calculateBtn.disabled = true;
-                
-                // Prepare data to send to the server
-                const data = {
-                    month: month,
-                    year: year,
-                    selectedEmployees: selectedEmployees
-                };
-                
-                // Make AJAX call to the backend
-                fetch('/finance/salary-calculator/calculate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content // Include CSRF token if using Spring Security
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Reset button
-                    calculateBtn.innerHTML = originalBtnText;
-                    calculateBtn.disabled = false;
-                    
-                    if (data.success) {
-                        // Display results
-                        displayCalculationResults(data, month, year);
-                    } else {
-                        // Handle error
-                        alert('Error: ' + (data.error || 'Unknown error occurred'));
-                    }
-                })
-                .catch(error => {
-                    // Reset button
-                    calculateBtn.innerHTML = originalBtnText;
-                    calculateBtn.disabled = false;
-                    
-                    console.error('Error:', error);
-                    alert('Error occurred while calculating salaries. Please try again.');
-                });
-            });
+      // Helper function to get month name (moved outside document ready for global access)
+function getMonthName(monthNum) {
+    const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return months[parseInt(monthNum) - 1];
+}
 
-            // Function to display calculation results from the server
-            function displayCalculationResults(data, month, year) {
-                // Set the period in the results section
-                document.getElementById('resultPeriod').textContent = data.period || `${getMonthName(month)} ${year}`;
-                
-                // Clear previous results
-                const resultsTableBody = document.getElementById('resultsTableBody');
-                resultsTableBody.innerHTML = '';
-                
-                // Add data for each calculation
-                data.calculationResults.forEach(calculation => {
-                    const newRow = document.createElement('tr');
-                    newRow.innerHTML = `
-                        <td>${calculation.employee.employeeID || ''}</td>
-                        <td>${calculation.employee.FullName || ''}</td>
-                        <td>₹${calculation.basicSalary.toLocaleString()}</td>
-                        <td>₹${calculation.allowances.toLocaleString()}</td>
-                        <td>₹${calculation.overtimePay.toLocaleString()}</td>
-                        <td>₹${calculation.bonus.toLocaleString()}</td>
-                        <td>₹${(calculation.incomeTax + calculation.providentFund + calculation.otherDeductions).toLocaleString()}</td>
-                        <td><strong>₹${calculation.netSalary.toLocaleString()}</strong></td>
-                        <td>
-                            <div class="btn-group" role="group">
-                                <button class="btn btn-sm btn-outline-info" title="View Details" 
-                                        onclick="viewCalculationDetails(${calculation.id})">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary" title="Edit Calculation"
-                                        onclick="editCalculation(${calculation.id})">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
+// Global variable to store calculation IDs for saving
+let calculationIds = [];
+
+// Function to handle the "Confirm & Save" button click
+function confirmAndSaveSalaries() {
+    // Check if we have valid calculation IDs
+    if (!calculationIds || calculationIds.length === 0) {
+        alert('No valid calculation IDs to save. Please recalculate salaries.');
+        return;
+    }
+    
+    // Filter out any null or undefined IDs
+    const validIds = calculationIds.filter(id => id != null);
+    
+    if (validIds.length === 0) {
+        alert('No valid calculation IDs to save. Please recalculate salaries.');
+        return;
+    }
+    
+    // Disable the button to prevent multiple clicks
+    const saveButton = document.querySelector('.btn-outline-success');
+    const originalBtnText = saveButton.innerHTML;
+    saveButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Saving...';
+    saveButton.disabled = true;
+    
+    // Prepare data to send to the server
+    const data = {
+        calculationIds: validIds
+    };
+    
+    console.log('Sending calculation IDs:', validIds);
+    
+    // Make AJAX call to save the calculations
+    fetch('/finance/salary-calculator/save', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content // Include CSRF token if using Spring Security
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        // Try to parse JSON even if status is not OK
+        return response.text().then(text => {
+            if (text) {
+                try {
+                    return { ok: response.ok, data: JSON.parse(text) };
+                } catch (e) {
+                    console.error('Failed to parse JSON:', e);
+                    return { ok: response.ok, error: text };
+                }
+            }
+            return { ok: response.ok, error: response.statusText };
+        });
+    })
+    .then(result => {
+        // Reset button
+        saveButton.innerHTML = originalBtnText;
+        saveButton.disabled = false;
+        
+        if (result.ok && result.data && result.data.success) {
+            // Show success message
+            const resultsSection = document.getElementById('resultsSection');
+            const successAlert = document.createElement('div');
+            successAlert.className = 'alert alert-success mt-3';
+            successAlert.innerHTML = '<i class="bi bi-check-circle me-2"></i>' + result.data.message;
+            
+            // Insert the alert at the beginning of the results section
+            resultsSection.insertBefore(successAlert, resultsSection.firstChild);
+            
+            // Remove the alert after 5 seconds
+            setTimeout(() => {
+                successAlert.remove();
+            }, 5000);
+        } else {
+            // Handle error
+            console.error('Server error:', result);
+            let errorMessage = 'Unknown error occurred';
+            
+            if (result.data && result.data.error) {
+                errorMessage = result.data.error;
+            } else if (result.error) {
+                errorMessage = result.error;
+            }
+            
+            alert('Error: ' + errorMessage);
+        }
+    })
+    .catch(error => {
+        // Reset button
+        saveButton.innerHTML = originalBtnText;
+        saveButton.disabled = false;
+        
+        console.error('Error:', error);
+        alert('Error occurred while saving salary calculations: ' + error.message);
+    });
+}
+
+// Function to view calculation details
+function viewCalculationDetails(calculationId) {
+    // Debug
+    console.log('Viewing calculation details for ID:', calculationId);
+    
+    // Check if calculationId is valid
+    if (!calculationId) {
+        alert('Error: Invalid calculation ID');
+        return;
+    }
+    
+    // Create and show a modal for displaying the details
+    let detailsModal = document.getElementById('calculationDetailsModal');
+    
+    // If the modal doesn't exist, create it
+    if (!detailsModal) {
+        const modalHTML = `
+            <div class="modal fade" id="calculationDetailsModal" tabindex="-1" aria-labelledby="calculationDetailsModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" id="calculationDetailsModalLabel">Salary Calculation Details</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="calculationDetailsBody">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading calculation details...</p>
                             </div>
-                        </td>
-                    `;
-                    resultsTableBody.appendChild(newRow);
-                });
-                
-                // Show the results section
-                document.getElementById('resultsSection').style.display = 'block';
-                
-                // Scroll to results
-                document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Append the modal to the body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        detailsModal = document.getElementById('calculationDetailsModal');
+    }
+    
+    // Get the modal body where details will be displayed
+    const modalBody = document.getElementById('calculationDetailsBody');
+    modalBody.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading calculation details...</p>
+        </div>
+    `;
+    
+    // Create a Bootstrap modal instance and show it
+    const modal = new bootstrap.Modal(detailsModal);
+    modal.show();
+    
+    // Fetch the calculation details from the server
+    fetch(`/finance/salary-calculator/details/${calculationId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Render the details in the modal
+                renderCalculationDetails(data.details, modalBody);
+            } else {
+                // Handle error
+                modalBody.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i> 
+                        ${data.error || 'Error retrieving calculation details'}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i> 
+                    Error fetching calculation details: ${error.message}
+                </div>
+            `;
+        });
+}
+
+// Function to render calculation details in the modal
+function renderCalculationDetails(details, modalBody) {
+    const employee = details.employee;
+    const earnings = details.earnings;
+    const deductions = details.deductions;
+    const summary = details.summary;
+    const metadata = details.metadata;
+    
+    // Format date string helper function
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        }).format(date);
+    };
+    
+    // Format currency helper function
+    const formatCurrency = (amount) => {
+        return '₹' + (parseFloat(amount) || 0).toLocaleString('en-IN', {
+            maximumFractionDigits: 2,
+            minimumFractionDigits: 2
+        });
+    };
+    
+    // Create the HTML for the modal content
+    const detailsHTML = `
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">Employee Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Employee ID:</strong> ${employee.employeeID}</p>
+                                <p><strong>Name:</strong> ${employee.name}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Designation:</strong> ${employee.designation}</p>
+                                <p><strong>Department:</strong> ${employee.department}</p>
+                                <p><strong>Employment Type:</strong> ${employee.isPartTime ? 'Part-Time' : 'Full-Time'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">Earnings</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <td>Basic Salary</td>
+                                    <td class="text-end">${formatCurrency(earnings.basicSalary)}</td>
+                                </tr>
+                                <tr>
+                                    <td>Allowances</td>
+                                    <td class="text-end">${formatCurrency(earnings.allowances)}</td>
+                                </tr>
+                                <tr>
+                                    <td>Overtime Pay</td>
+                                    <td class="text-end">${formatCurrency(earnings.overtimePay)}</td>
+                                </tr>
+                                <tr>
+                                    <td>Bonus</td>
+                                    <td class="text-end">${formatCurrency(earnings.bonus)}</td>
+                                </tr>
+                                <tr class="table-success">
+                                    <th>Total Earnings</th>
+                                    <th class="text-end">${formatCurrency(earnings.totalEarnings)}</th>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="card-title mb-0">Deductions</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <td>Income Tax</td>
+                                    <td class="text-end">${formatCurrency(deductions.incomeTax)}</td>
+                                </tr>
+                                <tr>
+                                    <td>Provident Fund</td>
+                                    <td class="text-end">${formatCurrency(deductions.providentFund)}</td>
+                                </tr>
+                                <tr>
+                                    <td>Other Deductions</td>
+                                    <td class="text-end">${formatCurrency(deductions.otherDeductions)}</td>
+                                </tr>
+                                <tr class="table-danger">
+                                    <th>Total Deductions</th>
+                                    <th class="text-end">${formatCurrency(deductions.totalDeductions)}</th>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-12 mb-3">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">Salary Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <p><strong>Pay Period:</strong> ${summary.payPeriod}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>Gross Salary:</strong> ${formatCurrency(summary.grossSalary)}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>Net Salary:</strong> <span class="text-primary fw-bold">${formatCurrency(summary.netSalary)}</span></p>
+                            </div>
+                        </div>
+                        
+                        ${details.hraExemption !== undefined ? `
+                        <div class="mt-3 pt-3 border-top">
+                            <h6>HRA Details</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>HRA Exemption:</strong> ${formatCurrency(details.hraExemption)}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Taxable HRA:</strong> ${formatCurrency(details.taxableHra)}</p>
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-12">
+                <div class="card border-secondary">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="card-title mb-0">Calculation Metadata</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Status:</strong> <span class="badge ${metadata.status === 'APPROVED' ? 'bg-success' : 'bg-warning'}">${metadata.status || 'DRAFT'}</span></p>
+                                <p><strong>Created By:</strong> ${metadata.createdBy || 'System'}</p>
+                                <p><strong>Created At:</strong> ${formatDate(metadata.createdAt)}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Last Modified By:</strong> ${metadata.lastModifiedBy || 'N/A'}</p>
+                                <p><strong>Last Modified At:</strong> ${formatDate(metadata.lastModifiedAt)}</p>
+                                <p><strong>Remarks:</strong> ${metadata.remarks || 'No remarks'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Update the modal content
+    modalBody.innerHTML = detailsHTML;
+}
+
+// Function to display calculation results from the server
+function displayCalculationResults(data, month, year) {
+    // Reset the calculationIds array
+    calculationIds = [];
+    
+    // Debug
+    console.log('Processing calculation results');
+    
+    // Set the period in the results section
+    document.getElementById('resultPeriod').textContent = data.period || `${getMonthName(month)} ${year}`;
+    
+    // Clear previous results
+    const resultsTableBody = document.getElementById('resultsTableBody');
+    resultsTableBody.innerHTML = '';
+    
+    // Add data for each calculation
+    data.calculationResults.forEach(calculation => {
+        // Debug
+        console.log('Processing calculation:', calculation);
+        
+        // Store the calculation ID for saving later
+        if (calculation.id) {
+            console.log('Adding calculation ID to save list:', calculation.id);
+            calculationIds.push(calculation.id);
+        } else {
+            console.log('Warning: Calculation has no ID');
+        }
+        
+        const newRow = document.createElement('tr');
+        
+        // Check if calculation ID exists before adding the onclick attribute
+        const viewDetailsButton = calculation.id ? 
+            `<button class="btn btn-sm btn-outline-info" title="View Details" onclick="viewCalculationDetails(${calculation.id})">
+                <i class="bi bi-eye"></i>
+            </button>` : 
+            `<button class="btn btn-sm btn-outline-info" title="View Details" disabled>
+                <i class="bi bi-eye"></i>
+            </button>`;
+        
+        newRow.innerHTML = `
+            <td>${calculation.employee.employeeID || ''}</td>
+            <td>${calculation.employee.FullName || ''}</td>
+            <td>₹${calculation.basicSalary.toLocaleString()}</td>
+            <td>₹${calculation.allowances.toLocaleString()}</td>
+            <td>₹${calculation.overtimePay.toLocaleString()}</td>
+            <td>₹${calculation.bonus.toLocaleString()}</td>
+            <td>₹${(calculation.incomeTax + calculation.providentFund + calculation.otherDeductions).toLocaleString()}</td>
+            <td><strong>₹${calculation.netSalary.toLocaleString()}</strong></td>
+            <td>
+                <div class="btn-group" role="group">
+                    ${viewDetailsButton}
+                </div>
+            </td>
+        `;
+        resultsTableBody.appendChild(newRow);
+    });
+    
+    // Debug
+    console.log('Calculation IDs collected:', calculationIds);
+    
+    // Show the results section
+    document.getElementById('resultsSection').style.display = 'block';
+    
+    // Scroll to results
+    document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Select All checkbox functionality
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const employeeCheckboxes = document.querySelectorAll('.employee-select');
+    const calculateBtn = document.getElementById('calculateBtn');
+    
+    // Select All button
+    document.getElementById('selectAllBtn').addEventListener('click', function() {
+        selectAllCheckbox.checked = true;
+        employeeCheckboxes.forEach(checkbox => {
+            checkbox.checked = true;
+        });
+        updateCalculateButton();
+    });
+    
+    // Deselect All button
+    document.getElementById('deselectAllBtn').addEventListener('click', function() {
+        selectAllCheckbox.checked = false;
+        employeeCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateCalculateButton();
+    });
+    
+    // Select All checkbox
+    selectAllCheckbox.addEventListener('change', function() {
+        const isChecked = selectAllCheckbox.checked;
+        employeeCheckboxes.forEach(checkbox => {
+            checkbox.checked = isChecked;
+        });
+        updateCalculateButton();
+    });
+    
+    // Individual checkboxes
+    employeeCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSelectAllCheckbox();
+            updateCalculateButton();
+        });
+    });
+    
+    // Update select all checkbox state
+    function updateSelectAllCheckbox() {
+        const allChecked = Array.from(employeeCheckboxes).every(checkbox => checkbox.checked);
+        const someChecked = Array.from(employeeCheckboxes).some(checkbox => checkbox.checked);
+        
+        selectAllCheckbox.checked = allChecked;
+        selectAllCheckbox.indeterminate = someChecked && !allChecked;
+    }
+    
+    // Enable/disable calculate button
+    function updateCalculateButton() {
+        const anyChecked = Array.from(employeeCheckboxes).some(checkbox => checkbox.checked);
+        calculateBtn.disabled = !anyChecked;
+    }
+    
+    // Filter button functionality
+    document.getElementById('filterButton').addEventListener('click', function() {
+        // In a real app, this would trigger an AJAX call to refresh the employee list
+        // Here we'll just simulate it with an alert
+        const month = document.getElementById('month').value;
+        const year = document.getElementById('year').value;
+        const department = document.getElementById('department').value;
+        
+        if (!month || !year) {
+            alert('Please select both month and year to filter employees');
+            return;
+        }
+        
+        alert(`Filtered for ${getMonthName(month)} ${year}${department ? ' and selected department' : ''}`);
+        // In real implementation, this would refresh the table with filtered employees
+    });
+    
+    // Calculate button functionality
+    calculateBtn.addEventListener('click', function() {
+        const month = document.getElementById('month').value;
+        const year = document.getElementById('year').value;
+        
+        if (!month || !year) {
+            alert('Please select both month and year before calculating');
+            return;
+        }
+        
+        // Get selected employees
+        const selectedEmployees = [];
+        employeeCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                selectedEmployees.push(checkbox.value);
             }
         });
+        
+        if (selectedEmployees.length === 0) {
+            alert('Please select at least one employee');
+            return;
+        }
+        
+        // Show loading indicator
+        const calculateBtn = document.getElementById('calculateBtn');
+        const originalBtnText = calculateBtn.innerHTML;
+        calculateBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Calculating...';
+        calculateBtn.disabled = true;
+        
+        // Prepare data to send to the server
+        const data = {
+            month: month,
+            year: year,
+            selectedEmployees: selectedEmployees
+        };
+        
+        // Make AJAX call to the backend
+        fetch('/finance/salary-calculator/calculate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content // Include CSRF token if using Spring Security
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Reset button
+            calculateBtn.innerHTML = originalBtnText;
+            calculateBtn.disabled = false;
+            
+            if (data.success) {
+                // Display results
+                displayCalculationResults(data, month, year);
+            } else {
+                // Handle error
+                alert('Error: ' + (data.error || 'Unknown error occurred'));
+            }
+        })
+        .catch(error => {
+            // Reset button
+            calculateBtn.innerHTML = originalBtnText;
+            calculateBtn.disabled = false;
+            
+            console.error('Error:', error);
+            alert('Error occurred while calculating salaries. Please try again.');
+        });
+    });
+    
+    // Helper function to show dummy results (for testing/demo purposes)
+    function showDummyResults(month, year, employeeIds) {
+        // Set the period in the results section
+        document.getElementById('resultPeriod').textContent = `${getMonthName(month)} ${year}`;
+        
+        // Clear previous results
+        const resultsTableBody = document.getElementById('resultsTableBody');
+        resultsTableBody.innerHTML = '';
+        
+        // Add dummy data for each selected employee
+        employeeIds.forEach(empId => {
+            const empRow = document.querySelector(`#emp-${empId}`);
+            if (empRow) {
+                const empName = empRow.cells[2].textContent;
+                
+                // Generate random salary components
+                const basicSalary = Math.floor(Math.random() * 50000) + 30000;
+                const allowances = Math.floor(Math.random() * 10000) + 5000;
+                const overtimePay = Math.floor(Math.random() * 5000); // Added overtime pay
+                const bonus = Math.floor(Math.random() * 3000); // Added bonus
+                const deductions = Math.floor(Math.random() * 8000) + 3000;
+                const netSalary = basicSalary + allowances + overtimePay + bonus - deductions;
+                
+                // Create a new row for the results table
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${empId}</td>
+                    <td>${empName}</td>
+                    <td>₹${basicSalary.toLocaleString()}</td>
+                    <td>₹${allowances.toLocaleString()}</td>
+                    <td>₹${overtimePay.toLocaleString()}</td>
+                    <td>₹${bonus.toLocaleString()}</td>
+                    <td>₹${deductions.toLocaleString()}</td>
+                    <td><strong>₹${netSalary.toLocaleString()}</strong></td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-outline-info" title="View Details">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                resultsTableBody.appendChild(newRow);
+            }
+        });
+        
+        // Show the results section
+        document.getElementById('resultsSection').style.display = 'block';
+        
+        // Scroll to results
+        document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+    }
+});
     </script>
 </body>
 </html>
