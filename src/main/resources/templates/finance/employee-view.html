@@ -204,11 +204,7 @@
                                     <i class="bi bi-percent me-1"></i> Tax Details
                                 </button>
                             </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="bank-tab" data-bs-toggle="tab" data-bs-target="#bank" type="button" role="tab" aria-controls="bank" aria-selected="false">
-                                    <i class="bi bi-bank me-1"></i> Bank Account
-                                </button>
-                            </li>
+                            
                         </ul>
                         
                         <div class="tab-content" id="employeeTabContent">
@@ -372,6 +368,14 @@
                         <div class="col-md-7 info-value" th:text="${employee.taxDeclaration != null ? employee.taxDeclaration.pan : 'Not Available'}">ABCDE1234F</div>
                     </div>
                     <div class="row mb-3">
+                        <div class="col-md-5 info-label">Tax Regime</div>
+                        <div class="col-md-7 info-value">
+                            <span class="badge bg-primary" th:if="${employee.taxDeclaration != null && employee.taxDeclaration.taxRegime == 'NEW'}">New Tax Regime</span>
+                            <span class="badge bg-success" th:if="${employee.taxDeclaration != null && employee.taxDeclaration.taxRegime == 'OLD'}">Old Tax Regime</span>
+                            <span class="badge bg-secondary" th:if="${employee.taxDeclaration == null || employee.taxDeclaration.taxRegime == null}">Not Selected</span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
                         <div class="col-md-5 info-label">Professional Tax</div>
                         <div class="col-md-7 info-value" th:text="${employee.taxDeclaration != null ? '₹' + employee.taxDeclaration.professionalTax + '/month' : 'Not Available'}">₹200/month</div>
                     </div>
@@ -396,10 +400,7 @@
                         <div class="col-md-5 info-label">Approval Date</div>
                         <div class="col-md-7 info-value" th:text="${#temporals.format(employee.taxDeclaration.approvalDate, 'dd MMM yyyy')}">20 Mar 2025</div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-md-5 info-label">Total Deductions</div>
-                        <div class="col-md-7 info-value fw-bold" th:text="${employee.taxDeclaration != null ? '₹' + #numbers.formatDecimal(employee.taxDeclaration.calculateTotalDeductions(), 0, 'COMMA', 0, 'POINT') : 'Not Available'}">₹5,000</div>
-                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -509,43 +510,7 @@
     
     
 </div>
-                            <!-- Bank Account Tab -->
-
-        
-        <!-- Bank account from tax declaration - only if different -->
-        <div class="col-md-6" th:if="${employee.taxDeclaration != null 
-            && !#strings.isEmpty(employee.taxDeclaration.bankName)
-            && (employee.bankAccount == null 
-                || !employee.bankAccount.bankName.equals(employee.taxDeclaration.bankName)
-                || !employee.bankAccount.accountNumber.equals(employee.taxDeclaration.accountNumber))}">
-<div class="card h-100">
-<div class="card-body">
-<h5 class="card-title"><i class="bi bi-bank me-2"></i>Tax Declaration Bank Details</h5>
-<hr>
-
-<div class="row mb-3">
-<div class="col-md-5 info-label">Account Holder</div>
-<div class="col-md-7 info-value" th:text="${employee != null ? employee.FullName : 'Not Available'}">Rahul Sharma</div>
-</div>
-
-<div class="row mb-3">
-<div class="col-md-5 info-label">Bank Name</div>
-<div class="col-md-7 info-value" th:text="${employee.taxDeclaration.bankName}">HDFC Bank</div>
-</div>
-<div class="row mb-3">
-<div class="col-md-5 info-label">Account Number</div>
-<div class="col-md-7 info-value" th:text="${employee.taxDeclaration.accountNumber}">XXXX XXXX 5678</div>
-</div>
-<div class="row mb-3">
-<div class="col-md-5 info-label">IFSC Code</div>
-<div class="col-md-7 info-value" th:text="${employee.taxDeclaration.ifscCode}">HDFC0001234</div>
-</div>
-</div>
-</div>
-</div>
-
-</div>
-
+                          
                                             </div>
                                         </div>
                                     </div>

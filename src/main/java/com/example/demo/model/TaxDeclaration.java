@@ -50,6 +50,9 @@ public class TaxDeclaration {
     
     // Professional Tax (Fixed - Monthly)
     private final Integer professionalTax = 2400;
+       
+    // Tax Regime Selection
+    private String taxRegime = "NEW"; // Default to new regime: NEW or OLD
     
     // Status fields
     private String status = "DRAFT"; // DRAFT, PENDING, APPROVED, REJECTED
@@ -227,6 +230,8 @@ public class TaxDeclaration {
         this.previousTaxDeducted = previousTaxDeducted;
     }
 
+    
+
     public Integer getMedicalInsurance() {
         // If a plan is selected, return its value
         if (medicalInsurancePlan != null) {
@@ -253,6 +258,15 @@ public class TaxDeclaration {
     public Integer getProfessionalTax() {
         return professionalTax;
     }
+
+    public String getTaxRegime() {
+        return taxRegime;
+    }
+    
+    public void setTaxRegime(String taxRegime) {
+        this.taxRegime = taxRegime;
+    }
+
 
     public String getStatus() {
         return status;
