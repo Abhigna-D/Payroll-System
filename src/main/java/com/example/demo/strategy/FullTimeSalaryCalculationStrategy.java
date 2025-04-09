@@ -47,8 +47,9 @@ public class FullTimeSalaryCalculationStrategy implements SalaryCalculationStrat
     // Fixed HRA amount as per requirements
     private static final double FIXED_HRA_AMOUNT = 20000.0;
     
-    // Standard deduction for salaried individuals (as per Budget 2025)
-    private static final double STANDARD_DEDUCTION = 75000.0;
+    // Standard deduction amounts for different tax regimes (as per Budget 2025)
+private static final double OLD_REGIME_STANDARD_DEDUCTION = 50000.0;
+private static final double NEW_REGIME_STANDARD_DEDUCTION = 75000.0;
     
     // Metro cities for HRA exemption
     private static final List<String> METRO_CITIES = List.of(
@@ -79,273 +80,539 @@ public class FullTimeSalaryCalculationStrategy implements SalaryCalculationStrat
     private static final double MAX_REBATE_AMOUNT = 60000.0;
     private static final double REBATE_INCOME_LIMIT = 1200000.0;
     
-    @Override
-    public SalaryCalculation calculateSalary(Employee employee, int month, int year) {
-        try {
-            // Create a new salary calculation object for this specific employee
-            SalaryCalculation calculation = new SalaryCalculation(employee, month, year);
-            
-            // Get this employee's salary details
-            SalarySlip salaryDetails = employee.getSalaryDetails();
-            
-            // Set basic salary based on THIS employee's designation/job title
-            double basicSalary = getBasicSalaryForEmployee(employee, salaryDetails);
-            calculation.setBasicSalary(basicSalary);
-            
-            // Calculate HRA exemption and taxable HRA
-            double[] hraDetails = calculateHraExemption(employee, basicSalary);
-            double hraExemption = hraDetails[0];
-            double taxableHra = hraDetails[1];
-            
-            // Store HRA details in calculation if the fields exist
-            try {
-                calculation.setHraExemption(hraExemption);
-                calculation.setTaxableHra(taxableHra);
-            } catch (Exception e) {
-                // If the fields don't exist, just log it
-                System.out.println("Note: HRA exemption fields not set, may not exist in model");
-            }
-            
-            // Calculate other allowances for THIS employee
-            double totalAllowances = calculateAllowances(employee, salaryDetails, basicSalary);
-
-            // Add HRA only if employee is renting
-            TaxDeclaration taxDeclaration = employee.getTaxDeclaration();
-            if (taxDeclaration != null && taxDeclaration.getIsRenting() != null && taxDeclaration.getIsRenting()) {
-                // Add fixed HRA to total allowances only if the employee is renting
-                totalAllowances += FIXED_HRA_AMOUNT;
-                
-                System.out.println("Added HRA allowance of ₹" + FIXED_HRA_AMOUNT + " for " + 
-                                   employee.getFullName() + " (ID: " + employee.getEmployeeID() + ")");
-            } else {
-                System.out.println("No HRA allowance added for " + employee.getFullName() + 
-                                  " (ID: " + employee.getEmployeeID() + ") - not renting");
-            }
-
-            calculation.setAllowances(totalAllowances);
-            
-            // Calculate overtime pay based on THIS employee's attendance records
-            double overtimePay = calculateOvertimePay(employee, month, year);
-            calculation.setOvertimePay(overtimePay);
-            
-            // Calculate bonus for THIS employee
-            double bonus = calculateBonus(employee, month, year);
-            calculation.setBonus(bonus);
-            
-            // Calculate attendance-based deductions for THIS employee
-            double attendanceDeduction = calculateAttendanceDeduction(employee, month, year, basicSalary);
-            
-            // Calculate deductions for THIS employee
-            
-            // 1. Provident Fund (12% of basic salary)
-            double pfPercentage = 0.12; 
-            double providentFund = calculation.getBasicSalary() * pfPercentage;
-            calculation.setProvidentFund(providentFund);
-            
-            // 2. Calculate income tax based on the new tax regime (Budget 2025)
-            // Calculate annual gross salary - only annualize basic salary and allowances
-            double annualBasicAndAllowances = (calculation.getBasicSalary() + calculation.getAllowances()) * 12;
-            
-            // Add current month's bonus and overtime - don't multiply these by 12
-            double annualGross = annualBasicAndAllowances + calculation.getBonus() + calculation.getOvertimePay();
-            
-            // Calculate taxable income after standard deduction
-            double taxableIncome = annualGross - STANDARD_DEDUCTION;
-            taxableIncome = Math.max(0, taxableIncome);
-            
-            // Calculate annual income tax
-            double annualIncomeTax = calculateIncomeTax(taxableIncome);
-            
-            // Calculate monthly income tax (divide annual tax by 12)
-            double monthlyIncomeTax = annualIncomeTax / 12;
-            calculation.setIncomeTax(monthlyIncomeTax);
-            
-            // Debug log for tax calculation
-            System.out.println("Income Tax Calculation for " + employee.getFullName() + " (ID: " + employee.getEmployeeID() + ")");
-            System.out.println("  Monthly Basic + Allowances: ₹" + (calculation.getBasicSalary() + calculation.getAllowances()));
-            System.out.println("  Annual Basic + Allowances: ₹" + annualBasicAndAllowances);
-            System.out.println("  Current Month Bonus: ₹" + calculation.getBonus());
-            System.out.println("  Current Month Overtime: ₹" + calculation.getOvertimePay());
-            System.out.println("  Annual Gross: ₹" + annualGross);
-            System.out.println("  Standard Deduction: ₹" + STANDARD_DEDUCTION);
-            System.out.println("  Taxable Income: ₹" + taxableIncome);
-            System.out.println("  Annual Income Tax: ₹" + annualIncomeTax);
-            System.out.println("  Monthly Income Tax: ₹" + monthlyIncomeTax);
-            
-            // 3. Other deductions (Professional Tax + Medical Insurance + Attendance Deduction) for THIS employee
-            double otherDeductions = 0;
-            
-            // a. Professional Tax (monthly)
-            double professionalTaxMonthly = 200.0; // ₹2400 per year / 12 months
-            otherDeductions += professionalTaxMonthly;
-            
-            // b. Medical Insurance Premium (monthly) from THIS employee's tax declaration
-            taxDeclaration = employee.getTaxDeclaration();
-            if (taxDeclaration != null && taxDeclaration.getMedicalInsurance() != null) {
-                double monthlyMedicalInsurance = taxDeclaration.getMedicalInsurance() / 12.0;
-                otherDeductions += monthlyMedicalInsurance;
-            }
-            
-            // c. Add attendance-based deductions
-            otherDeductions += attendanceDeduction;
-            
-            calculation.setOtherDeductions(otherDeductions);
-            
-            // Calculate net salary
-            // Net Salary = Basic Salary + Bonus + Allowances + Overtime Pay - Total Deductions
-            double totalDeductions = calculation.getProvidentFund() + calculation.getIncomeTax() + calculation.getOtherDeductions();
-            double netSalary = calculation.getBasicSalary() + calculation.getBonus() + calculation.getAllowances() + calculation.getOvertimePay() - totalDeductions;
-            calculation.setNetSalary(netSalary);
-            
-            // Set gross salary for information
-            double grossSalary = calculation.getBasicSalary() + calculation.getAllowances() + calculation.getBonus() + calculation.getOvertimePay();
-            // Set the gross salary if the field exists in the model
-            try {
-                calculation.setGrossSalary(grossSalary);
-            } catch (Exception e) {
-                // If the field doesn't exist, just log it
-                System.out.println("Note: grossSalary field not set, may not exist in model");
-            }
-            
-            // Set audit fields
-            calculation.setCreatedBy("System");
-            calculation.setCreatedAt(LocalDate.now());
-            
-            return calculation;
-        } catch (Exception e) {
-            e.printStackTrace();
-            // Return a default calculation instead of null to avoid NPE
-            SalaryCalculation defaultCalc = new SalaryCalculation(employee, month, year);
-            defaultCalc.setStatus("ERROR");
-            defaultCalc.setRemarks("Error calculating salary: " + e.getMessage());
-            return defaultCalc;
-        }
-    }
+   
     
     /**
-     * Calculate income tax based on the new tax regime (Budget 2025)
-     * 
-     * @param taxableIncome Annual taxable income after standard deduction
-     * @return Annual income tax amount after rebate
-     */
-    private double calculateIncomeTax(double taxableIncome) {
-        // Special case: No tax for income up to Rs 12,75,000 (Rs 12 lakhs + standard deduction)
-        if (taxableIncome <= REBATE_INCOME_LIMIT) {
+ * Calculate income tax based on the selected tax regime
+ * 
+ * @param employee The employee for whom to calculate taxes
+ * @param taxableIncome Annual taxable income after applicable deductions
+ * @return Annual income tax amount
+ */
+private double calculateIncomeTax(Employee employee, double taxableIncome) {
+    // Get the employee's tax declaration
+    TaxDeclaration taxDeclaration = employee.getTaxDeclaration();
+    
+    // Determine which tax regime to use
+    String taxRegime = (taxDeclaration != null && taxDeclaration.getTaxRegime() != null) ? 
+                       taxDeclaration.getTaxRegime() : "NEW"; // Default to new regime
+    
+    // Log which regime is being used
+    System.out.println("Using " + taxRegime + " tax regime for " + employee.getFullName() + " (ID: " + employee.getEmployeeID() + ")");
+    
+    if ("NEW".equals(taxRegime)) {
+        return calculateNewRegimeTax(taxableIncome);
+    } else {
+        return calculateOldRegimeTax(employee, taxableIncome);
+    }
+}
+
+/**
+ * Calculate tax based on the new tax regime (Budget 2025)
+ * Updated to match the specified tax slabs for FY 2025-26
+ */
+private double calculateNewRegimeTax(double taxableIncome) {
+    // Special case: No tax for income up to Rs 12,00,000 due to rebate under Section 87A
+    if (taxableIncome <= REBATE_INCOME_LIMIT) {
+        System.out.println("  Zero tax due to rebate under Section 87A (income <= ₹12,00,000)");
+        return 0.0;
+    }
+    
+    double tax = 0.0;
+    double remainingIncome = taxableIncome;
+    
+    // Tax slabs as per Budget 2025 for FY 2025-26
+    // Up to Rs. 4,00,000 - NIL
+    if (remainingIncome <= 400000.0) {
+        return 0.0;
+    }
+    
+    System.out.println("  New Regime Tax Calculation:");
+    
+    // First slab: Up to Rs. 4,00,000 - NIL
+    System.out.println("  First ₹4,00,000: ₹0 (0%)");
+    remainingIncome -= 400000.0;
+    
+    // Second slab: Rs. 4,00,001 to Rs. 8,00,000 - 5%
+    if (remainingIncome > 0) {
+        double taxableInSlab = Math.min(remainingIncome, 400000.0);
+        double slabTax = taxableInSlab * 0.05;
+        tax += slabTax;
+        remainingIncome -= taxableInSlab;
+        System.out.println("  ₹4,00,001 to ₹8,00,000: ₹" + slabTax + " (5% of ₹" + taxableInSlab + ")");
+    }
+    
+    // Third slab: Rs. 8,00,001 to Rs. 12,00,000 - 10%
+    if (remainingIncome > 0) {
+        double taxableInSlab = Math.min(remainingIncome, 400000.0);
+        double slabTax = taxableInSlab * 0.10;
+        tax += slabTax;
+        remainingIncome -= taxableInSlab;
+        System.out.println("  ₹8,00,001 to ₹12,00,000: ₹" + slabTax + " (10% of ₹" + taxableInSlab + ")");
+    }
+    
+    // Fourth slab: Rs. 12,00,001 to Rs. 16,00,000 - 15%
+    if (remainingIncome > 0) {
+        double taxableInSlab = Math.min(remainingIncome, 400000.0);
+        double slabTax = taxableInSlab * 0.15;
+        tax += slabTax;
+        remainingIncome -= taxableInSlab;
+        System.out.println("  ₹12,00,001 to ₹16,00,000: ₹" + slabTax + " (15% of ₹" + taxableInSlab + ")");
+    }
+    
+    // Fifth slab: Rs. 16,00,001 to Rs. 20,00,000 - 20%
+    if (remainingIncome > 0) {
+        double taxableInSlab = Math.min(remainingIncome, 400000.0);
+        double slabTax = taxableInSlab * 0.20;
+        tax += slabTax;
+        remainingIncome -= taxableInSlab;
+        System.out.println("  ₹16,00,001 to ₹20,00,000: ₹" + slabTax + " (20% of ₹" + taxableInSlab + ")");
+    }
+    
+    // Sixth slab: Rs. 20,00,001 to Rs. 24,00,000 - 25%
+    if (remainingIncome > 0) {
+        double taxableInSlab = Math.min(remainingIncome, 400000.0);
+        double slabTax = taxableInSlab * 0.25;
+        tax += slabTax;
+        remainingIncome -= taxableInSlab;
+        System.out.println("  ₹20,00,001 to ₹24,00,000: ₹" + slabTax + " (25% of ₹" + taxableInSlab + ")");
+    }
+    
+    // Seventh slab: Above Rs. 24,00,000 - 30%
+    if (remainingIncome > 0) {
+        double slabTax = remainingIncome * 0.30;
+        tax += slabTax;
+        System.out.println("  Above ₹24,00,000: ₹" + slabTax + " (30% of ₹" + remainingIncome + ")");
+    }
+    
+    // Calculate rebate u/s 87A (for taxable income above 12 lakhs, this won't apply)
+    double rebate = 0.0;
+    if (taxableIncome <= REBATE_INCOME_LIMIT) {
+        rebate = Math.min(tax, MAX_REBATE_AMOUNT);
+        System.out.println("  Rebate u/s 87A: -₹" + rebate);
+    }
+    
+    // Final tax after rebate
+    tax -= rebate;
+    System.out.println("  Tax after rebate: ₹" + tax);
+    
+    // Calculate surcharge
+    double surcharge = calculateSurcharge(taxableIncome, tax, "NEW");
+    if (surcharge > 0) {
+        System.out.println("  Surcharge: ₹" + surcharge);
+    }
+    tax += surcharge;
+    
+    // Add 4% health and education cess
+    double cess = tax * 0.04;
+    System.out.println("  Health & Education Cess (4%): ₹" + cess);
+    tax += cess;
+    
+    System.out.println("  Final Tax: ₹" + Math.round(tax));
+    
+    return Math.round(tax);
+}
+
+/**
+ * Calculate tax based on the old tax regime for FY 2025-26
+ * Updated to match the specified tax slabs
+ */
+private double calculateOldRegimeTax(Employee employee, double taxableIncome) {
+    // Determine age category for old regime tax slabs
+    int ageCategory = getAgeCategoryForTax(employee);
+    String ageGroup = ageCategory == 0 ? "Under 60 years" : (ageCategory == 1 ? "60-80 years" : "Above 80 years");
+    System.out.println("  Age Category: " + ageGroup);
+    
+    // Apply old regime rebate if income <= 5 lakhs (Section 87A)
+    // For FY 2025-26, income up to ₹5,00,000 has zero tax due to rebate
+    if (taxableIncome <= 500000.0) {
+        System.out.println("  Zero tax due to rebate under Section 87A (income <= ₹5,00,000)");
+        return 0.0;
+    }
+    
+    double tax = 0.0;
+    double remainingIncome = taxableIncome;
+    
+    System.out.println("  Old Regime Tax Calculation:");
+    
+    // Apply tax based on age category
+    if (ageCategory == 0) { // Age < 60 years
+        // Up to Rs. 2,50,000 - NIL
+        System.out.println("  First ₹2,50,000: ₹0 (0%)");
+        
+        if (remainingIncome <= 250000.0) {
             return 0.0;
         }
+        remainingIncome -= 250000.0;
         
-        double tax = 0.0;
-        double remainingIncome = taxableIncome;
+        // Rs. 2,50,001 to Rs. 5,00,000 - 5%
+        double taxableInSlab1 = Math.min(remainingIncome, 250000.0);
+        double slab1Tax = taxableInSlab1 * 0.05;
+        tax += slab1Tax;
+        System.out.println("  ₹2,50,001 to ₹5,00,000: ₹" + slab1Tax + " (5% of ₹" + taxableInSlab1 + ")");
+        remainingIncome -= taxableInSlab1;
         
-        // Calculate tax slab by slab
-        for (int i = 0; i < TAX_SLAB_LIMITS.length; i++) {
-            double slabLimit = TAX_SLAB_LIMITS[i];
-            double prevLimit = (i == 0) ? 0 : TAX_SLAB_LIMITS[i - 1];
-            double slabWidth = slabLimit - prevLimit;
-            
-            if (remainingIncome <= 0) {
-                break;
-            }
-            
-            double taxableInThisSlab = Math.min(remainingIncome, slabWidth);
-            tax += taxableInThisSlab * TAX_SLAB_RATES[i];
-            remainingIncome -= taxableInThisSlab;
-        }
-        
-        // If there's still remaining income, tax it at the highest rate
+        // Rs. 5,00,001 to Rs. 10,00,000 - 20%
         if (remainingIncome > 0) {
-            tax += remainingIncome * TAX_SLAB_RATES[TAX_SLAB_RATES.length - 1];
+            double taxableInSlab2 = Math.min(remainingIncome, 500000.0);
+            double slab2Tax = taxableInSlab2 * 0.20;
+            tax += slab2Tax;
+            System.out.println("  ₹5,00,001 to ₹10,00,000: ₹" + slab2Tax + " (20% of ₹" + taxableInSlab2 + ")");
+            remainingIncome -= taxableInSlab2;
+            
+            // Above Rs. 10,00,000 - 30%
+            if (remainingIncome > 0) {
+                double slab3Tax = remainingIncome * 0.30;
+                tax += slab3Tax;
+                System.out.println("  Above ₹10,00,000: ₹" + slab3Tax + " (30% of ₹" + remainingIncome + ")");
+            }
         }
+    } else if (ageCategory == 1) { // Age 60-80 years
+        // Up to Rs. 3,00,000 - NIL
+        System.out.println("  First ₹3,00,000: ₹0 (0%)");
         
-        // Calculate rebate u/s 87A
-        double rebate = 0.0;
-        if (taxableIncome <= REBATE_INCOME_LIMIT) {
-            rebate = Math.min(tax, MAX_REBATE_AMOUNT);
+        if (remainingIncome <= 300000.0) {
+            return 0.0;
         }
+        remainingIncome -= 300000.0;
         
-        // Final tax after rebate
-        tax -= rebate;
+        // Rs. 3,00,001 to Rs. 5,00,000 - 5%
+        double taxableInSlab1 = Math.min(remainingIncome, 200000.0);
+        double slab1Tax = taxableInSlab1 * 0.05;
+        tax += slab1Tax;
+        System.out.println("  ₹3,00,001 to ₹5,00,000: ₹" + slab1Tax + " (5% of ₹" + taxableInSlab1 + ")");
+        remainingIncome -= taxableInSlab1;
         
-        // Add 4% health and education cess
-        tax += tax * 0.04;
+        // Rs. 5,00,001 to Rs. 10,00,000 - 20%
+        if (remainingIncome > 0) {
+            double taxableInSlab2 = Math.min(remainingIncome, 500000.0);
+            double slab2Tax = taxableInSlab2 * 0.20;
+            tax += slab2Tax;
+            System.out.println("  ₹5,00,001 to ₹10,00,000: ₹" + slab2Tax + " (20% of ₹" + taxableInSlab2 + ")");
+            remainingIncome -= taxableInSlab2;
+            
+            // Above Rs. 10,00,000 - 30%
+            if (remainingIncome > 0) {
+                double slab3Tax = remainingIncome * 0.30;
+                tax += slab3Tax;
+                System.out.println("  Above ₹10,00,000: ₹" + slab3Tax + " (30% of ₹" + remainingIncome + ")");
+            }
+        }
+    } else { // Age > 80 years (Super Senior Citizen)
+        // Up to Rs. 5,00,000 - NIL
+        System.out.println("  First ₹5,00,000: ₹0 (0%)");
         
-        return Math.round(tax);
+        if (remainingIncome <= 500000.0) {
+            return 0.0;
+        }
+        remainingIncome -= 500000.0;
+        
+        // Rs. 5,00,001 to Rs. 10,00,000 - 20%
+        double taxableInSlab1 = Math.min(remainingIncome, 500000.0);
+        double slab1Tax = taxableInSlab1 * 0.20;
+        tax += slab1Tax;
+        System.out.println("  ₹5,00,001 to ₹10,00,000: ₹" + slab1Tax + " (20% of ₹" + taxableInSlab1 + ")");
+        remainingIncome -= taxableInSlab1;
+        
+        // Above Rs. 10,00,000 - 30%
+        if (remainingIncome > 0) {
+            double slab2Tax = remainingIncome * 0.30;
+            tax += slab2Tax;
+            System.out.println("  Above ₹10,00,000: ₹" + slab2Tax + " (30% of ₹" + remainingIncome + ")");
+        }
     }
     
-    /**
-     * Calculate HRA exemption based on Income Tax rules
-     * Returns an array where:
-     * - index 0 = HRA exemption amount
-     * - index 1 = Taxable HRA amount
-     */
-    private double[] calculateHraExemption(Employee employee, double basicSalary) {
-        double[] result = new double[2];
-        
-        // 1. Actual HRA received (fixed at ₹20,000 as per requirements)
-        double actualHra = FIXED_HRA_AMOUNT;
-        
-        // Get tax declaration to check if employee is renting
-        TaxDeclaration taxDeclaration = employee.getTaxDeclaration();
-        
-        // If employee is not renting or no tax declaration, entire HRA is taxable
-        if (taxDeclaration == null || taxDeclaration.getIsRenting() == null || !taxDeclaration.getIsRenting()) {
-            result[0] = 0.0; // No exemption
-            result[1] = actualHra; // All HRA is taxable
-            
-            // Debug logging
-            System.out.println("HRA Calculation for " + employee.getFullName() + " (ID: " + employee.getEmployeeID() + ")");
-            System.out.println("  Not eligible for HRA exemption (not renting)");
-            System.out.println("  HRA Exemption: ₹0.00");
-            System.out.println("  Taxable HRA: ₹" + actualHra);
-            
-            return result;
-        }
-        
-        // 2. Rent paid minus 10% of Basic Salary
-        Integer monthlyRent = taxDeclaration.getMonthlyRent();
-        if (monthlyRent == null) {
-            monthlyRent = 0;
-        }
-        
-        double rentMinusBasic = monthlyRent - (0.1 * basicSalary);
-        rentMinusBasic = Math.max(0, rentMinusBasic); // Ensure it's not negative
-        
-        // 3. Check if employee lives in a metro city
-        // Get employee's residential city from address
-        String residentialCity = getEmployeeResidentialCity(employee);
-        
-        double salaryPercent;
-        if (isMetroCity(residentialCity)) {
-            // 50% of Basic for metro cities
-            salaryPercent = 0.5 * basicSalary;
-        } else {
-            // 40% of Basic for non-metro cities
-            salaryPercent = 0.4 * basicSalary;
-        }
-        
-        // Calculate minimum of the three values
-        double hraExemption = Math.min(Math.min(actualHra, rentMinusBasic), salaryPercent);
-        
-        // Calculate taxable portion
-        double taxableHra = actualHra - hraExemption;
-        
-        result[0] = hraExemption;
-        result[1] = taxableHra;
+    System.out.println("  Tax before cess: ₹" + tax);
+    
+    // REMOVE SURCHARGE SECTION - DELETED THE FOLLOWING LINES:
+    // double surcharge = calculateSurcharge(taxableIncome, tax, "OLD");
+    // if (surcharge > 0) {
+    //     System.out.println("  Surcharge: ₹" + surcharge);
+    // }
+    // tax += surcharge;
+    
+    // Add 4% health and education cess
+    double cess = tax * 0.04;
+    System.out.println("  Health & Education Cess (4%): ₹" + cess);
+    tax += cess;
+    
+    System.out.println("  Final Tax: ₹" + Math.round(tax));
+    
+    return Math.round(tax);
+}
+
+/**
+ * Calculate surcharge based on income level
+ * Fixed to correctly apply surcharge thresholds
+ * 
+ * @param taxableIncome Total taxable income
+ * @param tax Basic tax amount before surcharge and cess
+ * @param regime Tax regime ("NEW" or "OLD")
+ * @return Surcharge amount
+ */
+private double calculateSurcharge(double taxableIncome, double tax, String regime) {
+    return  0.0;
+       
+}
+
+
+/**
+ * Updated method to properly calculate and apply HRA exemption for both tax regimes
+ */
+private double[] calculateHraExemption(Employee employee, double basicSalary) {
+    double[] result = new double[2];
+    
+    // 1. Actual HRA received (fixed at ₹20,000 as per requirements)
+    double actualHra = FIXED_HRA_AMOUNT;
+    
+    // Get tax declaration to check if employee is renting
+    TaxDeclaration taxDeclaration = employee.getTaxDeclaration();
+    
+    // If employee is not renting or no tax declaration, entire HRA is taxable
+    if (taxDeclaration == null || taxDeclaration.getIsRenting() == null || !taxDeclaration.getIsRenting()) {
+        result[0] = 0.0; // No exemption
+        result[1] = actualHra; // All HRA is taxable
         
         // Debug logging
         System.out.println("HRA Calculation for " + employee.getFullName() + " (ID: " + employee.getEmployeeID() + ")");
-        System.out.println("  Basic Salary: ₹" + basicSalary);
-        System.out.println("  Actual HRA: ₹" + actualHra);
-        System.out.println("  Monthly Rent: ₹" + monthlyRent);
-        System.out.println("  Rent - 10% Basic: ₹" + rentMinusBasic);
-        System.out.println("  City: " + residentialCity + " (Metro: " + isMetroCity(residentialCity) + ")");
-        System.out.println("  " + (isMetroCity(residentialCity) ? "50%" : "40%") + " of Basic: ₹" + salaryPercent);
-        System.out.println("  HRA Exemption (min of the three): ₹" + hraExemption);
-        System.out.println("  Taxable HRA: ₹" + taxableHra);
+        System.out.println("  Not eligible for HRA exemption (not renting)");
+        System.out.println("  HRA Exemption: ₹0.00");
+        System.out.println("  Taxable HRA: ₹" + actualHra);
         
         return result;
     }
     
+    // 2. Rent paid minus 10% of Basic Salary
+    Integer monthlyRent = taxDeclaration.getMonthlyRent();
+    if (monthlyRent == null) {
+        monthlyRent = 0;
+    }
+    
+    double rentMinusBasic = monthlyRent - (0.1 * basicSalary);
+    rentMinusBasic = Math.max(0, rentMinusBasic); // Ensure it's not negative
+    
+    // 3. Check if employee lives in a metro city
+    // Get employee's residential city from address
+    String residentialCity = getEmployeeResidentialCity(employee);
+    
+    double salaryPercent;
+    if (isMetroCity(residentialCity)) {
+        // 50% of Basic for metro cities
+        salaryPercent = 0.5 * basicSalary;
+    } else {
+        // 40% of Basic for non-metro cities
+        salaryPercent = 0.4 * basicSalary;
+    }
+    
+    // Calculate minimum of the three values
+    double hraExemption = Math.min(Math.min(actualHra, rentMinusBasic), salaryPercent);
+    
+    // Calculate taxable portion
+    double taxableHra = actualHra - hraExemption;
+    
+    result[0] = hraExemption;
+    result[1] = taxableHra;
+    
+    // Debug logging
+    System.out.println("HRA Calculation for " + employee.getFullName() + " (ID: " + employee.getEmployeeID() + ")");
+    System.out.println("  Basic Salary: ₹" + basicSalary);
+    System.out.println("  Actual HRA: ₹" + actualHra);
+    System.out.println("  Monthly Rent: ₹" + monthlyRent);
+    System.out.println("  Rent - 10% Basic: ₹" + rentMinusBasic);
+    System.out.println("  City: " + residentialCity + " (Metro: " + isMetroCity(residentialCity) + ")");
+    System.out.println("  " + (isMetroCity(residentialCity) ? "50%" : "40%") + " of Basic: ₹" + salaryPercent);
+    System.out.println("  HRA Exemption (min of the three): ₹" + hraExemption);
+    System.out.println("  Taxable HRA: ₹" + taxableHra);
+    
+    return result;
+}
+
+@Override
+public SalaryCalculation calculateSalary(Employee employee, int month, int year) {
+    try {
+        // Create a new salary calculation object for this specific employee
+        SalaryCalculation calculation = new SalaryCalculation(employee, month, year);
+        
+        // Get this employee's salary details
+        SalarySlip salaryDetails = employee.getSalaryDetails();
+        
+        // Set basic salary based on THIS employee's designation/job title
+        double basicSalary = getBasicSalaryForEmployee(employee, salaryDetails);
+        calculation.setBasicSalary(basicSalary);
+        
+        // Calculate HRA exemption and taxable HRA
+        double[] hraDetails = calculateHraExemption(employee, basicSalary);
+        double hraExemption = hraDetails[0];
+        double taxableHra = hraDetails[1];
+        
+        // Store HRA details in calculation if the fields exist
+        try {
+            calculation.setHraExemption(hraExemption);
+            calculation.setTaxableHra(taxableHra);
+        } catch (Exception e) {
+            // If the fields don't exist, just log it
+            System.out.println("Note: HRA exemption fields not set, may not exist in model");
+        }
+        
+        // Calculate other allowances for THIS employee
+        double totalAllowances = calculateAllowances(employee, salaryDetails, basicSalary);
+
+        // Add HRA only if employee is renting
+        TaxDeclaration taxDeclaration = employee.getTaxDeclaration();
+        if (taxDeclaration != null && taxDeclaration.getIsRenting() != null && taxDeclaration.getIsRenting()) {
+            // Add fixed HRA to total allowances only if the employee is renting
+            totalAllowances += FIXED_HRA_AMOUNT;
+            
+            System.out.println("Added HRA allowance of ₹" + FIXED_HRA_AMOUNT + " for " + 
+                               employee.getFullName() + " (ID: " + employee.getEmployeeID() + ")");
+        } else {
+            System.out.println("No HRA allowance added for " + employee.getFullName() + 
+                              " (ID: " + employee.getEmployeeID() + ") - not renting");
+        }
+
+        calculation.setAllowances(totalAllowances);
+        
+        // Calculate overtime pay based on THIS employee's attendance records
+        double overtimePay = calculateOvertimePay(employee, month, year);
+        calculation.setOvertimePay(overtimePay);
+        
+        // Calculate bonus for THIS employee
+        double bonus = calculateBonus(employee, month, year);
+        calculation.setBonus(bonus);
+        
+        // Calculate attendance-based deductions for THIS employee
+        double attendanceDeduction = calculateAttendanceDeduction(employee, month, year, basicSalary);
+        
+        // Calculate deductions for THIS employee
+        
+        // 1. Provident Fund (12% of basic salary)
+        double pfPercentage = 0.12; 
+        double providentFund = calculation.getBasicSalary() * pfPercentage;
+        calculation.setProvidentFund(providentFund);
+        
+        // 2. Calculate income tax based on the selected tax regime
+        // Get tax declaration to determine regime
+        String taxRegime = (taxDeclaration != null && taxDeclaration.getTaxRegime() != null) ? 
+                       taxDeclaration.getTaxRegime() : "NEW"; // Default to new regime
+
+        // Calculate annual gross and taxable income based on the regime
+        double annualBasicAndAllowances = (calculation.getBasicSalary() + calculation.getAllowances()) * 12;
+        double annualGross = annualBasicAndAllowances + calculation.getBonus() + calculation.getOvertimePay();
+        double taxableIncome;
+
+        // For new regime, apply standard deduction and calculate
+        if ("NEW".equals(taxRegime)) {
+            // Apply standard deduction for new regime
+            taxableIncome = annualGross - NEW_REGIME_STANDARD_DEDUCTION;
+            taxableIncome = Math.max(0, taxableIncome);
+            
+            System.out.println("  Tax Regime: NEW");
+            System.out.println("  Standard Deduction: ₹" + NEW_REGIME_STANDARD_DEDUCTION);
+        } else {
+            // For old regime, apply more deductions based on tax declaration
+            double totalDeductions = OLD_REGIME_STANDARD_DEDUCTION; // Start with standard deduction
+            
+            // Add HRA exemption for old regime (annual)
+            if (hraExemption > 0) {
+                totalDeductions += hraExemption * 12; // Annual HRA exemption
+                System.out.println("  HRA Exemption (Annual): ₹" + (hraExemption * 12));
+            }
+            
+            // Add 80C deductions (if available in tax declaration)
+            if (taxDeclaration != null) {
+                // Home loan interest deduction under Section 24
+                if (taxDeclaration.getHasHomeLoan() && taxDeclaration.getHomeLoanInterest() != null) {
+                    // Maximum deduction for self-occupied property is 2 lakhs
+                    double homeLoanDeduction = Math.min(taxDeclaration.getHomeLoanInterest(), 200000.0);
+                    totalDeductions += homeLoanDeduction;
+                    System.out.println("  Home Loan Interest Deduction: ₹" + homeLoanDeduction);
+                }
+                
+                // Medical insurance premium under Section 80D
+                if (taxDeclaration.getMedicalInsurance() != null) {
+                    double medicalInsuranceDeduction = Math.min(taxDeclaration.getMedicalInsurance(), 25000.0);
+                    totalDeductions += medicalInsuranceDeduction;
+                    System.out.println("  Medical Insurance Deduction: ₹" + medicalInsuranceDeduction);
+                }
+            }
+            
+            // Print total deductions for old regime
+            System.out.println("  Total Deductions (Old Regime): ₹" + totalDeductions);
+            
+            // Apply deductions to calculate taxable income
+            taxableIncome = annualGross - totalDeductions;
+            taxableIncome = Math.max(0, taxableIncome);
+            
+            System.out.println("  Tax Regime: OLD");
+            System.out.println("  Total Deductions: ₹" + totalDeductions);
+        }
+
+        // Calculate annual income tax using the appropriate tax regime
+        double annualIncomeTax = calculateIncomeTax(employee, taxableIncome);
+        
+        // Calculate monthly income tax (divide annual tax by 12)
+        double monthlyIncomeTax = annualIncomeTax / 12;
+        calculation.setIncomeTax(monthlyIncomeTax);
+        
+        // Debug log for tax calculation
+        System.out.println("Income Tax Calculation for " + employee.getFullName() + " (ID: " + employee.getEmployeeID() + ")");
+        System.out.println("  Tax Regime: " + taxRegime);
+        System.out.println("  Monthly Basic + Allowances: ₹" + (calculation.getBasicSalary() + calculation.getAllowances()));
+        System.out.println("  Annual Basic + Allowances: ₹" + annualBasicAndAllowances);
+        System.out.println("  Current Month Bonus: ₹" + calculation.getBonus());
+        System.out.println("  Current Month Overtime: ₹" + calculation.getOvertimePay());
+        System.out.println("  Annual Gross: ₹" + annualGross);
+        System.out.println("  Taxable Income: ₹" + taxableIncome);
+        System.out.println("  Annual Income Tax: ₹" + annualIncomeTax);
+        System.out.println("  Monthly Income Tax: ₹" + monthlyIncomeTax);
+        
+        // 3. Other deductions (Professional Tax + Medical Insurance + Attendance Deduction) for THIS employee
+        double otherDeductions = 0;
+        
+        // a. Professional Tax (monthly)
+        double professionalTaxMonthly = 200.0; // ₹2400 per year / 12 months
+        otherDeductions += professionalTaxMonthly;
+        
+        // b. Medical Insurance Premium (monthly) from THIS employee's tax declaration
+        if (taxDeclaration != null && taxDeclaration.getMedicalInsurance() != null) {
+            double monthlyMedicalInsurance = taxDeclaration.getMedicalInsurance() / 12.0;
+            otherDeductions += monthlyMedicalInsurance;
+        }
+        
+        // c. Add attendance-based deductions
+        otherDeductions += attendanceDeduction;
+        
+        calculation.setOtherDeductions(otherDeductions);
+        
+        // Calculate net salary
+        // Net Salary = Basic Salary + Bonus + Allowances + Overtime Pay - Total Deductions
+        double totalDeductions = calculation.getProvidentFund() + calculation.getIncomeTax() + calculation.getOtherDeductions();
+        double netSalary = calculation.getBasicSalary() + calculation.getBonus() + calculation.getAllowances() + calculation.getOvertimePay() - totalDeductions;
+        calculation.setNetSalary(netSalary);
+        
+        // Set gross salary for information
+        double grossSalary = calculation.getBasicSalary() + calculation.getAllowances() + calculation.getBonus() + calculation.getOvertimePay();
+        // Set the gross salary if the field exists in the model
+        try {
+            calculation.setGrossSalary(grossSalary);
+        } catch (Exception e) {
+            // If the field doesn't exist, just log it
+            System.out.println("Note: grossSalary field not set, may not exist in model");
+        }
+        
+        // Set audit fields
+        calculation.setCreatedBy("System");
+        calculation.setCreatedAt(LocalDate.now());
+        
+        return calculation;
+    } catch (Exception e) {
+        e.printStackTrace();
+        // Return a default calculation instead of null to avoid NPE
+        SalaryCalculation defaultCalc = new SalaryCalculation(employee, month, year);
+        defaultCalc.setStatus("ERROR");
+        defaultCalc.setRemarks("Error calculating salary: " + e.getMessage());
+        return defaultCalc;
+    }}
     /**
      * Get employee's residential city from address
      * If not available, default to non-metro
@@ -392,7 +659,7 @@ public class FullTimeSalaryCalculationStrategy implements SalaryCalculationStrat
         if (designation != null) {
             switch (designation.toLowerCase()) {
                 case "software developer":
-                    return 200000.0;
+                    return 120000.0;
                 case "software engineer":
                     return 70000.0;
                 case "senior developer":
@@ -690,7 +957,41 @@ public class FullTimeSalaryCalculationStrategy implements SalaryCalculationStrat
             // Return 0 instead of failing the entire calculation
             return 0.0;
         }
-    
     }
-
+    /**
+ * Determine employee's age category for old tax regime
+ * 0 = Under 60 years
+ * 1 = 60-80 years
+ * 2 = Above 80 years
+ */
+private int getAgeCategoryForTax(Employee employee) {
+    int age = 0;
+    
+    if (employee.getDateOfBirth() != null) {
+        // Calculate age as of end of financial year (March 31)
+        LocalDate currentDate = LocalDate.now();
+        int currentYear = currentDate.getYear();
+        int ageAsOfEndOfFY;
+        
+        // Check if we're before or after March 31
+        if (currentDate.getMonthValue() <= 3) {
+            // Before April - use previous year's March 31
+            ageAsOfEndOfFY = currentYear - 1 - employee.getDateOfBirth().getYear();
+        } else {
+            // April onwards - use current year's March 31
+            ageAsOfEndOfFY = currentYear - employee.getDateOfBirth().getYear();
+        }
+        
+        age = ageAsOfEndOfFY;
+    }
+    
+    // Determine age category
+    if (age >= 80) {
+        return 2; // Super Senior Citizen
+    } else if (age >= 60) {
+        return 1; // Senior Citizen
+    } else {
+        return 0; // Normal
+    }
+}
 }
